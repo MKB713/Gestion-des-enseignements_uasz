@@ -15,7 +15,7 @@ import java.util.Optional;
  * Contrôleur proxy pour les pages de gestion des enseignants
  * Redirige les requêtes vers le _enseignantservice
  */
-@Controller
+@RestController
 public class EnseignantProxyController {
 
     @Autowired

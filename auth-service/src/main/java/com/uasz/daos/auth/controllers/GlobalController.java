@@ -1,37 +1,56 @@
 package com.uasz.daos.auth.controllers;
 
 import com.uasz.daos.auth.services.CustomUserDetails;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.ControllerAdvice;
-import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.*;
 
-@ControllerAdvice
-@Controller
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api")
 public class GlobalController {
 
-    @ModelAttribute("currentUser")
-    public CustomUserDetails getCurrentUser() {
+    @GetMapping("/current-user")
+    public ResponseEntity<?> getCurrentUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
         if (auth != null && auth.isAuthenticated()
                 && auth.getPrincipal() instanceof CustomUserDetails userDetails) {
-            return userDetails;  // Utilisateur OU Enseignant
+            return ResponseEntity.ok().body(Map.of(
+                    "user", Map.of(
+                            "id", userDetails.getId(),
+                            "nom", userDetails.getNom(),
+                            "prenom", userDetails.getPrenom(),
+                            "email", userDetails.getUsername(),
+                            "role", userDetails.getRole().name(),
+                            "roleDisplay", userDetails.getRole().getLibelle()
+                    ),
+                    "isAuthenticated", true,
+                    "isAdmin", userDetails.getRole().isAdmin()
+            ));
         }
 
-        return null;
+        return ResponseEntity.ok().body(Map.of(
+                "isAuthenticated", false,
+                "message", "Non authentifié"
+        ));
     }
 
-    @ModelAttribute("isAuthenticated")
-    public boolean isAuthenticated() {
+    @GetMapping("/check-auth")
+    public ResponseEntity<?> checkAuthentication() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        return auth != null && auth.isAuthenticated()
+        boolean isAuthenticated = auth != null && auth.isAuthenticated()
                 && !(auth.getPrincipal().equals("anonymousUser"));
+
+        return ResponseEntity.ok().body(Map.of(
+                "authenticated", isAuthenticated,
+                "isAdmin", isAdmin()
+        ));
     }
 
-    @ModelAttribute("isAdmin")
-    public boolean isAdmin() {
+    private boolean isAdmin() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.isAuthenticated()
                 && auth.getPrincipal() instanceof CustomUserDetails userDetails) {

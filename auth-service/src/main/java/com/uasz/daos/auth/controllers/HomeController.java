@@ -6,13 +6,15 @@ import com.uasz.daos.auth.services.CustomUserDetails;
 import com.uasz.daos.auth.services.DashboardService;
 import com.uasz.daos.auth.services.FormationService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.*;
 
-@Controller
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api/dashboard")
 public class HomeController {
 
     @Autowired
@@ -22,111 +24,133 @@ public class HomeController {
     private FormationService formationService;
 
     /**
-     * Page d'accueil - Affiche welcome.html ou redirige vers le dashboard selon l'authentification
+     * API d'accueil
      */
     @GetMapping("/")
-    public String index() {
+    public ResponseEntity<?> index() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        // Si non authentifié, afficher la page d'accueil publique
+        // Si non authentifié
         if (authentication == null || !authentication.isAuthenticated() ||
                 authentication.getPrincipal().equals("anonymousUser")) {
-            return "welcome";
+            return ResponseEntity.ok().body(Map.of(
+                    "message", "Bienvenue sur DAOS API",
+                    "authenticated", false,
+                    "endpoints", Map.of(
+                            "login", "POST /api/auth/login",
+                            "register", "POST /api/auth/register",
+                            "documentation", "/swagger-ui.html"
+                    )
+            ));
         }
 
-        // Si authentifié, rediriger vers le dashboard approprié selon le rôle
+        // Si authentifié
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         Role userRole = userDetails.getRole();
 
-        switch (userRole) {
-            case ETUDIANT:
-                return "redirect:/dashboard/etudiant";
-            case ENSEIGNANT:
-                return "redirect:/dashboard/enseignant";
-            case RESPONSABLE_MASTER:
-                return "redirect:/dashboard/responsable";
-            case COORDONATEUR_DES_LICENCES:
-                return "redirect:/dashboard/coordinateur";
-            case ADMIN:
-            case CHEF_DE_DEPARTEMENT:
-                return "redirect:/dashboard/admin";
-            default:
-                return "redirect:/login";
+        return ResponseEntity.ok().body(Map.of(
+                "message", "Bienvenue " + userDetails.getPrenom() + " " + userDetails.getNom(),
+                "authenticated", true,
+                "user", Map.of(
+                        "id", userDetails.getId(),
+                        "nom", userDetails.getNom(),
+                        "prenom", userDetails.getPrenom(),
+                        "email", userDetails.getUsername(),
+                        "role", userRole.name(),
+                        "roleDisplay", userRole.getLibelle()
+                ),
+                "dashboardUrl", "/api/dashboard/my"
+        ));
+    }
+
+    /**
+     * Dashboard utilisateur
+     */
+    @GetMapping("/my")
+    public ResponseEntity<?> getMyDashboard() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(401).body(Map.of(
+                    "error", "Non authentifié"
+            ));
+        }
+
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        Role userRole = userDetails.getRole();
+
+        DashboardStatsDTO stats = dashboardService.getStats();
+        Object formations = formationService.getAllFormations();
+
+        Map<String, Object> response = Map.of(
+                "user", Map.of(
+                        "id", userDetails.getId(),
+                        "nom", userDetails.getNom(),
+                        "prenom", userDetails.getPrenom(),
+                        "email", userDetails.getUsername(),
+                        "role", userRole.name(),
+                        "roleDisplay", userRole.getLibelle()
+                ),
+                "stats", stats,
+                "formations", formations,
+                "dashboardType", getDashboardType(userRole)
+        );
+
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Dashboard par rôle
+     */
+    @GetMapping("/{role}")
+    public ResponseEntity<?> getDashboardByRole(@PathVariable String role) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(401).body(Map.of(
+                    "error", "Non authentifié"
+            ));
+        }
+
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        Role userRole = userDetails.getRole();
+
+        // Vérifier les permissions
+        if (!hasAccessToDashboard(userRole, role)) {
+            return ResponseEntity.status(403).body(Map.of(
+                    "error", "Accès non autorisé"
+            ));
+        }
+
+        DashboardStatsDTO stats = dashboardService.getStats();
+        Object formations = formationService.getAllFormations();
+
+        return ResponseEntity.ok(Map.of(
+                "stats", stats,
+                "formations", formations,
+                "userRole", userRole.name(),
+                "dashboardFor", role
+        ));
+    }
+
+    private boolean hasAccessToDashboard(Role userRole, String requestedRole) {
+        if (userRole.isAdmin()) return true;
+
+        try {
+            Role requested = Role.valueOf(requestedRole.toUpperCase());
+            return userRole == requested;
+        } catch (IllegalArgumentException e) {
+            return false;
         }
     }
 
-    /**
-     * Dashboard ÉTUDIANT - Voir uniquement les emplois du temps de toutes les formations
-     */
-    @GetMapping("/dashboard/etudiant")
-    public String dashboardEtudiant(Model model) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-
-        model.addAttribute("formations", formationService.getAllFormations());
-        model.addAttribute("userRole", userDetails.getRole());
-        model.addAttribute("userName", userDetails.getPrenom() + " " + userDetails.getNom());
-        return "dashboard-etudiant";
-    }
-
-    /**
-     * Dashboard ENSEIGNANT - Consultation uniquement (formations, maquettes, pédagogies, cahier de texte, EDT)
-     */
-    @GetMapping("/dashboard/enseignant")
-    public String dashboardEnseignant(Model model) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-
-        model.addAttribute("formations", formationService.getAllFormations());
-        model.addAttribute("userRole", userDetails.getRole());
-        model.addAttribute("userName", userDetails.getPrenom() + " " + userDetails.getNom());
-        return "dashboard-enseignant";
-    }
-
-    /**
-     * Dashboard RESPONSABLE MASTER - Gestion complète des masters
-     */
-    @GetMapping("/dashboard/responsable")
-    public String dashboardResponsable(Model model) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-
-        DashboardStatsDTO stats = dashboardService.getStats();
-        model.addAttribute("stats", stats);
-        model.addAttribute("formations", formationService.getAllFormations());
-        model.addAttribute("userRole", userDetails.getRole());
-        model.addAttribute("userName", userDetails.getPrenom() + " " + userDetails.getNom());
-        return "dashboard-responsable";
-    }
-
-    /**
-     * Dashboard COORDINATEUR LICENCE - Gestion complète des licences
-     */
-    @GetMapping("/dashboard/coordinateur")
-    public String dashboardCoordinateur(Model model) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-
-        DashboardStatsDTO stats = dashboardService.getStats();
-        model.addAttribute("stats", stats);
-        model.addAttribute("formations", formationService.getAllFormations());
-        model.addAttribute("userRole", userDetails.getRole());
-        model.addAttribute("userName", userDetails.getPrenom() + " " + userDetails.getNom());
-        return "dashboard-coordinateur";
-    }
-
-    /**
-     * Dashboard ADMINISTRATEUR - Accès complet à tout
-     */
-    @GetMapping("/dashboard/admin")
-    public String dashboardAdmin(Model model) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-
-        DashboardStatsDTO stats = dashboardService.getStats();
-        model.addAttribute("stats", stats);
-        model.addAttribute("userRole", userDetails.getRole());
-        model.addAttribute("userName", userDetails.getPrenom() + " " + userDetails.getNom());
-        return "index"; // Utilise le dashboard admin existant (index.html)
+    private String getDashboardType(Role role) {
+        return switch (role) {
+            case ETUDIANT -> "etudiant";
+            case ENSEIGNANT -> "enseignant";
+            case RESPONSABLE_MASTER -> "responsable";
+            case COORDONATEUR_DES_LICENCES -> "coordinateur";
+            case ADMIN, CHEF_DE_DEPARTEMENT -> "admin";
+        };
     }
 }

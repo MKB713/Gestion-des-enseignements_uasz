@@ -30,16 +30,13 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final UserDetailsService userDetailsService;
-    private final CustomAuthenticationSuccessHandler successHandler;
 
     public SecurityConfig(
             JwtAuthenticationFilter jwtAuthFilter,
-            UserDetailsServiceImpl userDetailsService,
-            CustomAuthenticationSuccessHandler successHandler
+            UserDetailsServiceImpl userDetailsService
     ) {
         this.jwtAuthFilter = jwtAuthFilter;
         this.userDetailsService = userDetailsService;
-        this.successHandler = successHandler;
     }
 
     @Bean
@@ -48,15 +45,13 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authorize -> authorize
-                        // Permissions publiques
+                        // API publique
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/public/**").permitAll()
-                        .requestMatchers("/", "/login", "/auth2", "/register",
-                                "/forgot-password", "/reset-password",
-                                "/css/**", "/js/**", "/img/**", "/images/**",
-                                "/webjars/**", "/favicon.ico").permitAll()
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                        .requestMatchers("/actuator/health").permitAll()
 
-                        // Permissions par rôle
+                        // API par rôle
                         .requestMatchers("/api/admin/**").hasAnyAuthority(
                                 Role.ADMIN.name(), Role.CHEF_DE_DEPARTEMENT.name())
 
@@ -71,46 +66,15 @@ public class SecurityConfig {
                                 Role.ETUDIANT.name(),
                                 Role.ADMIN.name())
 
-                        // Pages dashboard
-                        .requestMatchers("/dashboard/admin", "/api/users/**").hasAnyAuthority(
-                                Role.ADMIN.name(), Role.CHEF_DE_DEPARTEMENT.name())
+                        .requestMatchers("/api/users/**").authenticated()
 
-                        .requestMatchers("/dashboard/responsable").hasAuthority(Role.RESPONSABLE_MASTER.name())
-                        .requestMatchers("/dashboard/coordinateur").hasAuthority(Role.COORDONATEUR_DES_LICENCES.name())
-                        .requestMatchers("/dashboard/enseignant").hasAuthority(Role.ENSEIGNANT.name())
-                        .requestMatchers("/dashboard/etudiant").hasAuthority(Role.ETUDIANT.name())
-
-                        // Gestion utilisateurs
-                        .requestMatchers("/lst-utilisateurs", "/add-utilisateur",
-                                "/edit-utilisateur/**", "/archiver/**", "/desarchiver/**",
-                                "/activer/**", "/desactiver/**").hasAnyAuthority(
-                                Role.ADMIN.name(), Role.CHEF_DE_DEPARTEMENT.name())
-
-                        // Authentification requise pour le reste
-                        .requestMatchers("/dashboard/**", "/parametres",
-                                "/change-password").authenticated()
-
+                        // Tout le reste nécessite une authentification
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-                .formLogin(form -> form
-                        .loginPage("/login")
-                        .loginProcessingUrl("/auth2")
-                        .usernameParameter("email")
-                        .passwordParameter("password")
-                        .successHandler(successHandler)
-                        .failureUrl("/login?error=true")
-                        .permitAll()
-                )
-                .logout(logout -> logout
-                        .logoutUrl("/logout")
-                        .logoutSuccessUrl("/login?logout")
-                        .invalidateHttpSession(true)
-                        .deleteCookies("JSESSIONID")
-                        .permitAll()
-                )
+                // SUPPRIMER formLogin() - le frontend React gère le login
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
@@ -120,7 +84,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:5173", "http://localhost:8080"));
+        configuration.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:5173"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setExposedHeaders(Arrays.asList("Authorization", "Content-Type"));

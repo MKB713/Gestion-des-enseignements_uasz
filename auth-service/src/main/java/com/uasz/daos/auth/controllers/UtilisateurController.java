@@ -1,21 +1,25 @@
 package com.uasz.daos.auth.controllers;
 
+import com.uasz.daos.auth.dto.UserDTO;
+import com.uasz.daos.auth.enums.Etat;
+import com.uasz.daos.auth.enums.Role;
 import com.uasz.daos.auth.model.Utilisateur;
 import com.uasz.daos.auth.services.CustomUserDetails;
 import com.uasz.daos.auth.services.UtilisateurService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.security.Principal;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
-@Controller
+@RestController
+@RequestMapping("/api/management")
 public class UtilisateurController {
 
     private final UtilisateurService utilisateurService;
@@ -24,219 +28,235 @@ public class UtilisateurController {
         this.utilisateurService = utilisateurService;
     }
 
-    private CustomUserDetails getLoggedUser() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        return (auth != null && auth.getPrincipal() instanceof CustomUserDetails)
-                ? (CustomUserDetails) auth.getPrincipal()
-                : null;
-    }
-
     // Liste des utilisateurs
-    @GetMapping("/lst-utilisateurs")
-    public String listeUtilisateurs(Model model) {
-        CustomUserDetails cu = getLoggedUser();
+    @GetMapping("/users")
+    public ResponseEntity<?> listeUtilisateurs() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails currentUser = (CustomUserDetails) auth.getPrincipal();
 
-        if (cu != null && cu.getEntity() instanceof Utilisateur utilisateur) {
-            model.addAttribute("utilisateurs", utilisateurService.findAll(utilisateur));
-        } else {
-            model.addAttribute("utilisateurs", List.of());
-        }
+        List<Utilisateur> utilisateurs = utilisateurService.findAll(currentUser.getUtilisateur());
 
-        return "utilisateur-list";
+        List<UserDTO> userDTOs = utilisateurs.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok().body(Map.of(
+                "users", userDTOs,
+                "count", userDTOs.size()
+        ));
     }
 
     // Page des paramètres utilisateur
-    @GetMapping("/parametres")
-    public String settingsPage(Model model, Principal principal) {
-        if (principal != null) {
-            Utilisateur utilisateur = utilisateurService.findByEmail(principal.getName())
-                    .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
-            model.addAttribute("utilisateur", utilisateur);
+    @GetMapping("/profile")
+    public ResponseEntity<?> getUserProfile(Principal principal) {
+        if (principal == null) {
+            return ResponseEntity.status(401).body(Map.of(
+                    "error", "Non authentifié"
+            ));
         }
-        return "parametres";
-    }
 
-    // Formulaire d'ajout d'utilisateur
-    @GetMapping("/add-utilisateur")
-    public String showAddUserForm(Model model) {
-        model.addAttribute("utilisateur", new Utilisateur());
-        return "utilisateur-add";
+        Utilisateur utilisateur = utilisateurService.findByEmail(principal.getName())
+                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+
+        return ResponseEntity.ok(convertToDTO(utilisateur));
     }
 
     // Ajout d'un utilisateur
-    @PostMapping("/ajout-user")
-    public String createUser(@Valid @ModelAttribute Utilisateur utilisateur,
-                             BindingResult bindingResult,
-                             Model model,
-                             RedirectAttributes redirectAttributes) {
-
-        if (bindingResult.hasErrors()) {
-            model.addAttribute("utilisateur", utilisateur);
-            return "utilisateur-add";
-        }
-
+    @PostMapping("/users")
+    public ResponseEntity<?> createUser(@Valid @RequestBody CreateUserRequest request) {
         try {
-            utilisateurService.createUser(utilisateur);
-            redirectAttributes.addFlashAttribute("success", "Utilisateur ajouté avec succès");
-            return "redirect:/lst-utilisateurs";
-        } catch (Exception e) {
-            model.addAttribute("errorMessage", "Erreur lors de l'ajout : " + e.getMessage());
-            model.addAttribute("utilisateur", utilisateur);
-            return "utilisateur-add";
-        }
-    }
+            Utilisateur utilisateur = new Utilisateur();
+            utilisateur.setMatricule(request.getMatricule());
+            utilisateur.setNom(request.getNom());
+            utilisateur.setPrenom(request.getPrenom());
+            utilisateur.setEmail(request.getEmail());
+            utilisateur.setDateNaissance(request.getDateNaissance());
+            utilisateur.setTelephone(request.getTelephone());
+            utilisateur.setAdresse(request.getAdresse());
+            utilisateur.setRole(request.getRole());
+            utilisateur.setEtat(Etat.ACTIF);
 
-    // Formulaire de modification d'utilisateur
-    @GetMapping("/edit-utilisateur/{id}")
-    public String showEditUserForm(@PathVariable Long id, Model model) {
-        Utilisateur utilisateur = utilisateurService.findById(id)
-                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
-        model.addAttribute("utilisateur", utilisateur);
-        return "utilisateur-edit";
+            Utilisateur savedUser = utilisateurService.createUser(utilisateur);
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(convertToDTO(savedUser));
+
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "error", e.getMessage()
+            ));
+        }
     }
 
     // Modification d'un utilisateur
-    @PostMapping("/edit/utilisateur/{id}")
-    public String editUser(@PathVariable Long id,
-                           @Valid @ModelAttribute Utilisateur utilisateur,
-                           BindingResult bindingResult,
-                           Model model,
-                           RedirectAttributes redirectAttributes) {
-
-        if (bindingResult.hasErrors()) {
-            model.addAttribute("utilisateur", utilisateur);
-            return "utilisateur-edit";
-        }
+    @PutMapping("/users/{id}")
+    public ResponseEntity<?> updateUser(@PathVariable Long id,
+                                        @Valid @RequestBody UpdateUserRequest request) {
 
         try {
-            utilisateur.setId(id);
-            utilisateurService.updateUser(utilisateur);
-            redirectAttributes.addFlashAttribute("success", "Utilisateur modifié avec succès");
-            return "redirect:/lst-utilisateurs";
+            Utilisateur utilisateur = utilisateurService.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+
+            utilisateur.setNom(request.getNom());
+            utilisateur.setPrenom(request.getPrenom());
+            utilisateur.setEmail(request.getEmail());
+            utilisateur.setDateNaissance(request.getDateNaissance());
+            utilisateur.setTelephone(request.getTelephone());
+            utilisateur.setAdresse(request.getAdresse());
+
+            // Seul admin peut changer rôle et état
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            CustomUserDetails currentUser = (CustomUserDetails) auth.getPrincipal();
+
+            if (currentUser.getRole().isAdmin()) {
+                utilisateur.setRole(request.getRole());
+                utilisateur.setEtat(request.getEtat());
+            }
+
+            Utilisateur updatedUser = utilisateurService.updateUser(utilisateur);
+
+            return ResponseEntity.ok(convertToDTO(updatedUser));
+
         } catch (Exception e) {
-            model.addAttribute("errorMessage", "Erreur lors de la modification : " + e.getMessage());
-            model.addAttribute("utilisateur", utilisateur);
-            return "utilisateur-edit";
+            return ResponseEntity.badRequest().body(Map.of(
+                    "error", e.getMessage()
+            ));
         }
     }
 
-    // Modification du profil (pour l'utilisateur courant)
-    @PostMapping("/edit1/utilisateur/{id}")
-    public String editUserProfile(@PathVariable Long id,
-                                  @Valid @ModelAttribute Utilisateur utilisateur,
-                                  BindingResult bindingResult,
-                                  Model model,
-                                  RedirectAttributes redirectAttributes) {
-
-        if (bindingResult.hasErrors()) {
-            model.addAttribute("utilisateur", utilisateur);
-            return "parametres";
-        }
-
+    // Gestion de l'état d'un utilisateur
+    @PostMapping("/users/{id}/state")
+    public ResponseEntity<?> manageUserState(@PathVariable Long id,
+                                             @RequestParam String action) {
         try {
-            utilisateur.setId(id);
-            utilisateurService.updateUser(utilisateur);
-            redirectAttributes.addFlashAttribute("success", "Profil modifié avec succès");
-            return "redirect:/parametres";
+            switch (action.toLowerCase()) {
+                case "archive":
+                    utilisateurService.archiverUser(id);
+                    return ResponseEntity.ok(Map.of("message", "Utilisateur archivé"));
+                case "unarchive":
+                    utilisateurService.desarchiverUser(id);
+                    return ResponseEntity.ok(Map.of("message", "Utilisateur désarchivé"));
+                case "activate":
+                    utilisateurService.activerUser(id);
+                    return ResponseEntity.ok(Map.of("message", "Utilisateur activé"));
+                case "deactivate":
+                    utilisateurService.desactiverUser(id);
+                    return ResponseEntity.ok(Map.of("message", "Utilisateur désactivé"));
+                default:
+                    return ResponseEntity.badRequest().body(Map.of(
+                            "error", "Action non supportée. Utilisez: archive, unarchive, activate, deactivate"
+                    ));
+            }
         } catch (Exception e) {
-            model.addAttribute("errorMessage", "Erreur lors de la modification : " + e.getMessage());
-            model.addAttribute("utilisateur", utilisateur);
-            return "parametres";
+            return ResponseEntity.badRequest().body(Map.of(
+                    "error", e.getMessage()
+            ));
         }
-    }
-
-    // Archivage d'un utilisateur
-    @PostMapping("/archiver/{id}")
-    public String archiverUtilisateur(@PathVariable Long id, RedirectAttributes redirectAttributes) {
-        try {
-            utilisateurService.archiverUser(id);
-            redirectAttributes.addFlashAttribute("success", "Utilisateur archivé avec succès");
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", "Erreur lors de l'archivage : " + e.getMessage());
-        }
-        return "redirect:/lst-utilisateurs";
-    }
-
-    // Désarchivage d'un utilisateur
-    @PostMapping("/desarchiver/{id}")
-    public String desarchiverUtilisateur(@PathVariable Long id, RedirectAttributes redirectAttributes) {
-        try {
-            utilisateurService.desarchiverUser(id);
-            redirectAttributes.addFlashAttribute("success", "Utilisateur désarchivé avec succès");
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", "Erreur lors du désarchivage : " + e.getMessage());
-        }
-        return "redirect:/lst-utilisateurs-archives";
-    }
-
-    // Activation d'un utilisateur
-    @PostMapping("/activer/{id}")
-    public String activerUtilisateur(@PathVariable Long id, RedirectAttributes redirectAttributes) {
-        try {
-            utilisateurService.activerUser(id);
-            redirectAttributes.addFlashAttribute("success", "Utilisateur activé avec succès");
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", "Erreur lors de l'activation : " + e.getMessage());
-        }
-        return "redirect:/lst-utilisateurs";
-    }
-
-    // Désactivation d'un utilisateur
-    @PostMapping("/desactiver/{id}")
-    public String desactiverUtilisateur(@PathVariable Long id, RedirectAttributes redirectAttributes) {
-        try {
-            utilisateurService.desactiverUser(id);
-            redirectAttributes.addFlashAttribute("success", "Utilisateur désactivé avec succès");
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", "Erreur lors de la désactivation : " + e.getMessage());
-        }
-        return "redirect:/lst-utilisateurs";
     }
 
     // Liste des utilisateurs archivés
-    @GetMapping("/lst-utilisateurs-archives")
-    public String listeArchives(Model model) {
-        model.addAttribute("utilisateurs", utilisateurService.getAllUsersArchives());
-        return "utilisateur-archive-list";
+    @GetMapping("/users/archived")
+    public ResponseEntity<?> listeArchives() {
+        List<Utilisateur> archived = utilisateurService.getAllUsersArchives();
+
+        List<UserDTO> userDTOs = archived.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok().body(Map.of(
+                "users", userDTOs,
+                "count", userDTOs.size()
+        ));
     }
 
     // Changement de mot de passe
     @PostMapping("/change-password")
-    public String changePassword(
-            @RequestParam("currentPassword") String currentPassword,
-            @RequestParam("newPassword") String newPassword,
-            @RequestParam("confirmPassword") String confirmPassword,
-            Principal principal,
-            Model model) {
+    public ResponseEntity<?> changePassword(@RequestBody ChangePasswordRequest request,
+                                            Principal principal) {
 
         String email = principal.getName();
-        Utilisateur utilisateur = utilisateurService.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
 
-        model.addAttribute("utilisateur", utilisateur);
-
-        if (!newPassword.equals(confirmPassword)) {
-            model.addAttribute("error", "Erreur : Le nouveau mot de passe et la confirmation ne correspondent pas.");
-            return "parametres";
+        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "error", "Le nouveau mot de passe et la confirmation ne correspondent pas."
+            ));
         }
 
-        boolean success = utilisateurService.updatePassword(email, currentPassword, newPassword, confirmPassword);
+        boolean success = utilisateurService.updatePassword(
+                email, request.getCurrentPassword(),
+                request.getNewPassword(), request.getConfirmPassword()
+        );
 
         if (success) {
-            model.addAttribute("message", "Mot de passe changé avec succès !");
+            return ResponseEntity.ok().body(Map.of(
+                    "message", "Mot de passe changé avec succès !"
+            ));
         } else {
-            model.addAttribute("error", "Erreur : Vérifiez votre mot de passe actuel ou la force du nouveau mot de passe.");
+            return ResponseEntity.badRequest().body(Map.of(
+                    "error", "Erreur : Vérifiez votre mot de passe actuel ou la force du nouveau mot de passe."
+            ));
         }
-
-        return "parametres";
     }
 
     // Recherche d'utilisateurs
-    @GetMapping("/search-utilisateurs")
-    public String searchUtilisateurs(@RequestParam("search") String searchTerm, Model model) {
+    @GetMapping("/users/search")
+    public ResponseEntity<?> searchUtilisateurs(@RequestParam("q") String searchTerm) {
         List<Utilisateur> utilisateurs = utilisateurService.searchUtilisateurs(searchTerm);
-        model.addAttribute("utilisateurs", utilisateurs);
-        model.addAttribute("searchTerm", searchTerm);
-        return "utilisateur-list";
+
+        List<UserDTO> userDTOs = utilisateurs.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok().body(Map.of(
+                "users", userDTOs,
+                "searchTerm", searchTerm,
+                "count", userDTOs.size()
+        ));
+    }
+
+    // Helper methods
+    private UserDTO convertToDTO(Utilisateur utilisateur) {
+        return UserDTO.builder()
+                .id(utilisateur.getId())
+                .nom(utilisateur.getNom())
+                .prenom(utilisateur.getPrenom())
+                .email(utilisateur.getEmail())
+                .role(utilisateur.getRole())
+                .dateNaissance(utilisateur.getDateNaissance())
+                .matricule(utilisateur.getMatricule())
+                .etat(utilisateur.getEtat())
+                .dateCreation(utilisateur.getDateCreation())
+                .build();
+    }
+
+    // Request DTOs
+    @lombok.Data
+    public static class CreateUserRequest {
+        private String matricule;
+        private String nom;
+        private String prenom;
+        private String email;
+        private java.time.LocalDate dateNaissance;
+        private String telephone;
+        private String adresse;
+        private Role role;
+    }
+
+    @lombok.Data
+    public static class UpdateUserRequest {
+        private String nom;
+        private String prenom;
+        private String email;
+        private java.time.LocalDate dateNaissance;
+        private String telephone;
+        private String adresse;
+        private Role role;
+        private Etat etat;
+    }
+
+    @lombok.Data
+    public static class ChangePasswordRequest {
+        private String currentPassword;
+        private String newPassword;
+        private String confirmPassword;
     }
 }
