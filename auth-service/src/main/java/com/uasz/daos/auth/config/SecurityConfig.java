@@ -4,6 +4,7 @@ import com.uasz.daos.auth.enums.Role;
 import com.uasz.daos.auth.services.UserDetailsServiceImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -47,14 +48,24 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
 
 
+                        // ⭐⭐ PERMETTRE création utilisateur SANS AUTH (TEMPORAIRE) ⭐⭐
+                        .requestMatchers(HttpMethod.POST, "/api/management/users").permitAll()
 
-                        // Swagger & OpenAPI - AJOUTEZ CES LIGNES
-                        .requestMatchers("/swagger-ui/**").permitAll()
-                        .requestMatchers("/swagger-ui.html").permitAll()
-                        .requestMatchers("/v3/api-docs/**").permitAll()
-                        .requestMatchers("/api-docs/**").permitAll()
-                        .requestMatchers("/webjars/**").permitAll()
-                        .requestMatchers("/swagger-resources/**").permitAll()
+
+
+                        .requestMatchers(
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/v3/api-docs/**",
+                                "/api-docs/**",
+                                "/api-docs.yaml",
+                                "/api-docs.yml",
+                                "/api-docs",
+                                "/webjars/**",
+                                "/swagger-resources/**",
+                                "/configuration/ui",
+                                "/configuration/security"
+                        ).permitAll()
 
                         // API publique
                         .requestMatchers("/api/auth/**").permitAll()
