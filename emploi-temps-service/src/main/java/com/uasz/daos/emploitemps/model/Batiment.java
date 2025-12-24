@@ -1,6 +1,6 @@
 package com.uasz.daos.emploitemps.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
@@ -10,21 +10,16 @@ import java.util.List;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-public class Salle {
+public class Batiment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String libelle;
-    private int capacite;
     private String description;
 
-    @ManyToOne
-    @JoinColumn(name = "batiment_id", nullable = false)
-    @JsonBackReference
-    private Batiment batiment;
-
-    @OneToMany(mappedBy = "salle", cascade = CascadeType.ALL)
-    private List<Seance> seances;
+    @OneToMany(mappedBy = "batiment", cascade = CascadeType.ALL)
+    @JsonManagedReference
+    private List<Salle> salles;
 
     // Getters and Setters
     public Long getId() {
@@ -43,14 +38,6 @@ public class Salle {
         this.libelle = libelle;
     }
 
-    public int getCapacite() {
-        return capacite;
-    }
-
-    public void setCapacite(int capacite) {
-        this.capacite = capacite;
-    }
-
     public String getDescription() {
         return description;
     }
@@ -59,19 +46,11 @@ public class Salle {
         this.description = description;
     }
 
-    public Batiment getBatiment() {
-        return batiment;
+    public List<Salle> getSalles() {
+        return salles;
     }
 
-    public void setBatiment(Batiment batiment) {
-        this.batiment = batiment;
-    }
-
-    public List<Seance> getSeances() {
-        return seances;
-    }
-
-    public void setSeances(List<Seance> seances) {
-        this.seances = seances;
+    public void setSalles(List<Salle> salles) {
+        this.salles = salles;
     }
 }
