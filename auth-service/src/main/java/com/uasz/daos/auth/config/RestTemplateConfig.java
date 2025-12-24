@@ -17,6 +17,11 @@ public class RestTemplateConfig {
     @Bean
     @LoadBalanced
     public RestTemplate restTemplate() {
-        return new RestTemplate();
+        RestTemplate restTemplate = new RestTemplate();
+
+        // Configuration supplémentaire si nécessaire
+        // restTemplate.setErrorHandler(new CustomErrorHandler());
+
+        return restTemplate;
     }
 }

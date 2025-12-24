@@ -34,32 +34,32 @@ public class MailConfig {
 
             @Override
             public void send(MimeMessage mimeMessage) throws MailException {
-                System.out.println("📧 [MOCK MAIL] Email non envoyé (mode développement)");
+                System.out.println("📧 [MOCK MAIL] Email HTML non envoyé (mode développement)");
             }
 
             @Override
             public void send(MimeMessage... mimeMessages) throws MailException {
-                System.out.println("📧 [MOCK MAIL] " + mimeMessages.length + " emails non envoyés (mode développement)");
+                System.out.println("📧 [MOCK MAIL] " + mimeMessages.length + " emails HTML non envoyés (mode développement)");
             }
 
             @Override
             public void send(MimeMessagePreparator mimeMessagePreparator) throws MailException {
-                System.out.println("📧 [MOCK MAIL] Email non envoyé (mode développement)");
+                System.out.println("📧 [MOCK MAIL] Email HTML non envoyé (mode développement)");
             }
 
             @Override
             public void send(MimeMessagePreparator... mimeMessagePreparators) throws MailException {
-                System.out.println("📧 [MOCK MAIL] " + mimeMessagePreparators.length + " emails non envoyés (mode développement)");
+                System.out.println("📧 [MOCK MAIL] " + mimeMessagePreparators.length + " emails HTML non envoyés (mode développement)");
             }
 
             @Override
             public void send(SimpleMailMessage simpleMessage) throws MailException {
                 System.out.println("📧 [MOCK MAIL] Email simulé :");
-                System.out.println("   De      : " + simpleMessage.getFrom());
+                System.out.println("   De      : " + (simpleMessage.getFrom() != null ? simpleMessage.getFrom() : "noreply@uasz.sn"));
                 System.out.println("   À       : " + String.join(", ", simpleMessage.getTo()));
                 System.out.println("   Sujet   : " + simpleMessage.getSubject());
                 System.out.println("   Message : " + simpleMessage.getText());
-                System.out.println("   ✅ Email loggé avec succès (non envoyé réellement)");
+                System.out.println("   ✅ Email logué avec succès (non envoyé réellement)");
             }
 
             @Override

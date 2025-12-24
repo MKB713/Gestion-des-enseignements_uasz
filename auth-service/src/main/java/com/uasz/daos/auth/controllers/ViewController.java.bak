@@ -1,4 +1,4 @@
-package com.uasz.daos.auth.controller;
+package com.uasz.daos.auth.controllers;
 
 import com.uasz.daos.auth.dto.PlanningDTO;
 import com.uasz.daos.auth.dto.SeanceDTO;

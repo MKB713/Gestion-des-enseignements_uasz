@@ -1,4 +1,4 @@
-package com.uasz.daos.auth.controller;
+package com.uasz.daos.auth.controllers;
 
 import com.uasz.daos.auth.dto.DashboardStatsDTO;
 import com.uasz.daos.auth.enums.Role;
@@ -30,7 +30,7 @@ public class HomeController {
 
         // Si non authentifié, afficher la page d'accueil publique
         if (authentication == null || !authentication.isAuthenticated() ||
-            authentication.getPrincipal().equals("anonymousUser")) {
+                authentication.getPrincipal().equals("anonymousUser")) {
             return "welcome";
         }
 
@@ -65,6 +65,7 @@ public class HomeController {
 
         model.addAttribute("formations", formationService.getAllFormations());
         model.addAttribute("userRole", userDetails.getRole());
+        model.addAttribute("userName", userDetails.getPrenom() + " " + userDetails.getNom());
         return "dashboard-etudiant";
     }
 
@@ -78,6 +79,7 @@ public class HomeController {
 
         model.addAttribute("formations", formationService.getAllFormations());
         model.addAttribute("userRole", userDetails.getRole());
+        model.addAttribute("userName", userDetails.getPrenom() + " " + userDetails.getNom());
         return "dashboard-enseignant";
     }
 
@@ -93,6 +95,7 @@ public class HomeController {
         model.addAttribute("stats", stats);
         model.addAttribute("formations", formationService.getAllFormations());
         model.addAttribute("userRole", userDetails.getRole());
+        model.addAttribute("userName", userDetails.getPrenom() + " " + userDetails.getNom());
         return "dashboard-responsable";
     }
 
@@ -108,6 +111,7 @@ public class HomeController {
         model.addAttribute("stats", stats);
         model.addAttribute("formations", formationService.getAllFormations());
         model.addAttribute("userRole", userDetails.getRole());
+        model.addAttribute("userName", userDetails.getPrenom() + " " + userDetails.getNom());
         return "dashboard-coordinateur";
     }
 
@@ -122,6 +126,7 @@ public class HomeController {
         DashboardStatsDTO stats = dashboardService.getStats();
         model.addAttribute("stats", stats);
         model.addAttribute("userRole", userDetails.getRole());
+        model.addAttribute("userName", userDetails.getPrenom() + " " + userDetails.getNom());
         return "index"; // Utilise le dashboard admin existant (index.html)
     }
 }
