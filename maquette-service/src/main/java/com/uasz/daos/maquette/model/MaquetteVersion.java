@@ -4,28 +4,29 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import java.util.List;
+import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "semestres")
+@Table(name = "maquette_versions")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Semestre {
+public class MaquetteVersion {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    private int numero;
-    private String libelle;
-
-    private int creditsTotaux;
-    private double coefficientsTotaux;
 
     @ManyToOne
     @JoinColumn(name = "maquette_id")
     private Maquette maquette;
 
-    @OneToMany(mappedBy = "semestre", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<UE> ues;
+    private int numeroVersion;
+
+    @Lob
+    @Column(columnDefinition = "LONGTEXT")
+    private String donneesJson;
+
+    private String utilisateur;
+    private LocalDateTime dateCreation;
+    private String motif;
 }

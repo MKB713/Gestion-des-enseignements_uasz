@@ -1,101 +1,49 @@
 package com.uasz.daos.maquette.controller;
 
 import com.uasz.daos.maquette.model.Formation;
-import com.uasz.daos.maquette.service.FiliereService;
 import com.uasz.daos.maquette.service.FormationService;
-import com.uasz.daos.maquette.service.NiveauService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-@Controller
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/maquette/formations")
+@CrossOrigin(origins = "*")
 public class FormationController {
 
     @Autowired
     private FormationService formationService;
 
-    @Autowired
-    private FiliereService filiereService;
-
-    @Autowired
-    private NiveauService niveauService;
-
-    // --- LISTE ---
-    @GetMapping("/lst-formations")
-    public String listFormations(@RequestParam(required = false) String archive, Model model) {
-        // Si le paramètre archive est présent, on peut filtrer (à implémenter dans le service si besoin)
-        // Pour l'instant, on affiche tout ou on filtre par statut selon ta logique
-        model.addAttribute("formations", formationService.getAllFormations());
-        return "lst-formations";
+    @GetMapping
+    public ResponseEntity<List<Formation>> listerFormations() {
+        return new ResponseEntity<>(formationService.getAllFormations(), HttpStatus.OK);
     }
 
-    // --- FORMULAIRE AJOUT ---
-    @GetMapping("/formations/ajouter")
-    public String showAddForm(Model model) {
-        model.addAttribute("formation", new Formation());
-        model.addAttribute("filieres", filiereService.getAllFiliere());
-        model.addAttribute("niveaux", niveauService.getAllNiveaux());
-        model.addAttribute("titrePage", "Nouvelle Formation");
-        return "form-formation";
+    @PostMapping
+    public ResponseEntity<Formation> ajouterFormation(@RequestBody Formation formation) {
+        return new ResponseEntity<>(formationService.createFormation(formation), HttpStatus.CREATED);
     }
 
-    // --- FORMULAIRE MODIFICATION ---
-    @GetMapping("/formations/modifier/{id}")
-    public String showEditForm(@PathVariable Long id, Model model) {
-        try {
-            Formation formation = formationService.getFormationById(id);
-            model.addAttribute("formation", formation);
-            model.addAttribute("filieres", filiereService.getAllFiliere());
-            model.addAttribute("niveaux", niveauService.getAllNiveaux());
-            model.addAttribute("titrePage", "Modifier la Formation");
-            return "form-formation";
-        } catch (Exception e) {
-            return "redirect:/lst-formations";
-        }
+    @PutMapping("/{id}")
+    public ResponseEntity<Formation> modifierFormation(@PathVariable Long id, @RequestBody Formation formation) {
+        return new ResponseEntity<>(formationService.updateFormation(id, formation), HttpStatus.OK);
     }
 
-    // --- SAUVEGARDE (Create & Update) ---
-    @PostMapping("/save-formation")
-    public String saveFormation(@ModelAttribute Formation formation, RedirectAttributes ra, Model model) {
-        try {
-            // La méthode save() du service redirige vers create ou update
-            formationService.save(formation);
-            ra.addFlashAttribute("success", "Formation enregistrée avec succès !");
-            return "redirect:/lst-formations";
-        } catch (IllegalArgumentException e) {
-            // En cas d'erreur (code dupliqué, etc.), on recharge le formulaire avec l'erreur
-            ra.addFlashAttribute("error", e.getMessage());
-            // Astuce : Pour rediriger vers le bon formulaire (ajout ou modif)
-            if(formation.getId() != null) {
-                return "redirect:/formations/modifier/" + formation.getId();
-            }
-            return "redirect:/formations/ajouter";
-        }
+    @PatchMapping("/{id}/archiver")
+    public ResponseEntity<Formation> archiverFormation(@PathVariable Long id) {
+        return new ResponseEntity<>(formationService.archiveFormation(id), HttpStatus.OK);
     }
 
-    // --- ACTIONS : ARCHIVER ---
-    @PatchMapping("/formations/{id}/archiver") // Utilisation de PATCH comme dans ton JS
-    @ResponseBody // Important pour les appels fetch JS
-    public org.springframework.http.ResponseEntity<?> archiverFormation(@PathVariable Long id) {
-        try {
-            formationService.archiveFormation(id);
-            return org.springframework.http.ResponseEntity.ok("Formation archivée");
-        } catch (Exception e) {
-            return org.springframework.http.ResponseEntity.badRequest().body(e.getMessage());
-        }
+    @PatchMapping("/{id}/activer")
+    public ResponseEntity<Formation> activerFormation(@PathVariable Long id) {
+        return new ResponseEntity<>(formationService.activerFormation(id), HttpStatus.OK);
     }
 
-    // --- ACTIONS : ACTIVER ---
-    @PatchMapping("/formations/{id}/activer") // Utilisation de PATCH comme dans ton JS
-    @ResponseBody
-    public org.springframework.http.ResponseEntity<?> activerFormation(@PathVariable Long id) {
-        try {
-            formationService.activerFormation(id);
-            return org.springframework.http.ResponseEntity.ok("Formation activée");
-        } catch (Exception e) {
-            return org.springframework.http.ResponseEntity.badRequest().body(e.getMessage());
-        }
+    @GetMapping("/{id}")
+    public ResponseEntity<Formation> detailsFormation(@PathVariable Long id) {
+        return new ResponseEntity<>(formationService.getFormationById(id), HttpStatus.OK);
     }
 }
