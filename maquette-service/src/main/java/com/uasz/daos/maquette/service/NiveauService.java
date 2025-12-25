@@ -80,9 +80,10 @@ public class NiveauService {
                 .orElseThrow(() -> new RuntimeException("Niveau introuvable"));
 
         // Vérifier si le niveau est utilisé dans des formations
-        // if (!niveau.getFormations().isEmpty()) {
-        //     throw new IllegalStateException("Impossible de supprimer ce niveau car il est utilisé dans des formations");
-        // }
+        // Vérifier si le niveau est utilisé dans des formations
+        if (!niveau.getFormations().isEmpty()) {
+            throw new IllegalStateException("Impossible de supprimer ce niveau car il est utilisé dans des formations");
+        }
 
         niveauRepository.deleteById(id);
     }

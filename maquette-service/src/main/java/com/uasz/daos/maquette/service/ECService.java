@@ -15,7 +15,6 @@ public class ECService {
     private ECRepository ecRepository;
 
     public List<EC> getAllECs() {
-        // Retourne uniquement les ECs non archivés
         return ecRepository.findByArchive(false);
     }
 
@@ -30,7 +29,7 @@ public class ECService {
     @Transactional
     public EC addEC(EC ec) {
         ec.setArchive(false);
-        ec.setActif(true); // Par défaut actif à la création
+        ec.setActif(true);
         return ecRepository.save(ec);
     }
 
@@ -40,22 +39,15 @@ public class ECService {
         if (ec != null) {
             ec.setCode(ecDetails.getCode());
             ec.setLibelle(ecDetails.getLibelle());
-            ec.setModule(ecDetails.getModule());
-
-            // Mise à jour des heures et coefficients
-            ec.setHeureCm(ecDetails.getHeureCm());
-            ec.setHeureTd(ecDetails.getHeureTd());
-            ec.setHeureTp(ecDetails.getHeureTp());
-            ec.setCoefficient(ecDetails.getCoefficient());
-            ec.setCredit(ecDetails.getCredit());
+            ec.setCm(ecDetails.getCm());
+            ec.setTd(ecDetails.getTd());
+            ec.setTp(ecDetails.getTp());
             ec.setTpe(ecDetails.getTpe());
-
+            ec.setCoefficient(ecDetails.getCoefficient());
             return ecRepository.save(ec);
         }
         return null;
     }
-
-    // --- GESTION DES ÉTATS ---
 
     @Transactional
     public void activateEC(Long id) {
@@ -80,7 +72,7 @@ public class ECService {
         EC ec = getECById(id);
         if (ec != null) {
             ec.setArchive(true);
-            ec.setActif(false); // On désactive aussi quand on archive
+            ec.setActif(false);
             ecRepository.save(ec);
         }
     }
@@ -90,7 +82,7 @@ public class ECService {
         EC ec = getECById(id);
         if (ec != null) {
             ec.setArchive(false);
-            ec.setActif(true); // On réactive à la restauration
+            ec.setActif(true);
             ecRepository.save(ec);
         }
     }
