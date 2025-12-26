@@ -3,68 +3,55 @@ package com.uasz.daos.maquette.controller;
 import com.uasz.daos.maquette.model.Filiere;
 import com.uasz.daos.maquette.service.FiliereService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-@Controller
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/maquette/filieres")
+@CrossOrigin(origins = "*")
 public class FiliereController {
 
     @Autowired
     private FiliereService filiereService;
 
-    // --- LISTE ---
-    @GetMapping("/lst-filieres")
-    public String listFilieres(Model model) {
-        model.addAttribute("filieres", filiereService.getAllFiliere());
-        return "lst-filieres"; // Pointe vers la nouvelle liste
+    // GET /api/maquette/filieres
+    @GetMapping
+    public ResponseEntity<List<Filiere>> getAllFilieres() {
+        return new ResponseEntity<>(filiereService.getAllFiliere(), HttpStatus.OK);
     }
 
-    // --- FORMULAIRE AJOUT ---
-    @GetMapping("/filieres/ajouter")
-    public String showAddForm(Model model) {
-        model.addAttribute("filiere", new Filiere());
-        model.addAttribute("titrePage", "Nouvelle Filière");
-        return "form-filiere"; // Pointe vers le formulaire unique
-    }
-
-    // --- FORMULAIRE MODIFICATION ---
-    @GetMapping("/filieres/modifier/{id}")
-    public String showEditForm(@PathVariable Long id, Model model) {
+    // GET /api/maquette/filieres/{id}
+    @GetMapping("/{id}")
+    public ResponseEntity<Filiere> getFiliereById(@PathVariable Long id) {
         try {
-            Filiere filiere = filiereService.getFiliereById(id);
-            model.addAttribute("filiere", filiere);
-            model.addAttribute("titrePage", "Modifier la Filière");
-            return "form-filiere";
+            return ResponseEntity.ok(filiereService.getFiliereById(id));
         } catch (Exception e) {
-            return "redirect:/lst-filieres";
+            return ResponseEntity.notFound().build();
         }
     }
 
-    // --- SAUVEGARDE (Create & Update) ---
-    @PostMapping("/save-filiere")
-    public String saveFiliere(@ModelAttribute Filiere filiere, RedirectAttributes ra) {
-        try {
-            filiereService.save(filiere);
-            ra.addFlashAttribute("success", "Filière enregistrée avec succès !");
-            return "redirect:/lst-filieres";
-        } catch (IllegalArgumentException e) {
-            ra.addFlashAttribute("error", e.getMessage());
-            // Redirection intelligente en cas d'erreur
-            return "redirect:/filieres/" + (filiere.getId() == null ? "ajouter" : "modifier/" + filiere.getId());
-        }
+    // POST /api/maquette/filieres (Ajout)
+    @PostMapping
+    public ResponseEntity<Filiere> createFiliere(@RequestBody Filiere filiere) {
+        Filiere saved = filiereService.save(filiere);
+        return new ResponseEntity<>(saved, HttpStatus.CREATED);
     }
 
-    // --- SUPPRESSION ---
-    @GetMapping("/delete-filiere/{id}")
-    public String deleteFiliere(@PathVariable Long id, RedirectAttributes ra) {
-        try {
-            filiereService.delete(id);
-            ra.addFlashAttribute("success", "Filière supprimée.");
-        } catch (Exception e) {
-            ra.addFlashAttribute("error", "Impossible de supprimer : " + e.getMessage());
-        }
-        return "redirect:/lst-filieres";
+    // PUT /api/maquette/filieres/{id} (Modif)
+    @PutMapping("/{id}")
+    public ResponseEntity<Filiere> updateFiliere(@PathVariable Long id, @RequestBody Filiere filiere) {
+        filiere.setId(id); // Sécurité
+        Filiere updated = filiereService.save(filiere);
+        return new ResponseEntity<>(updated, HttpStatus.OK);
+    }
+
+    // DELETE /api/maquette/filieres/{id}
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteFiliere(@PathVariable Long id) {
+        filiereService.delete(id);
+        return ResponseEntity.noContent().build();
     }
 }
