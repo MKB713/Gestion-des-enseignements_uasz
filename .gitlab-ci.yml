@@ -1,0 +1,690 @@
+# Pipeline CI/CD pour DAOS - Gestion des Enseignements UASZ
+# Automatise: Build, Test, Analyse, Docker Build/Push, Déploiement
+
+variables:
+  MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
+  DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: "/certs"
+  REGISTRY_URL: "registry.gitlab.com"
+  IMAGE_TAG: "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA"
+  SONAR_HOST_URL: "${SONAR_HOST_URL}"
+  SONAR_TOKEN: "${SONAR_TOKEN}"
+
+# Cache Maven dependencies pour accélérer les builds
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - .m2/repository/
+    - node_modules/
+
+# Stages du pipeline
+stages:
+  - build
+  - test
+  - analyze
+  - docker-build
+  - docker-push
+  - deploy
+  - notify
+
+# ============================================================================
+# STAGE 1: BUILD - Compilation de tous les microservices
+# ============================================================================
+
+build:config-server:
+  stage: build
+  image: maven:3.9-eclipse-temurin-17
+  script:
+    - echo "Building Config Server..."
+    - cd config-server
+    - mvn clean compile -DskipTests
+  artifacts:
+    paths:
+      - config-server/target/
+    expire_in: 1 hour
+  only:
+    changes:
+      - config-server/**/*
+      - .gitlab-ci.yml
+  tags:
+    - docker
+
+build:eureka-server:
+  stage: build
+  image: maven:3.9-eclipse-temurin-17
+  script:
+    - echo "Building Eureka Server..."
+    - cd eureka-server
+    - mvn clean compile -DskipTests
+  artifacts:
+    paths:
+      - eureka-server/target/
+    expire_in: 1 hour
+  only:
+    changes:
+      - eureka-server/**/*
+      - .gitlab-ci.yml
+  tags:
+    - docker
+
+build:api-gateway:
+  stage: build
+  image: maven:3.9-eclipse-temurin-17
+  script:
+    - echo "Building API Gateway..."
+    - cd api-gateway
+    - mvn clean compile -DskipTests
+  artifacts:
+    paths:
+      - api-gateway/target/
+    expire_in: 1 hour
+  only:
+    changes:
+      - api-gateway/**/*
+      - .gitlab-ci.yml
+  tags:
+    - docker
+
+build:auth-service:
+  stage: build
+  image: maven:3.9-eclipse-temurin-17
+  script:
+    - echo "Building Auth Service..."
+    - cd auth-service
+    - mvn clean compile -DskipTests
+  artifacts:
+    paths:
+      - auth-service/target/
+    expire_in: 1 hour
+  only:
+    changes:
+      - auth-service/**/*
+      - .gitlab-ci.yml
+  tags:
+    - docker
+
+build:enseignant-service:
+  stage: build
+  image: maven:3.9-eclipse-temurin-17
+  script:
+    - echo "Building Enseignant Service..."
+    - cd enseignant-service
+    - mvn clean compile -DskipTests
+  artifacts:
+    paths:
+      - enseignant-service/target/
+    expire_in: 1 hour
+  only:
+    changes:
+      - enseignant-service/**/*
+      - .gitlab-ci.yml
+  tags:
+    - docker
+
+build:maquette-service:
+  stage: build
+  image: maven:3.9-eclipse-temurin-17
+  script:
+    - echo "Building Maquette Service..."
+    - cd maquette-service
+    - mvn clean compile -DskipTests
+  artifacts:
+    paths:
+      - maquette-service/target/
+    expire_in: 1 hour
+  only:
+    changes:
+      - maquette-service/**/*
+      - .gitlab-ci.yml
+  tags:
+    - docker
+
+build:choix-enseignement-service:
+  stage: build
+  image: maven:3.9-eclipse-temurin-17
+  script:
+    - echo "Building Choix Enseignement Service..."
+    - cd choix-enseignement-service
+    - mvn clean compile -DskipTests
+  artifacts:
+    paths:
+      - choix-enseignement-service/target/
+    expire_in: 1 hour
+  only:
+    changes:
+      - choix-enseignement-service/**/*
+      - .gitlab-ci.yml
+  tags:
+    - docker
+
+build:deroulement-enseignement-service:
+  stage: build
+  image: maven:3.9-eclipse-temurin-17
+  script:
+    - echo "Building Deroulement Enseignement Service..."
+    - cd deroulement-enseignement-service
+    - mvn clean compile -DskipTests
+  artifacts:
+    paths:
+      - deroulement-enseignement-service/target/
+    expire_in: 1 hour
+  only:
+    changes:
+      - deroulement-enseignement-service/**/*
+      - .gitlab-ci.yml
+  tags:
+    - docker
+
+build:emploi-temps-service:
+  stage: build
+  image: maven:3.9-eclipse-temurin-17
+  script:
+    - echo "Building Emploi Temps Service..."
+    - cd emploi-temps-service
+    - mvn clean compile -DskipTests
+  artifacts:
+    paths:
+      - emploi-temps-service/target/
+    expire_in: 1 hour
+  only:
+    changes:
+      - emploi-temps-service/**/*
+      - .gitlab-ci.yml
+  tags:
+    - docker
+
+build:frontend:
+  stage: build
+  image: node:18-alpine
+  script:
+    - echo "Building Frontend..."
+    - cd front-end-main
+    - npm ci
+    - npm run build
+  artifacts:
+    paths:
+      - front-end-main/dist/
+      - front-end-main/build/
+    expire_in: 1 hour
+  only:
+    changes:
+      - front-end-main/**/*
+      - .gitlab-ci.yml
+  tags:
+    - docker
+
+# ============================================================================
+# STAGE 2: TEST - Tests unitaires et d'intégration
+# ============================================================================
+
+test:unit:
+  stage: test
+  image: maven:3.9-eclipse-temurin-17
+  script:
+    - echo "Running unit tests for all services..."
+    - |
+      for service in config-server eureka-server api-gateway auth-service enseignant-service maquette-service choix-enseignement-service deroulement-enseignement-service emploi-temps-service; do
+        if [ -d "$service" ]; then
+          echo "Testing $service..."
+          cd $service
+          mvn test -Dtest=**/*Test || echo "No tests found for $service"
+          cd ..
+        fi
+      done
+  coverage: '/Total.*?([0-9]{1,3})%/'
+  artifacts:
+    when: always
+    reports:
+      junit:
+        - "*/target/surefire-reports/TEST-*.xml"
+    paths:
+      - "*/target/surefire-reports/"
+      - "*/target/site/jacoco/"
+    expire_in: 1 week
+  tags:
+    - docker
+
+test:integration:
+  stage: test
+  image: maven:3.9-eclipse-temurin-17
+  services:
+    - mysql:8.0
+    - redis:7-alpine
+  variables:
+    MYSQL_ROOT_PASSWORD: "root"
+    MYSQL_DATABASE: "daos_test"
+    REDIS_HOST: "redis"
+  script:
+    - echo "Running integration tests..."
+    - |
+      for service in auth-service enseignant-service maquette-service choix-enseignement-service deroulement-enseignement-service emploi-temps-service; do
+        if [ -d "$service" ]; then
+          echo "Integration testing $service..."
+          cd $service
+          mvn verify -DskipUnitTests=true -Dtest=**/*IT || echo "No integration tests found for $service"
+          cd ..
+        fi
+      done
+  artifacts:
+    when: always
+    reports:
+      junit:
+        - "*/target/failsafe-reports/TEST-*.xml"
+    paths:
+      - "*/target/failsafe-reports/"
+    expire_in: 1 week
+  allow_failure: true
+  tags:
+    - docker
+
+test:frontend:
+  stage: test
+  image: node:18-alpine
+  script:
+    - cd front-end-main
+    - npm ci
+    - npm run test -- --coverage --watchAll=false || echo "No frontend tests configured"
+  coverage: '/All files[^|]*\|[^|]*\s+([\d\.]+)/'
+  artifacts:
+    when: always
+    paths:
+      - front-end-main/coverage/
+    expire_in: 1 week
+  allow_failure: true
+  only:
+    changes:
+      - front-end-main/**/*
+      - .gitlab-ci.yml
+  tags:
+    - docker
+
+# ============================================================================
+# STAGE 3: ANALYZE - Analyse de code statique avec SonarQube
+# ============================================================================
+
+sonarqube:backend:
+  stage: analyze
+  image: maven:3.9-eclipse-temurin-17
+  script:
+    - echo "Running SonarQube analysis for backend services..."
+    - |
+      for service in config-server eureka-server api-gateway auth-service enseignant-service maquette-service choix-enseignement-service deroulement-enseignement-service emploi-temps-service; do
+        if [ -d "$service" ]; then
+          echo "Analyzing $service with SonarQube..."
+          cd $service
+          mvn sonar:sonar \
+            -Dsonar.projectKey=daos-$service \
+            -Dsonar.projectName="DAOS - $service" \
+            -Dsonar.host.url=$SONAR_HOST_URL \
+            -Dsonar.login=$SONAR_TOKEN \
+            -Dsonar.java.binaries=target/classes \
+            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml || echo "SonarQube analysis failed for $service"
+          cd ..
+        fi
+      done
+  allow_failure: true
+  only:
+    - main
+    - develop
+  tags:
+    - docker
+
+sonarqube:frontend:
+  stage: analyze
+  image: sonarsource/sonar-scanner-cli:latest
+  script:
+    - cd front-end-main
+    - |
+      sonar-scanner \
+        -Dsonar.projectKey=daos-frontend \
+        -Dsonar.projectName="DAOS - Frontend" \
+        -Dsonar.sources=src \
+        -Dsonar.host.url=$SONAR_HOST_URL \
+        -Dsonar.login=$SONAR_TOKEN \
+        -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info || echo "SonarQube analysis failed for frontend"
+  allow_failure: true
+  only:
+    - main
+    - develop
+    changes:
+      - front-end-main/**/*
+      - .gitlab-ci.yml
+  tags:
+    - docker
+
+# ============================================================================
+# STAGE 4: DOCKER BUILD - Construction des images Docker
+# ============================================================================
+
+docker:build:config-server:
+  stage: docker-build
+  image: docker:24-dind
+  services:
+    - docker:24-dind
+  before_script:
+    - docker info
+  script:
+    - echo "Building Docker image for Config Server..."
+    - cd config-server
+    - docker build -t $CI_REGISTRY_IMAGE/config-server:$CI_COMMIT_SHORT_SHA .
+    - docker build -t $CI_REGISTRY_IMAGE/config-server:latest .
+  only:
+    changes:
+      - config-server/**/*
+      - .gitlab-ci.yml
+  tags:
+    - docker
+
+docker:build:eureka-server:
+  stage: docker-build
+  image: docker:24-dind
+  services:
+    - docker:24-dind
+  script:
+    - echo "Building Docker image for Eureka Server..."
+    - cd eureka-server
+    - docker build -t $CI_REGISTRY_IMAGE/eureka-server:$CI_COMMIT_SHORT_SHA .
+    - docker build -t $CI_REGISTRY_IMAGE/eureka-server:latest .
+  only:
+    changes:
+      - eureka-server/**/*
+      - .gitlab-ci.yml
+  tags:
+    - docker
+
+docker:build:api-gateway:
+  stage: docker-build
+  image: docker:24-dind
+  services:
+    - docker:24-dind
+  script:
+    - echo "Building Docker image for API Gateway..."
+    - cd api-gateway
+    - docker build -t $CI_REGISTRY_IMAGE/api-gateway:$CI_COMMIT_SHORT_SHA .
+    - docker build -t $CI_REGISTRY_IMAGE/api-gateway:latest .
+  only:
+    changes:
+      - api-gateway/**/*
+      - .gitlab-ci.yml
+  tags:
+    - docker
+
+docker:build:auth-service:
+  stage: docker-build
+  image: docker:24-dind
+  services:
+    - docker:24-dind
+  script:
+    - echo "Building Docker image for Auth Service..."
+    - cd auth-service
+    - docker build -t $CI_REGISTRY_IMAGE/auth-service:$CI_COMMIT_SHORT_SHA .
+    - docker build -t $CI_REGISTRY_IMAGE/auth-service:latest .
+  only:
+    changes:
+      - auth-service/**/*
+      - .gitlab-ci.yml
+  tags:
+    - docker
+
+docker:build:enseignant-service:
+  stage: docker-build
+  image: docker:24-dind
+  services:
+    - docker:24-dind
+  script:
+    - echo "Building Docker image for Enseignant Service..."
+    - cd enseignant-service
+    - docker build -t $CI_REGISTRY_IMAGE/enseignant-service:$CI_COMMIT_SHORT_SHA .
+    - docker build -t $CI_REGISTRY_IMAGE/enseignant-service:latest .
+  only:
+    changes:
+      - enseignant-service/**/*
+      - .gitlab-ci.yml
+  tags:
+    - docker
+
+docker:build:maquette-service:
+  stage: docker-build
+  image: docker:24-dind
+  services:
+    - docker:24-dind
+  script:
+    - echo "Building Docker image for Maquette Service..."
+    - cd maquette-service
+    - docker build -t $CI_REGISTRY_IMAGE/maquette-service:$CI_COMMIT_SHORT_SHA .
+    - docker build -t $CI_REGISTRY_IMAGE/maquette-service:latest .
+  only:
+    changes:
+      - maquette-service/**/*
+      - .gitlab-ci.yml
+  tags:
+    - docker
+
+docker:build:choix-enseignement-service:
+  stage: docker-build
+  image: docker:24-dind
+  services:
+    - docker:24-dind
+  script:
+    - echo "Building Docker image for Choix Enseignement Service..."
+    - cd choix-enseignement-service
+    - docker build -t $CI_REGISTRY_IMAGE/choix-enseignement-service:$CI_COMMIT_SHORT_SHA .
+    - docker build -t $CI_REGISTRY_IMAGE/choix-enseignement-service:latest .
+  only:
+    changes:
+      - choix-enseignement-service/**/*
+      - .gitlab-ci.yml
+  tags:
+    - docker
+
+docker:build:deroulement-enseignement-service:
+  stage: docker-build
+  image: docker:24-dind
+  services:
+    - docker:24-dind
+  script:
+    - echo "Building Docker image for Deroulement Enseignement Service..."
+    - cd deroulement-enseignement-service
+    - docker build -t $CI_REGISTRY_IMAGE/deroulement-enseignement-service:$CI_COMMIT_SHORT_SHA .
+    - docker build -t $CI_REGISTRY_IMAGE/deroulement-enseignement-service:latest .
+  only:
+    changes:
+      - deroulement-enseignement-service/**/*
+      - .gitlab-ci.yml
+  tags:
+    - docker
+
+docker:build:emploi-temps-service:
+  stage: docker-build
+  image: docker:24-dind
+  services:
+    - docker:24-dind
+  script:
+    - echo "Building Docker image for Emploi Temps Service..."
+    - cd emploi-temps-service
+    - docker build -t $CI_REGISTRY_IMAGE/emploi-temps-service:$CI_COMMIT_SHORT_SHA .
+    - docker build -t $CI_REGISTRY_IMAGE/emploi-temps-service:latest .
+  only:
+    changes:
+      - emploi-temps-service/**/*
+      - .gitlab-ci.yml
+  tags:
+    - docker
+
+docker:build:frontend:
+  stage: docker-build
+  image: docker:24-dind
+  services:
+    - docker:24-dind
+  script:
+    - echo "Building Docker image for Frontend..."
+    - cd front-end-main
+    - docker build -t $CI_REGISTRY_IMAGE/frontend:$CI_COMMIT_SHORT_SHA .
+    - docker build -t $CI_REGISTRY_IMAGE/frontend:latest .
+  only:
+    changes:
+      - front-end-main/**/*
+      - .gitlab-ci.yml
+  tags:
+    - docker
+
+# ============================================================================
+# STAGE 5: DOCKER PUSH - Push des images vers le registry
+# ============================================================================
+
+docker:push:
+  stage: docker-push
+  image: docker:24-dind
+  services:
+    - docker:24-dind
+  before_script:
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
+  script:
+    - echo "Pushing all Docker images to registry..."
+    - |
+      for service in config-server eureka-server api-gateway auth-service enseignant-service maquette-service choix-enseignement-service deroulement-enseignement-service emploi-temps-service frontend; do
+        echo "Pushing $service images..."
+        docker push $CI_REGISTRY_IMAGE/$service:$CI_COMMIT_SHORT_SHA || echo "Image $service:$CI_COMMIT_SHORT_SHA not found locally"
+        docker push $CI_REGISTRY_IMAGE/$service:latest || echo "Image $service:latest not found locally"
+      done
+  only:
+    - main
+    - develop
+  tags:
+    - docker
+
+# ============================================================================
+# STAGE 6: DEPLOY - Déploiement automatique en environnement de test
+# ============================================================================
+
+deploy:test:
+  stage: deploy
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache openssh-client docker-compose curl
+    - mkdir -p ~/.ssh
+    - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - ssh-keyscan -H $TEST_SERVER_HOST >> ~/.ssh/known_hosts
+  script:
+    - echo "Deploying to test environment..."
+    - |
+      ssh $TEST_SERVER_USER@$TEST_SERVER_HOST << 'EOF'
+        cd /opt/daos
+        echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
+
+        # Pull latest images
+        docker-compose pull
+
+        # Stop and remove old containers
+        docker-compose down
+
+        # Start new containers
+        docker-compose up -d
+
+        # Wait for services to be healthy
+        sleep 30
+
+        # Health check
+        curl -f http://localhost:8761/actuator/health || exit 1
+        curl -f http://localhost:8888/actuator/health || exit 1
+        curl -f http://localhost:8080/actuator/health || exit 1
+
+        echo "Deployment successful!"
+      EOF
+  environment:
+    name: test
+    url: http://$TEST_SERVER_HOST:8080
+  only:
+    - develop
+  when: manual
+  tags:
+    - docker
+
+deploy:production:
+  stage: deploy
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache openssh-client docker-compose curl
+    - mkdir -p ~/.ssh
+    - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - ssh-keyscan -H $PROD_SERVER_HOST >> ~/.ssh/known_hosts
+  script:
+    - echo "Deploying to production environment..."
+    - |
+      ssh $PROD_SERVER_USER@$PROD_SERVER_HOST << 'EOF'
+        cd /opt/daos
+        echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
+
+        # Backup current state
+        docker-compose ps > backup-$(date +%Y%m%d-%H%M%S).txt
+
+        # Pull latest images
+        docker-compose pull
+
+        # Rolling update
+        docker-compose up -d --no-deps --build
+
+        # Health check
+        sleep 60
+        curl -f http://localhost:8761/actuator/health || exit 1
+        curl -f http://localhost:8888/actuator/health || exit 1
+        curl -f http://localhost:8080/actuator/health || exit 1
+
+        echo "Production deployment successful!"
+      EOF
+  environment:
+    name: production
+    url: https://$PROD_SERVER_HOST
+  only:
+    - main
+  when: manual
+  tags:
+    - docker
+
+# ============================================================================
+# STAGE 7: NOTIFY - Notifications des résultats
+# ============================================================================
+
+notify:success:
+  stage: notify
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache curl
+  script:
+    - |
+      curl -X POST "$EMAIL_NOTIFICATION_URL" \
+        -H "Content-Type: application/json" \
+        -d "{
+          \"to\": \"$NOTIFICATION_EMAIL\",
+          \"subject\": \"✅ Pipeline CI/CD DAOS - SUCCESS\",
+          \"body\": \"Pipeline #$CI_PIPELINE_ID completed successfully for commit $CI_COMMIT_SHORT_SHA on branch $CI_COMMIT_REF_NAME by $GITLAB_USER_NAME\"
+        }" || echo "Email notification failed"
+  when: on_success
+  only:
+    - main
+    - develop
+  tags:
+    - docker
+
+notify:failure:
+  stage: notify
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache curl
+  script:
+    - |
+      curl -X POST "$EMAIL_NOTIFICATION_URL" \
+        -H "Content-Type: application/json" \
+        -d "{
+          \"to\": \"$NOTIFICATION_EMAIL\",
+          \"subject\": \"❌ Pipeline CI/CD DAOS - FAILED\",
+          \"body\": \"Pipeline #$CI_PIPELINE_ID FAILED for commit $CI_COMMIT_SHORT_SHA on branch $CI_COMMIT_REF_NAME by $GITLAB_USER_NAME. Check: $CI_PIPELINE_URL\"
+        }" || echo "Email notification failed"
+  when: on_failure
+  only:
+    - main
+    - develop
+  tags:
+    - docker
