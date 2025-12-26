@@ -1,29 +1,32 @@
 package com.uasz.daos.emploitemps.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
+import java.util.Date;
 import java.util.List;
 
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-public class Salle {
+public class Emploi {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     private String libelle;
-    private int capacite;
-    private String description;
 
-    @ManyToOne
-    @JoinColumn(name = "batiment_id", nullable = false)
-    @JsonBackReference
-    private Batiment batiment;
+    @Temporal(TemporalType.DATE)
+    private Date dateCreation;
 
-    @OneToMany(mappedBy = "salle", cascade = CascadeType.ALL)
+    // Assuming 'Emploi' is the owning side of the relationship
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "emploi_seance",
+        joinColumns = @JoinColumn(name = "emploi_id"),
+        inverseJoinColumns = @JoinColumn(name = "seance_id")
+    )
     private List<Seance> seances;
 
     // Getters and Setters
@@ -43,28 +46,12 @@ public class Salle {
         this.libelle = libelle;
     }
 
-    public int getCapacite() {
-        return capacite;
+    public Date getDateCreation() {
+        return dateCreation;
     }
 
-    public void setCapacite(int capacite) {
-        this.capacite = capacite;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public Batiment getBatiment() {
-        return batiment;
-    }
-
-    public void setBatiment(Batiment batiment) {
-        this.batiment = batiment;
+    public void setDateCreation(Date dateCreation) {
+        this.dateCreation = dateCreation;
     }
 
     public List<Seance> getSeances() {
