@@ -1,165 +1,151 @@
 package com.uasz.daos.enseignant.controller;
 
-import com.uasz.daos.enseignant.dto.EnseignantUpdateDTO;
 import com.uasz.daos.enseignant.model.Enseignant;
-import com.uasz.daos.enseignant.enums.Statut;
-//import com.uasz.daos.enseignant.service.EnseignantPDFExporter;
+import com.uasz.daos.enseignant.enums.Statut; // Assurez-vous d'avoir cet Enum ou créez-le
 import com.uasz.daos.enseignant.service.EnseignantService;
-import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.Arrays;
 import java.util.List;
 
-@Controller
+@RestController
+@RequestMapping("/enseignants") // L'URL sera /api/enseignants via le Gateway
+@CrossOrigin(origins = "*") // Permet au Front React d'appeler directement si besoin
 public class EnseignantController {
 
     @Autowired
     private EnseignantService enseignantService;
 
-    // ----------------------------------------------------------------------
-    // --- LISTES & VUES PRINCIPALES ---
-    // ----------------------------------------------------------------------
-    @GetMapping("/lst-enseignants")
-    public String listEnseignants(Model model) {
-        List<Enseignant> enseignants = enseignantService.getAllEnseignants();
-        model.addAttribute("enseignants", enseignants);
-        return "enseignant-list";
-    }
+    // ==========================================
+    // 1. LECTURE (GET)
+    // ==========================================
 
-    @GetMapping("/lst-enseignants-archives")
-    public String listEnseignantsArchives(Model model) {
-        model.addAttribute("enseignants", enseignantService.getAllEnseignantsArchives());
-        model.addAttribute("isArchiveView", true);
-        return "enseignant-archive-list";
-    }
-
-    @GetMapping("/view-enseignant/{id}")
-    public String viewEnseignantDetails(@PathVariable Long id, Model model) {
-        try {
-            Enseignant enseignant = enseignantService.getEnseignantById(id);
-            model.addAttribute("enseignant", enseignant);
-        } catch (RuntimeException e) {
-            model.addAttribute("enseignant", null);
-            model.addAttribute("error", e.getMessage());
-        }
-        return "enseignant-details";
-    }
-
-    // ----------------------------------------------------------------------
-    // --- CREATION (GET & POST) ---
-    // ----------------------------------------------------------------------
-    @GetMapping("/add-enseignant")
-    public String addEnseignant(Model model) {
-        model.addAttribute("enseignant", new Enseignant());
-        model.addAttribute("grades", List.of("Assistant", "Maître-Assistant", "Maître de Conférences", "Professeur Titulaire", "Professeur Assimilé"));
-        model.addAttribute("statuts", Statut.values());
-        return "enseignant-add";
-    }
-
-    @PostMapping("/save-enseignant")
-    public String saveEnseignant(@ModelAttribute("enseignant") Enseignant enseignant,
-                                 RedirectAttributes redirectAttributes) {
-        try {
-            enseignantService.saveEnseignant(enseignant);
-            redirectAttributes.addFlashAttribute("success", "Enseignant ajouté avec succès! Matricule: " + enseignant.getMatricule());
-            return "redirect:/lst-enseignants";
-        } catch (IllegalArgumentException e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
-            return "redirect:/add-enseignant";
-        } catch (RuntimeException e) {
-            redirectAttributes.addFlashAttribute("error", "Erreur: " + e.getMessage());
-            return "redirect:/add-enseignant";
-        }
-    }
-
-    // ----------------------------------------------------------------------
-    // --- MODIFICATION (GET & POST) ---
-    // ----------------------------------------------------------------------
-
-    @GetMapping("/edit-enseignant/{id}")
-    public String editEnseignant(@PathVariable Long id, Model model) {
-        Enseignant enseignant = enseignantService.getEnseignantById(id);
-
-        model.addAttribute("enseignant", enseignant);
-        model.addAttribute("grades", List.of("Assistant", "Maître-Assistant", "Maître de Conférences", "Professeur Titulaire", "Professeur Assimilé"));
-        model.addAttribute("statuts", Statut.values()); // Assurez-vous d'envoyer l'enum Statut
-
-        return "enseignant-edit";
+    /**
+     * Récupérer tous les enseignants ACTIFS
+     */
+    @GetMapping
+    public ResponseEntity<List<Enseignant>> getAllEnseignants() {
+        return ResponseEntity.ok(enseignantService.getAllEnseignants());
     }
 
     /**
-     * Traite la soumission du formulaire d'édition. Utilise l'entité Enseignant pour la liaison.
+     * Récupérer tous les enseignants ARCHIVÉS (Corbeille)
      */
-    @PostMapping("/update-enseignant/{id}")
-    public String updateEnseignant(@PathVariable Long id,
-                                   @ModelAttribute Enseignant enseignantForm, // Utilisation de l'entité
-                                   RedirectAttributes redirectAttributes) {
+    @GetMapping("/archives")
+    public ResponseEntity<List<Enseignant>> getEnseignantsArchives() {
+        return ResponseEntity.ok(enseignantService.getAllEnseignantsArchives());
+    }
+
+    /**
+     * Récupérer un enseignant par son ID
+     */
+    @GetMapping("/{id}")
+    public ResponseEntity<Enseignant> getEnseignantById(@PathVariable Long id) {
         try {
-            Enseignant updatedEnseignant = enseignantService.updateEnseignant(id, enseignantForm);
-            redirectAttributes.addFlashAttribute("success", "Enseignant " + updatedEnseignant.getMatricule() + " mis à jour avec succès.");
-            return "redirect:/lst-enseignants";
-        } catch (IllegalArgumentException e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
-            return "redirect:/edit-enseignant/" + id;
+            return ResponseEntity.ok(enseignantService.getEnseignantById(id));
         } catch (RuntimeException e) {
-            redirectAttributes.addFlashAttribute("error", "Erreur lors de la modification: " + e.getMessage());
-            return "redirect:/edit-enseignant/" + id;
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }
 
-    // ----------------------------------------------------------------------
-    // --- GESTION DU STATUT (POST) ---
-    // ----------------------------------------------------------------------
+    // ==========================================
+    // 2. ECRITURE (POST / PUT)
+    // ==========================================
 
-    @PostMapping("/archive-enseignant/{id}")
-    public String archiverEnseignant(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+    /**
+     * Créer un nouvel enseignant
+     */
+    @PostMapping
+    public ResponseEntity<?> createEnseignant(@RequestBody Enseignant enseignant) {
+        try {
+            Enseignant saved = enseignantService.saveEnseignant(enseignant);
+            return ResponseEntity.status(HttpStatus.CREATED).body(saved);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur serveur : " + e.getMessage());
+        }
+    }
+
+    /**
+     * Modifier un enseignant existant
+     */
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateEnseignant(@PathVariable Long id, @RequestBody Enseignant enseignant) {
+        try {
+            Enseignant updated = enseignantService.updateEnseignant(id, enseignant);
+            return ResponseEntity.ok(updated);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+
+    // ==========================================
+    // 3. ACTIONS (PATCH)
+    // ==========================================
+
+    @PatchMapping("/{id}/archiver")
+    public ResponseEntity<?> archiver(@PathVariable Long id) {
         try {
             enseignantService.archiverEnseignant(id);
-            redirectAttributes.addFlashAttribute("success", "Enseignant archivé avec succès.");
+            return ResponseEntity.ok().body("Enseignant archivé.");
         } catch (RuntimeException e) {
-            redirectAttributes.addFlashAttribute("error", "Erreur lors de l'archivage: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
-        return "redirect:/lst-enseignants";
     }
 
-    @PostMapping("/unarchive-enseignant/{id}") // <--- C'EST CETTE URL QUI COMPTE
-    public String desarchiverEnseignant(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+    @PatchMapping("/{id}/restaurer") // Remplace 'unarchive-enseignant'
+    public ResponseEntity<?> restaurer(@PathVariable Long id) {
         try {
             enseignantService.desarchiverEnseignant(id);
-            redirectAttributes.addFlashAttribute("success", "Enseignant désarchivé et activé avec succès.");
+            return ResponseEntity.ok().body("Enseignant restauré.");
         } catch (RuntimeException e) {
-            redirectAttributes.addFlashAttribute("error", "Erreur lors du désarchivage: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
-        return "redirect:/lst-enseignants-archives";
     }
 
-    @PostMapping("/activer-enseignant/{id}")
-    public String activerEnseignant(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+    @PatchMapping("/{id}/activer")
+    public ResponseEntity<?> activer(@PathVariable Long id) {
         try {
             enseignantService.activerEnseignant(id);
-            redirectAttributes.addFlashAttribute("success", "Enseignant activé avec succès.");
+            return ResponseEntity.ok().body("Enseignant activé.");
         } catch (RuntimeException e) {
-            redirectAttributes.addFlashAttribute("error", "Erreur lors de l'activation: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
-        return "redirect:/lst-enseignants";
     }
 
-    @PostMapping("/desactiver-enseignant/{id}")
-    public String desactiverEnseignant(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+    @PatchMapping("/{id}/desactiver")
+    public ResponseEntity<?> desactiver(@PathVariable Long id) {
         try {
             enseignantService.desactiverEnseignant(id);
-            redirectAttributes.addFlashAttribute("success", "Enseignant désactivé avec succès.");
+            return ResponseEntity.ok().body("Enseignant désactivé.");
         } catch (RuntimeException e) {
-            redirectAttributes.addFlashAttribute("error", "Erreur lors de la désactivation: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
-        return "redirect:/lst-enseignants";
+    }
+
+    // ==========================================
+    // 4. REFERENCES (Pour les listes déroulantes React)
+    // ==========================================
+
+    @GetMapping("/ref/grades")
+    public ResponseEntity<List<String>> getGrades() {
+        return ResponseEntity.ok(List.of(
+                "Assistant",
+                "Maître-Assistant",
+                "Maître de Conférences",
+                "Professeur Titulaire",
+                "Professeur Assimilé"
+        ));
+    }
+
+    @GetMapping("/ref/statuts")
+    public ResponseEntity<List<Statut>> getStatuts() {
+        return ResponseEntity.ok(Arrays.asList(Statut.values()));
     }
 }
