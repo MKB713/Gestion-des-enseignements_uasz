@@ -3,8 +3,7 @@ package com.uasz.daos.auth.services;
 import com.uasz.daos.auth.model.Enseignant;
 import com.uasz.daos.auth.model.Utilisateur;
 import com.uasz.daos.auth.enums.Role;
-
-import lombok.Getter;
+import com.uasz.daos.auth.enums.Etat;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -12,7 +11,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.Collections;
 
-@Getter
 public class CustomUserDetails implements UserDetails {
 
     private final Utilisateur utilisateur;
@@ -31,6 +29,14 @@ public class CustomUserDetails implements UserDetails {
     }
 
     // -------- Accès unifié aux données --------
+    public Long getId() {
+        if (utilisateur != null) {
+            return utilisateur.getId();
+        } else if (enseignant != null) {
+            return enseignant.getId();
+        }
+        return null;
+    }
 
     public String getNom() {
         if (utilisateur != null) {
@@ -59,13 +65,29 @@ public class CustomUserDetails implements UserDetails {
         }
     }
 
-    /** Retourne l’entité d'origine (Utilisateur OU Enseignant) */
+    public Etat getEtat() {
+        if (utilisateur != null) {
+            return utilisateur.getEtat();
+        } else if (enseignant != null) {
+            return enseignant.getEtat();
+        }
+        return null;
+    }
+
+    /** Retourne l'entité d'origine (Utilisateur OU Enseignant) */
     public Object getEntity() {
         return (utilisateur != null) ? utilisateur : enseignant;
     }
 
-    // -------- Implémentation UserDetails --------
+    public Utilisateur getUtilisateur() {
+        return utilisateur;
+    }
 
+    public Enseignant getEnseignant() {
+        return enseignant;
+    }
+
+    // -------- Implémentation UserDetails --------
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         Role role = getRole();
@@ -92,13 +114,33 @@ public class CustomUserDetails implements UserDetails {
         return "";
     }
 
-    @Override public boolean isAccountNonExpired() { return true; }
-    @Override public boolean isAccountNonLocked() { return true; }
-    @Override public boolean isCredentialsNonExpired() { return true; }
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        if (utilisateur != null) {
+            return !utilisateur.getCompteVerrouille();
+        } else if (enseignant != null) {
+            return true; // Les enseignants ne sont jamais verrouillés dans ce système
+        }
+        return false;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
 
     @Override
     public boolean isEnabled() {
-        if (utilisateur != null) return utilisateur.getEtat() != null;
-        return enseignant != null && enseignant.isEstActif();
+        if (utilisateur != null) {
+            return utilisateur.getEtat() == Etat.ACTIF;
+        } else if (enseignant != null) {
+            return true; // Les enseignants sont toujours actifs dans ce système
+        }
+        return false;
     }
 }

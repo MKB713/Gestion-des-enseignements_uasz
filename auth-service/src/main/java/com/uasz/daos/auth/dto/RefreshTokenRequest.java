@@ -1,5 +1,6 @@
 package com.uasz.daos.auth.dto;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -9,11 +10,8 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class DashboardStatsDTO {
+public class RefreshTokenRequest {
 
-    private long totalUsers;
-    private long totalEtudiants;
-    private long totalEnseignants;
-    private long totalAdmins;
-    private long activeUsers;
+    @NotBlank(message = "Le refresh token est obligatoire")
+    private String refreshToken;
 }
