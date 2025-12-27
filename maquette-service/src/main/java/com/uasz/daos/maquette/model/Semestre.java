@@ -1,36 +1,31 @@
 package com.uasz.daos.maquette.model;
 
 import jakarta.persistence.*;
-
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import java.util.List;
 
 @Entity
 @Table(name = "semestres")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Semestre {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String nom;
 
-    public Semestre() {}
+    private int numero;
+    private String libelle;
 
-    public Semestre(Long id, String nom) {
-        this.id = id;
-        this.nom = nom;
-    }
+    private int creditsTotaux;
+    private double coefficientsTotaux;
 
-    public Long getId() {
-        return id;
-    }
+    @ManyToOne
+    @JoinColumn(name = "maquette_id")
+    private Maquette maquette;
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getNom() {
-        return nom;
-    }
-
-    public void setNom(String nom) {
-        this.nom = nom;
-    }
+    @OneToMany(mappedBy = "semestre", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UE> ues;
 }

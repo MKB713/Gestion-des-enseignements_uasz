@@ -21,9 +21,9 @@ public class EnseignantService {
     @Autowired
     private EnseignantRepository enseignantRepository;
 
-    // ----------------------------------------------------------------------
-    // --- LOGIQUE METIER : VALIDATIONS & UTILITAIRES ---
-    // ----------------------------------------------------------------------
+    // ======================================================================
+    // 1. UTILITAIRES MÉTIER (Privés)
+    // ======================================================================
 
     /**
      * Nettoie une chaîne (enlève accents, espaces, met en minuscule)
@@ -39,6 +39,7 @@ public class EnseignantService {
 
     /**
      * Génère un email institutionnel unique : prenom.nom@univ-zig.sn
+     * Gère les doublons en ajoutant un chiffre (prenom.nom1@...)
      */
     private String generateUniqueEmail(String prenom, String nom) {
         String cleanPrenom = cleanString(prenom);
@@ -57,30 +58,8 @@ public class EnseignantService {
     }
 
     /**
-     * Vérifie que la date n'est pas dans le futur
+     * Génère le prochain matricule disponible pour l'année en cours
      */
-    private void validateDateEmbauche(LocalDate dateEmbauche) {
-        if (dateEmbauche != null && dateEmbauche.isAfter(LocalDate.now())) {
-            throw new IllegalArgumentException("La date d'embauche ne peut pas être une date future (" + dateEmbauche + ").");
-        }
-    }
-
-    /**
-     * Vérifie que l'enseignant a au moins 25 ans
-     */
-    private void validateAge(LocalDate dateNaissance) {
-        if (dateNaissance != null) {
-            LocalDate dateMinimum = LocalDate.now().minusYears(25);
-            // Si la date de naissance est APRÈS la date limite (donc plus jeune que 25 ans)
-            if (dateNaissance.isAfter(dateMinimum)) {
-                throw new IllegalArgumentException("L'enseignant doit être âgé d'au moins 25 ans.");
-            }
-        }
-    }
-
-    // ----------------------------------------------------------------------
-    // --- GENERATION MATRICULE ---
-    // ----------------------------------------------------------------------
     private Long generateNextMatricule() {
         int currentYear = Year.now().getValue();
         final long YEAR_BASE = (long) currentYear * 100000L;
@@ -101,69 +80,33 @@ public class EnseignantService {
         return YEAR_BASE + nextRank;
     }
 
-    // ----------------------------------------------------------------------
-    // --- CRUD OPERATIONS ---
-    // ----------------------------------------------------------------------
+    // ======================================================================
+    // 2. VALIDATIONS
+    // ======================================================================
+
+    private void validateDateEmbauche(LocalDate dateEmbauche) {
+        if (dateEmbauche != null && dateEmbauche.isAfter(LocalDate.now())) {
+            throw new IllegalArgumentException("La date d'embauche ne peut pas être une date future (" + dateEmbauche + ").");
+        }
+    }
+
+    private void validateAge(LocalDate dateNaissance) {
+        if (dateNaissance != null) {
+            LocalDate dateMinimum = LocalDate.now().minusYears(25);
+            if (dateNaissance.isAfter(dateMinimum)) {
+                throw new IllegalArgumentException("L'enseignant doit être âgé d'au moins 25 ans.");
+            }
+        }
+    }
+
+    // ======================================================================
+    // 3. CRUD (Lecture / Écriture)
+    // ======================================================================
 
     public Enseignant getEnseignantById(Long id) {
         return enseignantRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Enseignant non trouvé avec l'id: " + id));
     }
-
-    @Transactional
-    public void saveEnseignant(Enseignant enseignant) {
-        // 1. Validations
-        validateDateEmbauche(enseignant.getDateEmbauche());
-        validateAge(enseignant.getDateNaissance()); // Ajout de la validation d'âge
-
-        // 2. Génération email
-        String generatedEmail = generateUniqueEmail(enseignant.getPrenom(), enseignant.getNom());
-        enseignant.setEmail(generatedEmail);
-
-        // 3. Initialisation
-        if (enseignant.getId() == null) {
-            enseignant.setMatricule(generateNextMatricule());
-            enseignant.setDateCreation(LocalDateTime.now());
-            enseignant.setStatutEnseignant(StatutEnseignant.ACTIF);
-            enseignant.setEstActif(true);
-        }
-
-        enseignant.setDateModification(LocalDateTime.now());
-        enseignantRepository.save(enseignant);
-    }
-
-    @Transactional
-    public Enseignant updateEnseignant(Long id, Enseignant enseignantForm) {
-        Enseignant enseignant = getEnseignantById(id);
-
-        // 1. Validations
-        validateDateEmbauche(enseignantForm.getDateEmbauche());
-        validateAge(enseignantForm.getDateNaissance()); // Ajout de la validation d'âge
-
-        // 2. Mise à jour des champs
-        enseignant.setNom(enseignantForm.getNom());
-        enseignant.setPrenom(enseignantForm.getPrenom());
-        enseignant.setSpecialite(enseignantForm.getSpecialite());
-
-        enseignant.setDateNaissance(enseignantForm.getDateNaissance()); // Ajouté
-        enseignant.setLieuNaissance(enseignantForm.getLieuNaissance()); // Ajouté
-
-        enseignant.setDateEmbauche(enseignantForm.getDateEmbauche());
-        enseignant.setGrade(enseignantForm.getGrade());
-        enseignant.setStatut(enseignantForm.getStatut());
-
-        // On met à jour le téléphone et l'adresse, mais pas l'email pro (généralement fixe)
-        enseignant.setTelephone(enseignantForm.getTelephone());
-        enseignant.setAdresse(enseignantForm.getAdresse());
-
-        enseignant.setDateModification(LocalDateTime.now());
-
-        return enseignantRepository.save(enseignant);
-    }
-
-    // ----------------------------------------------------------------------
-    // --- LISTE ET RECHERCHE ---
-    // ----------------------------------------------------------------------
 
     public List<Enseignant> getAllEnseignants() {
         return enseignantRepository.findByStatutEnseignantNot(StatutEnseignant.ARCHIVE);
@@ -173,9 +116,65 @@ public class EnseignantService {
         return enseignantRepository.findByStatutEnseignant(StatutEnseignant.ARCHIVE);
     }
 
-    // ----------------------------------------------------------------------
-    // --- GESTION DU STATUT ---
-    // ----------------------------------------------------------------------
+    /**
+     * Crée ou sauvegarde un enseignant.
+     * @return L'objet sauvegardé (IMPORTANT pour le retour JSON au Front)
+     */
+    @Transactional
+    public Enseignant saveEnseignant(Enseignant enseignant) {
+        // Validations
+        validateDateEmbauche(enseignant.getDateEmbauche());
+        validateAge(enseignant.getDateNaissance());
+
+        // Génération Email si absent
+        if (enseignant.getEmail() == null || enseignant.getEmail().isEmpty()) {
+            String generatedEmail = generateUniqueEmail(enseignant.getPrenom(), enseignant.getNom());
+            enseignant.setEmail(generatedEmail);
+        }
+
+        // Initialisation pour création
+        if (enseignant.getId() == null) {
+            enseignant.setMatricule(generateNextMatricule());
+            enseignant.setDateCreation(LocalDateTime.now());
+            enseignant.setStatutEnseignant(StatutEnseignant.ACTIF);
+            enseignant.setEstActif(true);
+        }
+
+        enseignant.setDateModification(LocalDateTime.now());
+        return enseignantRepository.save(enseignant);
+    }
+
+    /**
+     * Met à jour un enseignant existant.
+     * @return L'objet mis à jour
+     */
+    @Transactional
+    public Enseignant updateEnseignant(Long id, Enseignant enseignantForm) {
+        Enseignant enseignant = getEnseignantById(id);
+
+        // Validations
+        validateDateEmbauche(enseignantForm.getDateEmbauche());
+        validateAge(enseignantForm.getDateNaissance());
+
+        // Mise à jour des champs modifiables
+        enseignant.setNom(enseignantForm.getNom());
+        enseignant.setPrenom(enseignantForm.getPrenom());
+        enseignant.setSpecialite(enseignantForm.getSpecialite());
+        enseignant.setDateNaissance(enseignantForm.getDateNaissance());
+        enseignant.setLieuNaissance(enseignantForm.getLieuNaissance());
+        enseignant.setDateEmbauche(enseignantForm.getDateEmbauche());
+        enseignant.setGrade(enseignantForm.getGrade());
+        enseignant.setStatut(enseignantForm.getStatut());
+        enseignant.setTelephone(enseignantForm.getTelephone());
+        enseignant.setAdresse(enseignantForm.getAdresse());
+
+        enseignant.setDateModification(LocalDateTime.now());
+        return enseignantRepository.save(enseignant);
+    }
+
+    // ======================================================================
+    // 4. GESTION DES ÉTATS (Actions)
+    // ======================================================================
 
     @Transactional
     public Enseignant archiverEnseignant(Long id) {
