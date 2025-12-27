@@ -1,0 +1,57 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  # Scrape logs from Docker containers
+  - job_name: docker
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        refresh_interval: 5s
+        filters:
+          - name: label
+            values: ["com.docker.compose.project=gestion-des-enseignements_uasz"]
+
+    relabel_configs:
+      # Container name
+      - source_labels: ['__meta_docker_container_name']
+        regex: '/(.*)'
+        target_label: 'container'
+
+      # Service name
+      - source_labels: ['__meta_docker_container_label_com_docker_compose_service']
+        target_label: 'service'
+
+      # Project name
+      - source_labels: ['__meta_docker_container_label_com_docker_compose_project']
+        target_label: 'project'
+
+      # Container ID
+      - source_labels: ['__meta_docker_container_id']
+        target_label: 'container_id'
+
+      # Image name
+      - source_labels: ['__meta_docker_container_label_com_docker_compose_image']
+        target_label: 'image'
+
+    pipeline_stages:
+      # Parse Spring Boot logs
+      - regex:
+          expression: '^(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3})\s+(?P<level>\w+)\s+\[(?P<application>[^\]]+),(?P<traceId>[^\]]*),(?P<spanId>[^\]]*)\]\s+(?P<pid>\d+)\s+---\s+\[(?P<thread>[^\]]+)\]\s+(?P<logger>[^\s]+)\s+:\s+(?P<message>.*)'
+
+      - labels:
+          level:
+          application:
+          traceId:
+          spanId:
+          thread:
+
+      - timestamp:
+          source: timestamp
+          format: '2006-01-02 15:04:05.000'

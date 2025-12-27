@@ -1,0 +1,54 @@
+# Configuration commune à tous les microservices DAOS
+
+# Eureka Configuration (commune)
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
+    lease-renewal-interval-in-seconds: 30
+    lease-expiration-duration-in-seconds: 90
+
+# JPA Configuration (commune)
+spring:
+  jpa:
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQLDialect
+
+# Logging Configuration (commune)
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+  level:
+    root: INFO
+    org.springframework: INFO
+
+# Actuator Configuration (commune)
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,refresh
+  endpoint:
+    health:
+      show-details: when-authorized
+
+# Swagger Configuration (commune)
+springdoc:
+  swagger-ui:
+    enabled: true
+  api-docs:
+    enabled: true
+
+# Info Actuator
+info:
+  app:
+    name: DAOS Microservices
+    description: Système de gestion des enseignements - UASZ
+    version: 1.0.0

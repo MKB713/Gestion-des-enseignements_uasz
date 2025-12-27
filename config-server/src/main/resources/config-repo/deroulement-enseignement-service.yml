@@ -1,0 +1,37 @@
+# Configuration Déroulement Enseignement Service - Profil par défaut
+
+server:
+  port: 8086
+
+spring:
+  application:
+    name: deroulement-enseignement-service
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/daos_deroulement_enseignement_db?createDatabaseIfNotExist=true
+    username: root
+    password: ""
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: true
+
+# Swagger Configuration
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+  packages-to-scan: com.uasz.daos.deroulement.controller
+
+# Logging
+logging:
+  level:
+    com.uasz.daos.deroulement: DEBUG
