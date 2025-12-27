@@ -1,0 +1,222 @@
+# Network Policies pour Docker Compose
+# Ce fichier définit les règles de communication entre les services
+
+# Note: Docker Compose ne supporte pas nativement les network policies comme Kubernetes
+# Ces règles sont documentées ici et peuvent être implémentées avec:
+# 1. Docker Swarm Mode avec network policies
+# 2. Kubernetes NetworkPolicy
+# 3. Firewall iptables personnalisé
+
+---
+# Policy 1: MySQL - Accessible uniquement par les microservices
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: mysql-network-policy
+spec:
+  podSelector:
+    matchLabels:
+      app: mysql
+  policyTypes:
+    - Ingress
+  ingress:
+    # Autoriser uniquement les microservices métier
+    - from:
+        - podSelector:
+            matchLabels:
+              tier: business-service
+      ports:
+        - protocol: TCP
+          port: 3306
+
+---
+# Policy 2: Redis - Accessible uniquement par API Gateway
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: redis-network-policy
+spec:
+  podSelector:
+    matchLabels:
+      app: redis
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: api-gateway
+      ports:
+        - protocol: TCP
+          port: 6379
+
+---
+# Policy 3: Eureka Server - Accessible par tous les services
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: eureka-network-policy
+spec:
+  podSelector:
+    matchLabels:
+      app: eureka-server
+  policyTypes:
+    - Ingress
+  ingress:
+    # Autoriser tous les services Spring Boot
+    - from:
+        - podSelector:
+            matchLabels:
+              framework: spring-boot
+      ports:
+        - protocol: TCP
+          port: 8761
+    # Autoriser le monitoring
+    - from:
+        - podSelector:
+            matchLabels:
+              app: prometheus
+      ports:
+        - protocol: TCP
+          port: 8761
+
+---
+# Policy 4: Config Server - Accessible par tous les services
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: config-server-network-policy
+spec:
+  podSelector:
+    matchLabels:
+      app: config-server
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              framework: spring-boot
+      ports:
+        - protocol: TCP
+          port: 8888
+
+---
+# Policy 5: API Gateway - Accessible depuis l'extérieur et front-end
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: api-gateway-network-policy
+spec:
+  podSelector:
+    matchLabels:
+      app: api-gateway
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Autoriser le trafic externe (navigateurs, clients)
+    - from: []
+      ports:
+        - protocol: TCP
+          port: 8080
+  egress:
+    # Autoriser les appels vers les microservices
+    - to:
+        - podSelector:
+            matchLabels:
+              tier: business-service
+    # Autoriser les appels vers Eureka et Config
+    - to:
+        - podSelector:
+            matchLabels:
+              tier: infrastructure
+
+---
+# Policy 6: Microservices Métier - Communication restreinte
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: business-services-network-policy
+spec:
+  podSelector:
+    matchLabels:
+      tier: business-service
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Accessible uniquement via API Gateway
+    - from:
+        - podSelector:
+            matchLabels:
+              app: api-gateway
+  egress:
+    # Autoriser MySQL
+    - to:
+        - podSelector:
+            matchLabels:
+              app: mysql
+      ports:
+        - protocol: TCP
+          port: 3306
+    # Autoriser Eureka et Config
+    - to:
+        - podSelector:
+            matchLabels:
+              tier: infrastructure
+    # Autoriser les appels entre microservices (pour Feign)
+    - to:
+        - podSelector:
+            matchLabels:
+              tier: business-service
+
+---
+# Policy 7: Monitoring - Lecture seule sur tous les services
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: monitoring-network-policy
+spec:
+  podSelector:
+    matchLabels:
+      tier: monitoring
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Accessible depuis l'extérieur pour Grafana
+    - from: []
+      ports:
+        - protocol: TCP
+          port: 3001  # Grafana
+        - protocol: TCP
+          port: 9090  # Prometheus
+        - protocol: TCP
+          port: 16686 # Jaeger
+  egress:
+    # Scraping de tous les services
+    - to:
+        - podSelector: {}
+
+---
+# Policy 8: Vault - Accès restreint
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: vault-network-policy
+spec:
+  podSelector:
+    matchLabels:
+      app: vault
+  policyTypes:
+    - Ingress
+  ingress:
+    # Autoriser uniquement Config Server et les services Spring Boot
+    - from:
+        - podSelector:
+            matchLabels:
+              framework: spring-boot
+      ports:
+        - protocol: TCP
+          port: 8200

@@ -1,0 +1,32 @@
+# Configuration Enseignant Service - Environnement Production
+
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:mysql://mysql:3306/daos_enseignant_db}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:root}
+
+  jpa:
+    show-sql: false
+    hibernate:
+      ddl-auto: validate
+
+# Swagger - Désactivé
+springdoc:
+  swagger-ui:
+    enabled: false
+  api-docs:
+    enabled: false
+
+# Actuator - Limité
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+# Logging - Minimal
+logging:
+  level:
+    com.uasz.daos.enseignant: INFO
+    root: WARN

@@ -1,0 +1,41 @@
+# Configuration Auth Service - Environnement Production
+
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:mysql://mysql:3306/daos_auth_db}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:root}
+
+  jpa:
+    show-sql: false
+    hibernate:
+      ddl-auto: validate # Ne pas modifier le schéma en production
+
+# JWT - Configuration sécurisée
+jwt:
+  secret: ${JWT_SECRET:5367566B59703373367639792F423F4528482B4D6251655468576D5A71347437}
+  expiration: 3600000 # 1 heure en production
+
+# Swagger - Désactivé en production
+springdoc:
+  swagger-ui:
+    enabled: false
+  api-docs:
+    enabled: false
+
+# Actuator - Endpoints limités
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when-authorized
+
+# Logging - Minimal
+logging:
+  level:
+    com.uasz.daos.auth: INFO
+    org.springframework: WARN
+    root: WARN

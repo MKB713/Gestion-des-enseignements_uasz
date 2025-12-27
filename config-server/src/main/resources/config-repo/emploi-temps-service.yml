@@ -1,0 +1,37 @@
+# Configuration Emploi Temps Service - Profil par défaut
+
+server:
+  port: 8085
+
+spring:
+  application:
+    name: emploi-temps-service
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/daos_emploi_temps_db?createDatabaseIfNotExist=true
+    username: root
+    password: ""
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: true
+
+# Swagger Configuration
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+  packages-to-scan: com.uasz.daos.emploi.controller
+
+# Logging
+logging:
+  level:
+    com.uasz.daos.emploi: DEBUG
