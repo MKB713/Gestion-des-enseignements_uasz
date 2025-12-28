@@ -1,0 +1,36 @@
+package com.uasz.daos.deroulement.config;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
+import org.springframework.stereotype.Component;
+
+/**
+ * Configuration properties de l'application
+ * Utilise @RefreshScope pour permettre le rafraîchissement dynamique
+ * des valeurs depuis Config Server sans redémarrage
+ */
+@Component
+@RefreshScope
+public class ApplicationConfigProperties {
+
+    @Value("${spring.application.name:deroulement-enseignement-service}")
+    private String applicationName;
+
+    @Value("${server.port:8086}")
+    private Integer serverPort;
+
+    @Value("${spring.jpa.show-sql:false}")
+    private Boolean showSql;
+
+    public String getApplicationName() {
+        return applicationName;
+    }
+
+    public Integer getServerPort() {
+        return serverPort;
+    }
+
+    public Boolean getShowSql() {
+        return showSql;
+    }
+}

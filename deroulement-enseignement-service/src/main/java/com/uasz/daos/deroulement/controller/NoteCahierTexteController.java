@@ -2,191 +2,52 @@ package com.uasz.daos.deroulement.controller;
 
 import com.uasz.daos.deroulement.dto.NoteCahierTexteDTO;
 import com.uasz.daos.deroulement.model.NoteCahierTexte;
+import com.uasz.daos.deroulement.service.CahierTextePdfService;
 import com.uasz.daos.deroulement.service.NoteCahierTexteService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 
-@Controller
+@RestController
+@RequestMapping("/api/notes-cahier")
 public class NoteCahierTexteController {
 
     @Autowired
     private NoteCahierTexteService noteCahierTexteService;
 
-    // Note: Seance, Enseignant et Module sont dans d'autres services
-    // Les formulaires web sont désactivés pour l'instant
-    // Note: CahierTextePdfService est désactivé (bibliothèque PDF manquante)
+    @Autowired
+    private CahierTextePdfService cahierTextePdfService;
 
     /**
-     * Affiche la liste de toutes les notes du cahier de texte
+     * API - Exporter le cahier de texte en PDF
      */
-    @RequestMapping("/lst-notes-cahier")
-    public String listNotes(Model model,
-                           @RequestParam(required = false) String success) {
-        model.addAttribute("notes", noteCahierTexteService.getAllNotes());
-        if (success != null) {
-            model.addAttribute("success", success);
-        }
-        return "note-cahier-list";
+    @GetMapping("/export/pdf")
+    public ResponseEntity<byte[]> exportPdf(@RequestParam(required = false) Long enseignantId) {
+        byte[] pdf = cahierTextePdfService.genererPdfCahierTexte(enseignantId);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        headers.setContentDispositionFormData("attachment", "cahier-de-texte.pdf");
+        return new ResponseEntity<>(pdf, headers, HttpStatus.OK);
     }
-
-    /**
-     * Affiche le formulaire pour ajouter une note
-     * TODO: Intégrer avec emploi-temps-service pour récupérer les séances
-     */
-    @GetMapping("/add-note-cahier")
-    public String addNote(Model model) {
-        NoteCahierTexte note = new NoteCahierTexte();
-        model.addAttribute("note", note);
-        // TODO: Récupérer seances via emploi-temps-service
-        return "note-cahier-add";
-    }
-
-    /**
-     * Enregistre une nouvelle note
-     */
-    @PostMapping("/save-note-cahier")
-    public String saveNote(@Valid @ModelAttribute("note") NoteCahierTexte note,
-                          BindingResult bindingResult,
-                          RedirectAttributes redirectAttributes,
-                          Model model) {
-        if (bindingResult.hasErrors()) {
-            return "note-cahier-add";
-        }
-
-        try {
-            NoteCahierTexteDTO noteDTO = new NoteCahierTexteDTO();
-            noteDTO.setTitre(note.getTitre());
-            noteDTO.setContenu(note.getContenu());
-
-            if (note.getSeanceId() != null) {
-                noteDTO.setSeanceId(note.getSeanceId());
-            }
-
-            noteDTO.setObjectifsPedagogiques(note.getObjectifsPedagogiques());
-            noteDTO.setActivitesRealisees(note.getActivitesRealisees());
-            noteDTO.setTravailDemande(note.getTravailDemande());
-            noteDTO.setObservations(note.getObservations());
-
-            if (note.getEnseignantId() != null) {
-                noteDTO.setEnseignantId(note.getEnseignantId());
-            }
-
-            noteCahierTexteService.ajouterNote(noteDTO);
-
-            redirectAttributes.addAttribute("success", "Note ajoutée avec succès au cahier de texte !");
-            return "redirect:/lst-notes-cahier";
-        } catch (IllegalArgumentException e) {
-            model.addAttribute("error", e.getMessage());
-            return "note-cahier-add";
-        } catch (Exception e) {
-            model.addAttribute("error", "Erreur lors de l'enregistrement : " + e.getMessage());
-            return "note-cahier-add";
-        }
-    }
-
-    /**
-     * Affiche le formulaire pour modifier une note
-     * CRITERE : Vérifie que la note n'est pas validée avant de permettre l'édition
-     */
-    @GetMapping("/edit-note-cahier/{id}")
-    public String editNote(@PathVariable Long id, Model model,
-                          @RequestParam(required = false) String error,
-                          RedirectAttributes redirectAttributes) {
-        NoteCahierTexte note = noteCahierTexteService.getNoteById(id);
-
-        // RESTRICTION : Vérifier si la note peut être modifiée
-        if (note.isEstValide()) {
-            redirectAttributes.addAttribute("error", "Cette note a été validée et ne peut plus être modifiée.");
-            return "redirect:/view-note-cahier/" + id;
-        }
-
-        model.addAttribute("note", note);
-        // TODO: Récupérer seances via emploi-temps-service
-        // Récupérer l'historique des modifications
-        model.addAttribute("historique", noteCahierTexteService.getHistoriqueNote(id));
-        if (error != null) {
-            model.addAttribute("error", error);
-        }
-        return "note-cahier-edit";
-    }
-
-    /**
-     * Met à jour une note existante
-     * CRITERE : Gère les erreurs si la note est validée
-     */
-    @PostMapping("/update-note-cahier")
-    public String updateNote(@RequestParam Long id,
-                            @RequestParam(required = false) String titre,
-                            @RequestParam(required = false) String contenu,
-                            @RequestParam(required = false) Long seanceId,
-                            @RequestParam(required = false) String objectifsPedagogiques,
-                            @RequestParam(required = false) String activitesRealisees,
-                            @RequestParam(required = false) String travailDemande,
-                            @RequestParam(required = false) String observations,
-                            RedirectAttributes redirectAttributes) {
-        try {
-            NoteCahierTexteDTO noteDTO = new NoteCahierTexteDTO();
-            noteDTO.setTitre(titre);
-            noteDTO.setContenu(contenu);
-            noteDTO.setSeanceId(seanceId);
-            noteDTO.setObjectifsPedagogiques(objectifsPedagogiques);
-            noteDTO.setActivitesRealisees(activitesRealisees);
-            noteDTO.setTravailDemande(travailDemande);
-            noteDTO.setObservations(observations);
-
-            noteCahierTexteService.modifierNote(id, noteDTO);
-            redirectAttributes.addAttribute("success", "Note modifiée avec succès ! Modifications enregistrées dans l'historique.");
-            return "redirect:/lst-notes-cahier";
-        } catch (IllegalStateException e) {
-            // La note est validée et ne peut plus être modifiée
-            redirectAttributes.addAttribute("error", e.getMessage());
-            return "redirect:/view-note-cahier/" + id;
-        } catch (IllegalArgumentException e) {
-            return "redirect:/edit-note-cahier/" + id + "?error=" + e.getMessage();
-        }
-    }
-
-    /**
-     * Affiche les détails d'une note
-     */
-    @GetMapping("/view-note-cahier/{id}")
-    public String viewNote(@PathVariable Long id, Model model) {
-        try {
-            NoteCahierTexte note = noteCahierTexteService.getNoteById(id);
-            model.addAttribute("note", note);
-            return "note-cahier-detail";
-        } catch (Exception e) {
-            model.addAttribute("error", "Erreur lors de la récupération des détails de la note.");
-            return "note-cahier-detail";
-        }
-    }
-
-    // ==================== REST API ENDPOINTS ====================
 
     /**
      * API - Récupère toutes les notes
      */
-    @GetMapping("/api/notes-cahier")
-    @ResponseBody
+    @GetMapping
     public ResponseEntity<List<NoteCahierTexte>> getAllNotes() {
-        List<NoteCahierTexte> notes = noteCahierTexteService.getAllNotes();
-        return ResponseEntity.ok(notes);
+        return ResponseEntity.ok(noteCahierTexteService.getAllNotes());
     }
 
     /**
      * API - Récupère une note par son ID
      */
-    @GetMapping("/api/notes-cahier/{id}")
-    @ResponseBody
+    @GetMapping("/{id}")
     public ResponseEntity<?> getNoteById(@PathVariable Long id) {
         try {
             NoteCahierTexte note = noteCahierTexteService.getNoteById(id);
@@ -200,8 +61,7 @@ public class NoteCahierTexteController {
     /**
      * API - Crée une nouvelle note
      */
-    @PostMapping("/api/notes-cahier")
-    @ResponseBody
+    @PostMapping
     public ResponseEntity<?> createNote(@Valid @RequestBody NoteCahierTexteDTO noteDTO) {
         try {
             NoteCahierTexte note = noteCahierTexteService.ajouterNote(noteDTO);
@@ -218,16 +78,15 @@ public class NoteCahierTexteController {
     /**
      * API - Met à jour une note
      */
-    @PutMapping("/api/notes-cahier/{id}")
-    @ResponseBody
-    public ResponseEntity<?> updateNoteRest(@PathVariable Long id,
-                                           @Valid @RequestBody NoteCahierTexteDTO noteDTO) {
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateNote(@PathVariable Long id,
+                                       @Valid @RequestBody NoteCahierTexteDTO noteDTO) {
         try {
             NoteCahierTexte note = noteCahierTexteService.modifierNote(id, noteDTO);
             return ResponseEntity.ok(note);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Erreur de validation : " + e.getMessage());
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(e.getMessage());
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body("Note non trouvée avec l'ID : " + id);
@@ -237,8 +96,7 @@ public class NoteCahierTexteController {
     /**
      * API - Valide une note
      */
-    @PatchMapping("/api/notes-cahier/{id}/valider")
-    @ResponseBody
+    @PatchMapping("/{id}/valider")
     public ResponseEntity<String> validerNote(@PathVariable Long id) {
         try {
             noteCahierTexteService.validerNote(id);
@@ -252,8 +110,7 @@ public class NoteCahierTexteController {
     /**
      * API - Supprime une note
      */
-    @DeleteMapping("/api/notes-cahier/{id}")
-    @ResponseBody
+    @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteNote(@PathVariable Long id) {
         try {
             noteCahierTexteService.supprimerNote(id);
@@ -265,46 +122,9 @@ public class NoteCahierTexteController {
     }
 
     /**
-     * API - Récupère les notes par séance
-     */
-    @GetMapping("/api/notes-cahier/seance/{seanceId}")
-    @ResponseBody
-    public ResponseEntity<List<NoteCahierTexte>> getNotesBySeance(@PathVariable Long seanceId) {
-        List<NoteCahierTexte> notes = noteCahierTexteService.getNotesBySeance(seanceId);
-        return ResponseEntity.ok(notes);
-    }
-
-    /**
-     * API - Récupère les notes par classe
-     */
-    @GetMapping("/api/notes-cahier/classe/{classeId}")
-    @ResponseBody
-    public ResponseEntity<List<NoteCahierTexte>> getNotesByClasse(@PathVariable Long classeId) {
-        List<NoteCahierTexte> notes = noteCahierTexteService.getNotesByClasse(classeId);
-        return ResponseEntity.ok(notes);
-    }
-
-    /**
-     * Affiche l'historique complet des modifications d'une note
-     */
-    @GetMapping("/historique-note/{id}")
-    public String viewHistorique(@PathVariable Long id, Model model) {
-        try {
-            NoteCahierTexte note = noteCahierTexteService.getNoteById(id);
-            model.addAttribute("note", note);
-            model.addAttribute("historique", noteCahierTexteService.getHistoriqueNote(id));
-            return "note-cahier-historique";
-        } catch (Exception e) {
-            model.addAttribute("error", "Erreur lors de la récupération de l'historique.");
-            return "note-cahier-historique";
-        }
-    }
-
-    /**
      * API - Récupère l'historique des modifications d'une note
      */
-    @GetMapping("/api/notes-cahier/{id}/historique")
-    @ResponseBody
+    @GetMapping("/{id}/historique")
     public ResponseEntity<?> getHistoriqueNote(@PathVariable Long id) {
         try {
             return ResponseEntity.ok(noteCahierTexteService.getHistoriqueNote(id));
@@ -315,43 +135,11 @@ public class NoteCahierTexteController {
     }
 
     /**
-     * Consulter le cahier de texte avec filtres (pour chef de département)
-     * TODO: Intégrer avec enseignant-service et maquette-service
+     * API - Consultation avec filtres
      */
-    @GetMapping("/consulter-cahier-texte")
-    public String consulterCahierTexte(Model model,
-                                       @RequestParam(required = false) Long enseignantId,
-                                       @RequestParam(required = false) Long moduleId,
-                                       @RequestParam(required = false) Long semestre) {
-        // Récupérer les notes avec filtres
-        model.addAttribute("notes", noteCahierTexteService.consulterCahierTexte(enseignantId, moduleId, semestre));
-
-        // TODO: Récupérer enseignants et modules via les services appropriés
-        // Conserver les valeurs des filtres sélectionnés
-        model.addAttribute("selectedEnseignantId", enseignantId);
-        model.addAttribute("selectedModuleId", moduleId);
-        model.addAttribute("selectedSemestre", semestre);
-
-        return "note-cahier-consultation";
+    @GetMapping("/search")
+    public ResponseEntity<List<NoteCahierTexte>> searchNotes(@RequestParam(required = false) Long enseignantId,
+                                                           @RequestParam(required = false) Long seanceId) {
+        return ResponseEntity.ok(noteCahierTexteService.consulterCahierTexte(enseignantId, seanceId));
     }
-
-    /**
-     * Génère et télécharge le PDF du cahier de texte
-     * TODO: Activer quand la bibliothèque PDF sera ajoutée
-     */
-    /* @GetMapping("/export-cahier-texte-pdf")
-    public ResponseEntity<byte[]> exporterPdf(@RequestParam(required = false) Long enseignantId) {
-        try {
-            byte[] pdfBytes = cahierTextePdfService.genererPdfCahierTexte(enseignantId);
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_PDF);
-            headers.setContentDispositionFormData("attachment", "cahier-de-texte.pdf");
-            headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
-
-            return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    } */
 }

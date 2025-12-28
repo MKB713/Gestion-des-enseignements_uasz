@@ -11,7 +11,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/maquette/formations")
-@CrossOrigin(origins = "*")
+// @CrossOrigin(origins = "*")  <--- RETIRÉ pour éviter le conflit avec la Gateway
 public class FormationController {
 
     @Autowired

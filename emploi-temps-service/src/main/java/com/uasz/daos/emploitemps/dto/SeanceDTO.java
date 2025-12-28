@@ -8,14 +8,26 @@ public class SeanceDTO {
     private LocalDate dateSeance;
     private LocalTime heureDebut;
     private LocalTime heureFin;
+    private int duree; // Durée en minutes (AJOUTÉ)
     private Long salleId;
     private String salleNom;
     private Long enseignantId;
     private String enseignantNom;
     private Long ecId;
     private String ecNom;
+    private String typeSeance; // Ajouté pour le type de séance (CM/TD/TP)
+    private Long classeId;     // Ajouté pour l'ID de la classe
 
     // Getters and Setters
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
     public LocalDate getDateSeance() {
         return dateSeance;
     }
@@ -40,28 +52,20 @@ public class SeanceDTO {
         this.heureFin = heureFin;
     }
 
+    public int getDuree() {
+        return duree;
+    }
+
+    public void setDuree(int duree) {
+        this.duree = duree;
+    }
+
     public Long getSalleId() {
         return salleId;
     }
 
     public void setSalleId(Long salleId) {
         this.salleId = salleId;
-    }
-
-    public Long getEnseignantId() {
-        return enseignantId;
-    }
-
-    public void setEnseignantId(Long enseignantId) {
-        this.enseignantId = enseignantId;
-    }
-
-    public Long getEcId() {
-        return ecId;
-    }
-
-    public void setEcId(Long ecId) {
-        this.ecId = ecId;
     }
 
     public String getSalleNom() {
@@ -72,12 +76,28 @@ public class SeanceDTO {
         this.salleNom = salleNom;
     }
 
+    public Long getEnseignantId() {
+        return enseignantId;
+    }
+
+    public void setEnseignantId(Long enseignantId) {
+        this.enseignantId = enseignantId;
+    }
+
     public String getEnseignantNom() {
         return enseignantNom;
     }
 
     public void setEnseignantNom(String enseignantNom) {
         this.enseignantNom = enseignantNom;
+    }
+
+    public Long getEcId() {
+        return ecId;
+    }
+
+    public void setEcId(Long ecId) {
+        this.ecId = ecId;
     }
 
     public String getEcNom() {
@@ -88,11 +108,19 @@ public class SeanceDTO {
         this.ecNom = ecNom;
     }
 
-    public Long getId() {
-        return id;
+    public String getTypeSeance() {
+        return typeSeance;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public void setTypeSeance(String typeSeance) {
+        this.typeSeance = typeSeance;
+    }
+
+    public Long getClasseId() {
+        return classeId;
+    }
+
+    public void setClasseId(Long classeId) {
+        this.classeId = classeId;
     }
 }

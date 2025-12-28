@@ -1,25 +1,53 @@
 package com.uasz.daos.auth.services;
 
 import com.uasz.daos.auth.dto.DashboardStatsDTO;
+import com.uasz.daos.auth.enums.Role;
 import com.uasz.daos.auth.repository.UtilisateurRepository;
-import com.uasz.daos.auth.repository.EnseignantRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@RequiredArgsConstructor
 public class DashboardService {
 
     private final UtilisateurRepository utilisateurRepository;
-    private final EnseignantRepository enseignantRepository;
 
+    public DashboardService(UtilisateurRepository utilisateurRepository) {
+        this.utilisateurRepository = utilisateurRepository;
+    }
+
+    @Transactional(readOnly = true)
+    public DashboardStatsDTO getDashboardStats() {
+        long totalUsers = utilisateurRepository.count();
+        long totalEtudiants = utilisateurRepository.countByRole(Role.ETUDIANT);
+        long totalEnseignants = utilisateurRepository.countByRole(Role.ENSEIGNANT);
+        long totalAdmins = utilisateurRepository.countByRole(Role.ADMIN) +
+                utilisateurRepository.countByRole(Role.CHEF_DE_DEPARTEMENT);
+        long activeUsers = utilisateurRepository.countActiveUsers();
+
+        return DashboardStatsDTO.builder()
+                .totalUsers(totalUsers)
+                .totalEtudiants(totalEtudiants)
+                .totalEnseignants(totalEnseignants)
+                .totalAdmins(totalAdmins)
+                .activeUsers(activeUsers)
+                .build();
+    }
+
+    @Transactional(readOnly = true)
     public DashboardStatsDTO getStats() {
-        DashboardStatsDTO stats = new DashboardStatsDTO();
-        stats.setTotalUtilisateurs(utilisateurRepository.count());
-        stats.setTotalEnseignants(enseignantRepository.count());
-        // Les autres stats peuvent être ajoutées quand les microservices correspondants seront disponibles
-        stats.setTotalFormations(0);
-        stats.setTotalEtudiants(0);
-        return stats;
+        return getDashboardStats();
+    }
+
+    @Transactional(readOnly = true)
+    public long getLockedAccountsCount() {
+        return utilisateurRepository.findLockedUsers().size();
+    }
+
+    @Transactional(readOnly = true)
+    public long getTodayRegistrations() {
+        // Implémentation simplifiée - à compléter avec une requête JPA
+        return utilisateurRepository.findAll().stream()
+                .filter(u -> u.getDateCreation().toLocalDate().equals(java.time.LocalDate.now()))
+                .count();
     }
 }
