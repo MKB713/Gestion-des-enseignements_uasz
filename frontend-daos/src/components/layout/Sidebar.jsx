@@ -127,6 +127,13 @@ const Sidebar = () => {
                     </Link>
                 </li>
 
+                {/* Recherche Séances */}
+                <li className="nav-item mb-1">
+                    <Link to="/seances/search" className={`nav-link ${isActive('/seances/search')}`}>
+                        <i className="bi bi-search me-2"></i> Rechercher Séances
+                    </Link>
+                </li>
+
                 {/* --- FOOTER UTILISATEUR (Dropup) --- */}
                 <div className="mt-auto w-100 px-2 pb-3 pt-4">
                     <div className="dropup w-100">
