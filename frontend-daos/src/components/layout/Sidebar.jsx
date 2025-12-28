@@ -6,9 +6,11 @@ const Sidebar = () => {
 
     // État pour gérer les menus déroulants
     const [menus, setMenus] = useState({
-        enseignement: true,  // NOUVEAU : Menu Enseignement
+        enseignement: true,  
         structure: true,
         pedagogie: true
+        deroulement: false
+
     });
 
     const toggleMenu = (key) => {
@@ -163,6 +165,31 @@ const Sidebar = () => {
                     <Link to="/emploi-du-temps" className={`nav-link ${isActive('/emploi-du-temps')}`}>
                         <i className="bi bi-calendar-week me-2"></i> Emploi du Temps
                     </Link>
+                </li>
+
+                {/* --- DÉROULEMENT ENSEIGNEMENT (Dropdown) --- */}
+                <li className="nav-item mb-1">
+                    <a className={`nav-link d-flex justify-content-between align-items-center ${isParentActive(['/lst-seances', '/progression', '/statistiques'])}`}
+                       onClick={() => toggleMenu('deroulement')}
+                       style={{cursor: 'pointer', color: 'rgba(255,255,255,0.8)'}}>
+                        <span><i className="bi bi-bar-chart me-2"></i> Déroulement</span>
+                        <i className={`bi bi-chevron-${menus.deroulement ? 'down' : 'right'} small`} style={{fontSize: '0.7rem'}}></i>
+                    </a>
+
+                    {/* Sous-menu Déroulement */}
+                    <div className={`collapse ${menus.deroulement ? 'show' : ''}`}>
+                        <ul className="nav flex-column ms-3 ps-2 border-start border-white-50 mt-1">
+                            <li className="nav-item">
+                                <Link to="/lst-seances" className={`nav-link py-1 small ${location.pathname === '/lst-seances' ? 'text-warning fw-bold' : 'text-white-50'}`}>Séances</Link>
+                            </li>
+                            <li className="nav-item">
+                                <Link to="/progression" className={`nav-link py-1 small ${location.pathname === '/progression' ? 'text-warning fw-bold' : 'text-white-50'}`}>Progression</Link>
+                            </li>
+                            <li className="nav-item">
+                                <Link to="/statistiques" className={`nav-link py-1 small ${location.pathname === '/statistiques' ? 'text-warning fw-bold' : 'text-white-50'}`}>Statistiques</Link>
+                            </li>
+                        </ul>
+                    </div>
                 </li>
 
                 {/* --- FOOTER UTILISATEUR (Dropup) --- */}

@@ -26,6 +26,11 @@ import ResponsableForm from './components/enseignant/ResponsableForm';
 import CoordinateurList from './components/enseignant/CoordinateurList';
 import CoordinateurForm from './components/enseignant/CoordinateurForm';
 
+// --- DEROULEMENT ENSEIGNEMENT ---
+import SeanceList from './components/deroulement-enseignement/seance/SeanceList';
+import SeanceForm from './components/deroulement-enseignement/seance/SeanceForm';
+import ProgressionBoard from './components/deroulement-enseignement/progression/ProgressionBoard';
+import StatistiquesBoard from './components/deroulement-enseignement/progression/StatistiquesBoard';
 
 function App() {
     return (
@@ -73,6 +78,14 @@ function App() {
                     <Route path="/lst-coordinateurs" element={<CoordinateurList />} />
                     <Route path="/ajouter-coordinateur" element={<CoordinateurForm />} />
                     <Route path="/modifier-coordinateur/:id" element={<CoordinateurForm />} />
+                    {/* --- DEROULEMENT ENSEIGNEMENT --- */}
+                    <Route path="/lst-seances" element={<SeanceList />} />
+                    <Route path="/ajouter-seance" element={<SeanceForm />} />
+                    <Route path="/modifier-seance/:id" element={<SeanceForm />} />
+                    <Route path="/progression" element={<ProgressionBoard />} />
+                    <Route path="/statistiques" element={<StatistiquesBoard />} />
+
+                 
                 </Route>
 
                 <Route path="*" element={<Navigate to="/login" />} />
