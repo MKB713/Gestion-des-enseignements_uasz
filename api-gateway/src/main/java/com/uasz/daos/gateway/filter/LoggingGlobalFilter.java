@@ -20,7 +20,7 @@ import java.time.format.DateTimeFormatter;
 @Component
 public class LoggingGlobalFilter implements GlobalFilter, Ordered {
 
-    private static final Logger logger = LoggerFactory.getLogger(LoggingGlobalFilter.java);
+    private static final Logger logger = LoggerFactory.getLogger(LoggingGlobalFilter.class);
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     @Override

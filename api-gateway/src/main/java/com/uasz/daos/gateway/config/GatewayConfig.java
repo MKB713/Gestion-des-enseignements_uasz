@@ -27,12 +27,12 @@ public class GatewayConfig {
 
     /**
      * Alternative: KeyResolver basé sur un header d'API key
-     */
+
     @Bean
     public KeyResolver apiKeyResolver() {
         return exchange -> {
             String apiKey = exchange.getRequest().getHeaders().getFirst("X-API-KEY");
             return Mono.just(apiKey != null ? apiKey : "anonymous");
         };
-    }
+    }*/
 }

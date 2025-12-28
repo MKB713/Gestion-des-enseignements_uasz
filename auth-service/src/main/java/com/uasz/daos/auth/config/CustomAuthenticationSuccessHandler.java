@@ -21,28 +21,23 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         Role userRole = userDetails.getRole();
 
-        String redirectUrl = "/";
+        String redirectUrl = determineRedirectUrl(userRole);
 
-        switch (userRole) {
-            case ETUDIANT:
-                redirectUrl = "/dashboard/etudiant";
-                break;
-            case ENSEIGNANT:
-                redirectUrl = "/dashboard/enseignant";
-                break;
-            case RESPONSABLE_MASTER:
-                redirectUrl = "/dashboard/responsable";
-                break;
-            case COORDONATEUR_DES_LICENCES:
-                redirectUrl = "/dashboard/coordinateur";
-                break;
-            case ADMIN:
-            case CHEF_DE_DEPARTEMENT:
-                redirectUrl = "/dashboard/admin";
-                break;
-        }
+        // Log de la connexion réussie
+        System.out.println("✅ Connexion réussie - Utilisateur: " + userDetails.getUsername() +
+                " - Rôle: " + userRole + " - Redirection vers: " + redirectUrl);
 
-        System.out.println("Connexion réussie - Rôle: " + userRole + " - Redirection vers: " + redirectUrl);
         response.sendRedirect(redirectUrl);
+    }
+
+    private String determineRedirectUrl(Role userRole) {
+        return switch (userRole) {
+            case ETUDIANT -> "/dashboard/etudiant";
+            case ENSEIGNANT -> "/dashboard/enseignant";
+            case RESPONSABLE_MASTER -> "/dashboard/responsable";
+            case COORDONATEUR_DES_LICENCES -> "/dashboard/coordinateur";
+            case ADMIN, CHEF_DE_DEPARTEMENT -> "/dashboard/admin";
+            default -> "/";
+        };
     }
 }
