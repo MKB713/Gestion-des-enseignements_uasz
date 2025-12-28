@@ -228,9 +228,8 @@ public class NoteCahierTexteService {
 
     /**
      * Consulter le cahier de texte avec filtres
-     * Note: moduleId et semestre sont ignorés pour l'instant (nécessitent intégration avec autres services)
      */
-    public List<NoteCahierTexte> consulterCahierTexte(Long enseignantId, Long moduleId, Long semestre) {
-        return noteCahierTexteRepository.findWithFilters(enseignantId);
+    public List<NoteCahierTexte> consulterCahierTexte(Long enseignantId, Long seanceId) {
+        return noteCahierTexteRepository.findWithFilters(enseignantId, seanceId);
     }
 }

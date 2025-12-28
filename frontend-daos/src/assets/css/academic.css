@@ -1,0 +1,285 @@
+/* src/assets/css/academic.css */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
+
+:root {
+    /* PALETTE VERTE INSTITUTIONNELLE */
+    --primary-color: #1a5e34;   /* Vert Forêt Profond (Sidebar) */
+    --primary-hover: #144a29;   /* Vert plus sombre pour le survol */
+    --accent-color: #198754;    /* Vert Vif (Boutons, Actions) */
+    --text-on-primary: #ffffff; /* Blanc pur sur le vert */
+
+    --bg-body: #f8f9fa;         /* Gris très clair (presque blanc) pour le fond */
+    --text-dark: #333333;       /* Texte principal */
+    --sidebar-width: 260px;     /* Largeur de la sidebar */
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--bg-body);
+    color: var(--text-dark);
+    font-size: 0.92rem;
+    overflow-x: hidden;
+}
+
+/* =========================================
+   1. SIDEBAR & NAVIGATION
+   ========================================= */
+.sidebar {
+    width: var(--sidebar-width);
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 100;
+    background-color: var(--primary-color);
+    color: var(--text-on-primary);
+    box-shadow: 4px 0 15px rgba(0,0,0,0.1);
+    padding: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.3) transparent;
+}
+
+/* Custom Scrollbar */
+.sidebar::-webkit-scrollbar { width: 6px; }
+.sidebar::-webkit-scrollbar-track { background: transparent; }
+.sidebar::-webkit-scrollbar-thumb { background-color: rgba(255, 255, 255, 0.2); border-radius: 10px; }
+.sidebar::-webkit-scrollbar-thumb:hover { background-color: rgba(255, 255, 255, 0.4); }
+
+/* Logo Area */
+.sidebar-brand {
+    background-color: rgba(0,0,0,0.1);
+    padding: 1.5rem 1rem;
+    text-align: center;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    margin-bottom: 1rem;
+    position: sticky;
+    top: 0;
+    z-index: 101;
+    backdrop-filter: blur(5px);
+}
+
+.university-logo {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+    background: white;
+    border-radius: 50%;
+    padding: 5px;
+    margin-bottom: 10px;
+    border: 3px solid rgba(255,255,255,0.2);
+}
+
+/* Links */
+.nav-link {
+    color: rgba(255,255,255,0.85);
+    padding: 12px 20px;
+    font-weight: 400;
+    transition: all 0.2s ease-in-out;
+    border-left: 4px solid transparent;
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    white-space: nowrap; /* Empêche le texte de revenir à la ligne */
+}
+
+.nav-link:hover {
+    background-color: rgba(255,255,255,0.1);
+    color: #fff;
+    padding-left: 25px;
+}
+
+.nav-link.active {
+    background-color: #f8f9fa;
+    color: var(--primary-color);
+    font-weight: 600;
+    border-left: 4px solid #ffc107;
+    border-radius: 0 25px 25px 0;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.collapse .nav-link.active {
+    background-color: transparent;
+    color: #ffc107 !important;
+    border-left: none;
+    box-shadow: none;
+    border-radius: 0;
+}
+
+.nav-link i {
+    margin-right: 12px;
+    font-size: 1.1rem;
+    width: 20px;
+    text-align: center;
+}
+
+/* =========================================
+   2. TOP NAVBAR
+   ========================================= */
+.top-navbar {
+    position: fixed;
+    top: 0;
+    left: var(--sidebar-width);
+    right: 0;
+    height: 70px;
+    z-index: 99;
+    background-color: white;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    border-bottom: 1px solid #e9ecef;
+}
+
+/* =========================================
+   3. STRUCTURE & CARDS (FULL WIDTH FIX)
+   ========================================= */
+.main-content {
+    /* Calcul important : 100% de l'écran MOINS la largeur de la sidebar */
+    width: calc(200% - var(--sidebar-width));
+    margin-left: var(--sidebar-width);
+    margin-top: 100px;
+    padding: 2rem;
+    min-height: calc(100vh - 70px);
+    display: flex;
+    flex-direction: column;
+}
+
+.container-fluid {
+    width: 100%;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+.card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    background: #fff;
+    overflow: hidden;
+    width: 100%; /* Force la carte à prendre toute la largeur */
+}
+
+.card-header {
+    background-color: white;
+    border-bottom: 1px solid #f0f0f0;
+    padding: 1.2rem 1.5rem;
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+/* =========================================
+   4. TABLEAUX STYLISÉS (FULL WIDTH)
+   ========================================= */
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.table {
+    width: 100%; /* Force le tableau à prendre 100% de la carte */
+    margin-bottom: 0;
+    border-collapse: collapse;
+}
+
+.table thead th {
+    background-color: #f1fcf5 !important; /* Vert très pâle */
+    color: var(--primary-color);
+    font-weight: 600;
+    border: none;
+    border-bottom: 2px solid #e9ecef;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+    padding: 1rem 1.5rem; /* Padding horizontal augmenté */
+    vertical-align: middle;
+    white-space: nowrap; /* Garde les titres sur une ligne */
+}
+
+.table tbody td {
+    vertical-align: middle;
+    padding: 1rem 1.5rem; /* Padding horizontal augmenté */
+    border-bottom: 1px solid #f0f0f0;
+}
+
+/* Icône carrée verte */
+.icon-box-success {
+    background-color: rgba(25, 135, 84, 0.1);
+    color: #198754;
+    width: 45px;
+    height: 45px;
+    min-width: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+}
+
+/* =========================================
+   5. BOUTONS & BADGES
+   ========================================= */
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+.btn-primary:hover {
+    background-color: var(--primary-hover);
+    border-color: var(--primary-hover);
+}
+
+/* Badges Statut */
+.badge-status-active {
+    background-color: #198754;
+    color: white;
+    padding: 6px 14px;
+    border-radius: 50rem;
+    font-weight: 500;
+    font-size: 0.75rem;
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+}
+
+.badge-status-inactive {
+    background-color: #dc3545;
+    color: white;
+    padding: 6px 14px;
+    border-radius: 50rem;
+    font-weight: 500;
+    font-size: 0.75rem;
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+}
+
+/* Menu Actions */
+.btn-icon-only {
+    color: #6c757d;
+    background: transparent;
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.btn-icon-only:hover {
+    background-color: #e9ecef;
+    color: var(--text-dark);
+}
+
+.dropdown-menu {
+    border: none;
+    box-shadow: 0 5px 25px rgba(0,0,0,0.1);
+    border-radius: 8px;
+    font-size: 0.9rem;
+}
+.dropdown-item {
+    padding: 8px 16px;
+    cursor: pointer;
+}
+.dropdown-item:active {
+    background-color: var(--primary-color);
+    color: white;
+}

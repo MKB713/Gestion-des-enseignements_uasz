@@ -4,10 +4,10 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.util.Date;
+import java.util.List;
 
 @Entity
+@Table(name = "ues")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -16,17 +16,28 @@ public class UE {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true)
-    private String code; // Ex: UE-INFO-L1
+    @Column(unique = true, nullable = false)
+    private String code;
+    private String libelle;
 
-    private String libelle; // Ex: Génie Logiciel
+    private int credits;
+    private double coefficientUE;
 
-    private int credit;
-    private int coefficient;
+    // Volumes horaires totaux
+    private int cm;
+    private int td;
+    private int tp;
+    private int vht;
 
-    private Date dateCreation;
-
-    // États (Booléens)
+    // Champs pour compatibilité avec les services existants
+    private java.util.Date dateCreation;
     private boolean active = true;
     private boolean archive = false;
+
+    @ManyToOne
+    @JoinColumn(name = "semestre_id")
+    private Semestre semestre;
+
+    @OneToMany(mappedBy = "ue", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<EC> ecs;
 }

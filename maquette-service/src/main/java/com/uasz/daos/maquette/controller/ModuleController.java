@@ -1,95 +1,61 @@
 package com.uasz.daos.maquette.controller;
 
 import com.uasz.daos.maquette.model.Module;
-import com.uasz.daos.maquette.enums.Cycle;
-import com.uasz.daos.maquette.enums.Niveau;
 import com.uasz.daos.maquette.service.ModuleService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-@Controller
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/maquette/modules")
+@CrossOrigin(origins = "*")
 public class ModuleController {
 
     @Autowired
     private ModuleService moduleService;
 
-    // --- VUE UNIQUE (LISTE + MODALE) ---
-    @GetMapping("/lst-modules")
-    public String index(Model model) {
-        // Liste des modules actifs
-        model.addAttribute("modules", moduleService.getAllModules());
-
-        // Listes pour les menus déroulants du formulaire
-        model.addAttribute("cycles", Cycle.values());
-        model.addAttribute("niveaux", Niveau.values());
-
-        // Objet vide pour le formulaire d'ajout
-        model.addAttribute("module", new Module());
-
-        return "lst-modules";
+    @GetMapping
+    public ResponseEntity<List<Module>> getAllModules() {
+        return ResponseEntity.ok(moduleService.getAllModules());
     }
 
-    // --- ENREGISTREMENT (AJOUT & MODIF) ---
-    @PostMapping("/save-module")
-    public String save(@ModelAttribute Module module, RedirectAttributes ra) {
-        try {
-            if (module.getId() != null) {
-                moduleService.updateModule(module.getId(), module);
-                ra.addFlashAttribute("success", "Module mis à jour avec succès.");
-            } else {
-                moduleService.addModule(module);
-                ra.addFlashAttribute("success", "Nouveau module ajouté.");
-            }
-        } catch (Exception e) {
-            ra.addFlashAttribute("error", "Erreur lors de l'enregistrement : " + e.getMessage());
-        }
-        return "redirect:/lst-modules";
+    @GetMapping("/archives")
+    public ResponseEntity<List<Module>> getArchivedModules() {
+        return ResponseEntity.ok(moduleService.getArchivedModules());
     }
 
-    // --- API JSON (POUR LA MODALE JS) ---
-    @GetMapping("/api/module/{id}")
-    @ResponseBody
-    public ResponseEntity<Module> getModuleJSON(@PathVariable Long id) {
+    @GetMapping("/{id}")
+    public ResponseEntity<Module> getModuleById(@PathVariable Long id) {
         Module module = moduleService.getModuleById(id);
-        if (module != null) {
-            return ResponseEntity.ok(module);
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+        return module != null ? ResponseEntity.ok(module) : ResponseEntity.notFound().build();
     }
 
-    // --- ARCHIVAGE ---
-    @PostMapping("/archive-module/{id}")
-    public String archiveModule(@PathVariable Long id, RedirectAttributes ra) {
-        try {
-            moduleService.archiveModule(id);
-            ra.addFlashAttribute("success", "Module archivé.");
-        } catch (Exception e) {
-            ra.addFlashAttribute("error", "Erreur lors de l'archivage.");
-        }
-        return "redirect:/lst-modules";
+    @PostMapping
+    public ResponseEntity<Module> createModule(@RequestBody Module module) {
+        Module saved = moduleService.addModule(module);
+        return new ResponseEntity<>(saved, HttpStatus.CREATED);
     }
 
-    // --- LISTE DES ARCHIVES ---
-    @GetMapping("/lst-modules-archives")
-    public String archives(Model model) {
-        model.addAttribute("modules", moduleService.getArchivedModules());
-        return "module-archived-list";
+    @PutMapping("/{id}")
+    public ResponseEntity<Module> updateModule(@PathVariable Long id, @RequestBody Module module) {
+        Module updated = moduleService.updateModule(id, module);
+        return ResponseEntity.ok(updated);
     }
 
-    // --- DÉSARCHIVAGE (RESTAURATION) ---
-    @PostMapping("/unarchive-module/{id}")
-    public String unarchiveModule(@PathVariable Long id, RedirectAttributes ra) {
-        try {
-            moduleService.unarchiveModule(id);
-            ra.addFlashAttribute("success", "Module restauré avec succès.");
-        } catch (Exception e) {
-            ra.addFlashAttribute("error", "Erreur lors de la restauration.");
-        }
-        return "redirect:/lst-modules-archives"; // On reste sur les archives pour voir le résultat (ou rediriger vers /lst-modules selon pref)
+    // Actions spécifiques (Archiver / Restaurer)
+
+    @PatchMapping("/{id}/archiver")
+    public ResponseEntity<Void> archiveModule(@PathVariable Long id) {
+        moduleService.archiveModule(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @PatchMapping("/{id}/restaurer")
+    public ResponseEntity<Void> unarchiveModule(@PathVariable Long id) {
+        moduleService.unarchiveModule(id);
+        return ResponseEntity.ok().build();
     }
 }

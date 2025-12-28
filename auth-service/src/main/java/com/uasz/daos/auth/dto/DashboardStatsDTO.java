@@ -1,15 +1,19 @@
 package com.uasz.daos.auth.dto;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@NoArgsConstructor
+@Builder
 @AllArgsConstructor
+@NoArgsConstructor
 public class DashboardStatsDTO {
-    private long totalFormations;
-    private long totalEnseignants;
+
+    private long totalUsers;
     private long totalEtudiants;
-    private long totalUtilisateurs;
+    private long totalEnseignants;
+    private long totalAdmins;
+    private long activeUsers;
 }

@@ -1,0 +1,371 @@
+# GitHub Actions CI/CD Pipeline pour DAOS - Gestion des Enseignements UASZ
+# Équivalent du pipeline GitLab CI/CD
+
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - 'feature/**'
+  pull_request:
+    branches:
+      - main
+      - develop
+
+env:
+  JAVA_VERSION: '17'
+  NODE_VERSION: '18'
+
+jobs:
+  # ============================================================================
+  # STAGE 1: BUILD - Compilation de tous les microservices
+  # ============================================================================
+
+  build-eureka-server:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Build Eureka Server
+        run: |
+          cd eureka-server
+          mvn clean compile -DskipTests
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: eureka-server-build
+          path: eureka-server/target/
+          retention-days: 1
+
+  build-config-server:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+      - name: Build Config Server
+        run: |
+          cd config-server
+          mvn clean compile -DskipTests
+      - uses: actions/upload-artifact@v4
+        with:
+          name: config-server-build
+          path: config-server/target/
+
+  build-api-gateway:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+      - name: Build API Gateway
+        run: |
+          cd api-gateway
+          mvn clean compile -DskipTests
+      - uses: actions/upload-artifact@v4
+        with:
+          name: api-gateway-build
+          path: api-gateway/target/
+
+  build-auth-service:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+      - name: Build Auth Service
+        run: |
+          cd auth-service
+          mvn clean compile -DskipTests
+      - uses: actions/upload-artifact@v4
+        with:
+          name: auth-service-build
+          path: auth-service/target/
+
+  build-enseignant-service:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+      - name: Build Enseignant Service
+        run: |
+          cd enseignant-service
+          mvn clean compile -DskipTests
+      - uses: actions/upload-artifact@v4
+        with:
+          name: enseignant-service-build
+          path: enseignant-service/target/
+
+  build-maquette-service:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+      - name: Build Maquette Service
+        run: |
+          cd maquette-service
+          mvn clean compile -DskipTests
+      - uses: actions/upload-artifact@v4
+        with:
+          name: maquette-service-build
+          path: maquette-service/target/
+
+  build-choix-enseignement-service:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+      - name: Build Choix Enseignement Service
+        run: |
+          cd choix-enseignement-service
+          mvn clean compile -DskipTests
+      - uses: actions/upload-artifact@v4
+        with:
+          name: choix-enseignement-service-build
+          path: choix-enseignement-service/target/
+
+  build-emploi-temps-service:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+      - name: Build Emploi Temps Service
+        run: |
+          cd emploi-temps-service
+          mvn clean compile -DskipTests
+      - uses: actions/upload-artifact@v4
+        with:
+          name: emploi-temps-service-build
+          path: emploi-temps-service/target/
+
+  build-deroulement-service:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+      - name: Build Deroulement Service
+        run: |
+          cd deroulement-enseignement-service
+          mvn clean compile -DskipTests
+      - uses: actions/upload-artifact@v4
+        with:
+          name: deroulement-service-build
+          path: deroulement-enseignement-service/target/
+
+  build-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: frontend-daos/package-lock.json
+      - name: Build Frontend
+        run: |
+          cd frontend-daos
+          npm ci
+          npm run build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: frontend-daos/dist/
+
+  # ============================================================================
+  # STAGE 2: TEST - Exécution des tests
+  # ============================================================================
+
+  test-services:
+    needs:
+      - build-auth-service
+      - build-enseignant-service
+      - build-maquette-service
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service:
+          - auth-service
+          - enseignant-service
+          - maquette-service
+          - choix-enseignement-service
+          - emploi-temps-service
+          - deroulement-enseignement-service
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+      - name: Run tests for ${{ matrix.service }}
+        run: |
+          cd ${{ matrix.service }}
+          mvn test
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.service }}
+          path: ${{ matrix.service }}/target/surefire-reports/
+      - name: Publish test report
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: Tests - ${{ matrix.service }}
+          path: ${{ matrix.service }}/target/surefire-reports/*.xml
+          reporter: java-junit
+
+  # ============================================================================
+  # STAGE 3: CODE QUALITY ANALYSIS
+  # ============================================================================
+
+  code-quality:
+    needs: test-services
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for better analysis
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Cache SonarCloud packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+      - name: SonarCloud Scan
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+            -Dsonar.projectKey=MKB713_Gestion-des-enseignements_uasz \
+            -Dsonar.organization=mkb713 \
+            -Dsonar.host.url=https://sonarcloud.io
+
+  # ============================================================================
+  # STAGE 4: DOCKER BUILD & PUSH
+  # ============================================================================
+
+  docker-build-push:
+    needs: code-quality
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+    strategy:
+      matrix:
+        service:
+          - eureka-server
+          - config-server
+          - api-gateway
+          - auth-service
+          - enseignant-service
+          - maquette-service
+          - choix-enseignement-service
+          - emploi-temps-service
+          - deroulement-enseignement-service
+          - frontend-daos
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./${{ matrix.service }}
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/daos-${{ matrix.service }}:latest
+            ${{ secrets.DOCKER_USERNAME }}/daos-${{ matrix.service }}:${{ github.sha }}
+          cache-from: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/daos-${{ matrix.service }}:buildcache
+          cache-to: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/daos-${{ matrix.service }}:buildcache,mode=max
+
+  # ============================================================================
+  # STAGE 5: DEPLOYMENT (Optional)
+  # ============================================================================
+
+  deploy-staging:
+    needs: docker-build-push
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/develop'
+    environment:
+      name: staging
+      url: https://staging.uasz.sn
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to staging
+        run: |
+          echo "Deploying to staging environment..."
+          # Add your deployment commands here
+          # Example: kubectl apply -f k8s/staging/
+          # Or: docker-compose -f docker-compose.staging.yml up -d
+
+  deploy-production:
+    needs: docker-build-push
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: production
+      url: https://uasz.sn
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to production
+        run: |
+          echo "Deploying to production environment..."
+          # Add your deployment commands here
