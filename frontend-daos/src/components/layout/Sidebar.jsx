@@ -8,7 +8,7 @@ const Sidebar = () => {
     const [menus, setMenus] = useState({
         enseignement: true,  
         structure: true,
-        pedagogie: true
+        pedagogie: true,
         deroulement: false
 
     });
