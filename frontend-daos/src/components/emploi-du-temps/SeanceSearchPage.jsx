@@ -37,7 +37,7 @@ function SeanceSearchPage() {
           sallesRes,
           classesRes
         ] = await Promise.all([
-          EnseignementService.getAllEnseignements(),
+          EnseignementService.getECs(),
           EnseignantService.getAllEnseignants(),
           SalleService.getAllSalles(),
           ClasseService.getAllClasses()
