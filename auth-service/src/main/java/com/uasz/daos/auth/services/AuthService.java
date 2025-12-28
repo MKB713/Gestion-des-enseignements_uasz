@@ -93,13 +93,18 @@ public class AuthService {
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
         Utilisateur utilisateur = utilisateurRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new BadCredentialsException("Email ou mot de passe incorrect"));
-
+        System.out.println("Utilisateur trouvé : " + utilisateur.getEmail());
+        System.out.println("Compte verrouillé ? " + utilisateur.getCompteVerrouille());
+        System.out.println("Mot de passe hashé en DB : " + utilisateur.getMotDePasse());
+        System.out.println("Mot de passe envoyé : " + request.getPassword());
         // Vérifier si le compte est verrouillé
         if (utilisateur.getCompteVerrouille()) {
             throw new BadCredentialsException("Compte verrouillé. Contactez l'administrateur.");
         }
 
         try {
+            System.out.println("Authentification : email=" + request.getEmail() + ", password=" + request.getPassword());
+
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             request.getEmail(),
