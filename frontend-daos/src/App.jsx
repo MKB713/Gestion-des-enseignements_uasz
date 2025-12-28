@@ -13,6 +13,11 @@ import FiliereForm from './components/maquette/FiliereForm';
 import NiveauList from './components/maquette/NiveauList';
 import NiveauForm from './components/maquette/NiveauForm';
 
+// Composants Choix Enseignement
+import ChoixList from './components/choix-enseignement/ChoixList';
+import ChoixForm from './components/choix-enseignement/ChoixForm';
+import ChoixDetail from './components/choix-enseignement/ChoixDetail';
+
 // NOUVEAUX COMPOSANTS (Avec Modales intégrées)
 import ModuleList from './components/module/ModuleList'; // ou './components/maquette/ModuleList' selon ton choix
 import UEList from './components/ue/UEList';
@@ -51,12 +56,62 @@ function App() {
                     <Route path="/lst-ues" element={<UEList />} />
                     <Route path="/lst-ecs" element={<ECList />} />
 
+                    {/* Routes Choix Enseignement */}
+                    <Route path="/choix-enseignement" element={<ChoixList />} />
+                    <Route path="/choix-enseignement/ajouter" element={<ChoixForm />} />
+                    <Route path="/choix-enseignement/modifier/:id" element={<ChoixForm />} />
+                    <Route path="/choix-enseignement/detail/:id" element={<ChoixDetail />} />
+                    <Route path="/choix-enseignement/enseignant/:id" element={<ChoixList />} />
+
                     {/* Placeholder Enseignants */}
                     <Route path="/lst-enseignants" element={<div className="p-4">Module Enseignants (À venir)</div>} />
                 </Route>
 
                 <Route path="*" element={<Navigate to="/login" />} />
             </Routes>
+        </Router>
+    );
+}
+export default App;
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
+// Layouts
+import Sidebar from './components/layout/Sidebar';
+
+// Composants existants
+import Dashboard from './components/Dashboard';
+// ... vos autres composants
+
+// Composants Choix Enseignement
+import ChoixList from './components/choix-enseignement/ChoixList';
+import ChoixForm from './components/choix-enseignement/ChoixForm';
+import ChoixDetail from './components/choix-enseignement/ChoixDetail';
+
+function App() {
+    return (
+        <Router>
+            <div className="d-flex">
+                <Sidebar />
+                <main className="flex-grow-1" style={{ marginLeft: '250px' }}>
+                    <Routes>
+                        {/* Routes existantes */}
+                        <Route path="/dashboard" element={<Dashboard />} />
+
+                        {/* Routes Choix Enseignement */}
+                        <Route path="/choix-enseignement" element={<ChoixList />} />
+                        <Route path="/choix-enseignement/ajouter" element={<ChoixForm />} />
+                        <Route path="/choix-enseignement/modifier/:id" element={<ChoixForm />} />
+                        <Route path="/choix-enseignement/detail/:id" element={<ChoixDetail />} />
+                        <Route path="/choix-enseignement/enseignant/:id" element={<ChoixList />} />
+
+                        {/* Autres routes... */}
+                    </Routes>
+                </main>
+                <ToastContainer position="top-right" autoClose={3000} />
+            </div>
         </Router>
     );
 }
