@@ -218,6 +218,12 @@ const Sidebar = () => {
             </ul>
         </nav>
     );
+    {/* Choix d'Enseignement */}
+    <li className="nav-item mb-1">
+        <Link to="/choix-enseignement" className={`nav-link ${isActive('/choix-enseignement')}`}>
+            <i className="bi bi-check2-square me-2"></i> Choix d'Enseignement
+        </Link>
+    </li>
 };
 
 export default Sidebar;
