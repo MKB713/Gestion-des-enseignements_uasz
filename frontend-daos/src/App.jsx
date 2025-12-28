@@ -18,6 +18,12 @@ import ModuleList from './components/module/ModuleList'; // ou './components/maq
 import UEList from './components/ue/UEList';
 import ECList from './components/ec/ECList';
 
+// --- DEROULEMENT ENSEIGNEMENT ---
+import SeanceList from './components/deroulement-enseignement/seance/SeanceList';
+import SeanceForm from './components/deroulement-enseignement/seance/SeanceForm';
+import ProgressionBoard from './components/deroulement-enseignement/progression/ProgressionBoard';
+import StatistiquesBoard from './components/deroulement-enseignement/progression/StatistiquesBoard';
+
 function App() {
     return (
         <Router>
@@ -50,6 +56,13 @@ function App() {
                     <Route path="/lst-modules" element={<ModuleList />} />
                     <Route path="/lst-ues" element={<UEList />} />
                     <Route path="/lst-ecs" element={<ECList />} />
+
+                    {/* --- DEROULEMENT ENSEIGNEMENT --- */}
+                    <Route path="/lst-seances" element={<SeanceList />} />
+                    <Route path="/ajouter-seance" element={<SeanceForm />} />
+                    <Route path="/modifier-seance/:id" element={<SeanceForm />} />
+                    <Route path="/progression" element={<ProgressionBoard />} />
+                    <Route path="/statistiques" element={<StatistiquesBoard />} />
 
                     {/* Placeholder Enseignants */}
                     <Route path="/lst-enseignants" element={<div className="p-4">Module Enseignants (À venir)</div>} />
