@@ -18,6 +18,15 @@ import ModuleList from './components/module/ModuleList'; // ou './components/maq
 import UEList from './components/ue/UEList';
 import ECList from './components/ec/ECList';
 
+// ==================== ENSEIGNANT ====================
+import EnseignantList from './components/EnseignantList';
+import EnseignantForm from './components/enseignant/EnseignantForm';
+import ResponsableList from './components/enseignant/ResponsableList';
+import ResponsableForm from './components/enseignant/ResponsableForm';
+import CoordinateurList from './components/enseignant/CoordinateurList';
+import CoordinateurForm from './components/enseignant/CoordinateurForm';
+
+
 function App() {
     return (
         <Router>
@@ -50,9 +59,20 @@ function App() {
                     <Route path="/lst-modules" element={<ModuleList />} />
                     <Route path="/lst-ues" element={<UEList />} />
                     <Route path="/lst-ecs" element={<ECList />} />
+                    {/* ==================== ENSEIGNANTS ==================== */}
+                    <Route path="/lst-enseignants" element={<EnseignantList />} />
+                    <Route path="/ajouter-enseignant" element={<EnseignantForm />} />
+                    <Route path="/modifier-enseignant/:id" element={<EnseignantForm />} />
 
-                    {/* Placeholder Enseignants */}
-                    <Route path="/lst-enseignants" element={<div className="p-4">Module Enseignants (À venir)</div>} />
+                    {/* ==================== RESPONSABLES ==================== */}
+                    <Route path="/lst-responsables" element={<ResponsableList />} />
+                    <Route path="/ajouter-responsable" element={<ResponsableForm />} />
+                    <Route path="/modifier-responsable/:id" element={<ResponsableForm />} />
+
+                    {/* ==================== COORDINATEURS ==================== */}
+                    <Route path="/lst-coordinateurs" element={<CoordinateurList />} />
+                    <Route path="/ajouter-coordinateur" element={<CoordinateurForm />} />
+                    <Route path="/modifier-coordinateur/:id" element={<CoordinateurForm />} />
                 </Route>
 
                 <Route path="*" element={<Navigate to="/login" />} />

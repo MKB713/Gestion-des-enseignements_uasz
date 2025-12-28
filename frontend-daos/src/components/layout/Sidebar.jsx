@@ -4,9 +4,10 @@ import { Link, useLocation } from 'react-router-dom';
 const Sidebar = () => {
     const location = useLocation();
 
-    // État pour gérer les menus déroulants (Structure et Pédagogie)
+    // État pour gérer les menus déroulants
     const [menus, setMenus] = useState({
-        structure: true, // Par défaut ouvert comme sur vos images
+        enseignement: true,  // NOUVEAU : Menu Enseignement
+        structure: true,
         pedagogie: true
     });
 
@@ -17,21 +18,18 @@ const Sidebar = () => {
     // Fonction pour vérifier si un lien est actif
     const isActive = (path) => location.pathname === path ? 'active' : '';
 
-    // Fonction pour vérifier si un menu parent doit être marqué actif (fond blanc transparent)
+    // Fonction pour vérifier si un menu parent doit être marqué actif
     const isParentActive = (paths) => paths.includes(location.pathname) ? 'active text-white bg-white bg-opacity-10' : '';
 
     return (
         <nav className="sidebar d-flex flex-column">
             {/* --- MARQUE / LOGO --- */}
             <div className="sidebar-brand text-center pt-3">
-
-                {/* On utilise directement le chemin /images/ car on est dans le dossier public */}
                 <img
                     src="/images/logo-uasz.jpg"
                     alt="Logo UASZ"
                     className="university-logo mx-auto d-block"
                     onError={(e) => {
-                        // Si l'image n'est pas trouvée, on affiche une icône de secours
                         e.target.style.display = 'none';
                         e.target.nextSibling.style.display = 'flex';
                     }}
@@ -57,11 +55,45 @@ const Sidebar = () => {
                     </Link>
                 </li>
 
-                {/* Enseignants */}
+                {/* ==================== ENSEIGNEMENT (NOUVEAU) ==================== */}
                 <li className="nav-item mb-1">
-                    <Link to="/lst-enseignants" className={`nav-link ${isActive('/lst-enseignants')}`}>
-                        <i className="bi bi-person-video3 me-2"></i> Enseignants
-                    </Link>
+                    <a className={`nav-link d-flex justify-content-between align-items-center ${isParentActive([
+                        '/lst-enseignants',
+                        '/ajouter-enseignant',
+                        '/modifier-enseignant',
+                        '/lst-responsables',
+                        '/ajouter-responsable',
+                        '/modifier-responsable',
+                        '/lst-coordinateurs',
+                        '/ajouter-coordinateur',
+                        '/modifier-coordinateur'
+                    ])}`}
+                       onClick={() => toggleMenu('enseignement')}
+                       style={{cursor: 'pointer', color: 'rgba(255,255,255,0.8)'}}>
+                        <span><i className="bi bi-person-video3 me-2"></i> Enseignement</span>
+                        <i className={`bi bi-chevron-${menus.enseignement ? 'down' : 'right'} small`} style={{fontSize: '0.7rem'}}></i>
+                    </a>
+
+                    {/* Sous-menu Enseignement */}
+                    <div className={`collapse ${menus.enseignement ? 'show' : ''}`}>
+                        <ul className="nav flex-column ms-3 ps-2 border-start border-white-50 mt-1">
+                            <li className="nav-item">
+                                <Link to="/lst-enseignants" className={`nav-link py-1 small ${location.pathname === '/lst-enseignants' ? 'text-warning fw-bold' : 'text-white-50'}`}>
+                                    Enseignants
+                                </Link>
+                            </li>
+                            <li className="nav-item">
+                                <Link to="/lst-responsables" className={`nav-link py-1 small ${location.pathname === '/lst-responsables' ? 'text-warning fw-bold' : 'text-white-50'}`}>
+                                    Responsables
+                                </Link>
+                            </li>
+                            <li className="nav-item">
+                                <Link to="/lst-coordinateurs" className={`nav-link py-1 small ${location.pathname === '/lst-coordinateurs' ? 'text-warning fw-bold' : 'text-white-50'}`}>
+                                    Coordinateurs
+                                </Link>
+                            </li>
+                        </ul>
+                    </div>
                 </li>
 
                 {/* --- STRUCTURE (Dropdown) --- */}
@@ -77,16 +109,19 @@ const Sidebar = () => {
                     <div className={`collapse ${menus.structure ? 'show' : ''}`}>
                         <ul className="nav flex-column ms-3 ps-2 border-start border-white-50 mt-1">
                             <li className="nav-item">
-                                <Link to="/lst-filieres" className={`nav-link py-1 small ${location.pathname === '/lst-filieres' ? 'text-warning fw-bold' : 'text-white-50'}`}>Filières</Link>
+                                <Link to="/lst-filieres" className={`nav-link py-1 small ${location.pathname === '/lst-filieres' ? 'text-warning fw-bold' : 'text-white-50'}`}>
+                                    Filières
+                                </Link>
                             </li>
                             <li className="nav-item">
-                                <Link to="/niveaux" className={`nav-link py-1 small ${location.pathname === '/niveaux' ? 'text-warning fw-bold' : 'text-white-50'}`}>Niveaux</Link>
+                                <Link to="/niveaux" className={`nav-link py-1 small ${location.pathname === '/niveaux' ? 'text-warning fw-bold' : 'text-white-50'}`}>
+                                    Niveaux
+                                </Link>
                             </li>
                             <li className="nav-item">
-                                <Link to="/lst-formations" className={`nav-link py-1 small ${location.pathname === '/lst-formations' ? 'text-warning fw-bold' : 'text-white-50'}`}>Formations</Link>
-                            </li>
-                            <li className="nav-item">
-                                <Link to="/lst-classes" className={`nav-link py-1 small ${location.pathname === '/lst-classes' ? 'text-warning fw-bold' : 'text-white-50'}`}>Classes</Link>
+                                <Link to="/lst-formations" className={`nav-link py-1 small ${location.pathname === '/lst-formations' ? 'text-warning fw-bold' : 'text-white-50'}`}>
+                                    Formations
+                                </Link>
                             </li>
                         </ul>
                     </div>
@@ -105,16 +140,19 @@ const Sidebar = () => {
                     <div className={`collapse ${menus.pedagogie ? 'show' : ''}`}>
                         <ul className="nav flex-column ms-3 ps-2 border-start border-white-50 mt-1">
                             <li className="nav-item">
-                                <Link to="/lst-maquettes" className={`nav-link py-1 small ${location.pathname === '/lst-maquettes' ? 'text-warning fw-bold' : 'text-white-50'}`}>Maquettes</Link>
+                                <Link to="/lst-modules" className={`nav-link py-1 small ${location.pathname === '/lst-modules' ? 'text-warning fw-bold' : 'text-white-50'}`}>
+                                    Modules
+                                </Link>
                             </li>
                             <li className="nav-item">
-                                <Link to="/lst-modules" className={`nav-link py-1 small ${location.pathname === '/lst-modules' ? 'text-warning fw-bold' : 'text-white-50'}`}>Modules</Link>
+                                <Link to="/lst-ues" className={`nav-link py-1 small ${location.pathname === '/lst-ues' ? 'text-warning fw-bold' : 'text-white-50'}`}>
+                                    Unités d'Ens. (UE)
+                                </Link>
                             </li>
                             <li className="nav-item">
-                                <Link to="/lst-ues" className={`nav-link py-1 small ${location.pathname === '/lst-ues' ? 'text-warning fw-bold' : 'text-white-50'}`}>Unités d'Ens. (UE)</Link>
-                            </li>
-                            <li className="nav-item">
-                                <Link to="/lst-ecs" className={`nav-link py-1 small ${location.pathname === '/lst-ecs' ? 'text-warning fw-bold' : 'text-white-50'}`}>Éléments (EC)</Link>
+                                <Link to="/lst-ecs" className={`nav-link py-1 small ${location.pathname === '/lst-ecs' ? 'text-warning fw-bold' : 'text-white-50'}`}>
+                                    Éléments (EC)
+                                </Link>
                             </li>
                         </ul>
                     </div>
@@ -146,17 +184,10 @@ const Sidebar = () => {
                             <li><Link className="dropdown-item" to="/profil"><i className="bi bi-person-circle me-2"></i> Mon Profil</Link></li>
                             <li><Link className="dropdown-item" to="/parametres"><i className="bi bi-gear-fill me-2"></i> Paramètres</Link></li>
                             <li><hr className="dropdown-divider bg-white bg-opacity-10"/></li>
-                            <li><Link className="dropdown-item" to="/lst-utilisateurs"><i className="bi bi-people-fill me-2"></i> Gestion Utilisateurs</Link></li>
+                            <li><a className="dropdown-item text-warning" href="/login"><i className="bi bi-box-arrow-left me-2"></i> Déconnexion</a></li>
                         </ul>
                     </div>
                 </div>
-
-                {/* Déconnexion */}
-                <li className="nav-item mt-2 pt-3 border-top w-100 pb-4" style={{borderColor: 'rgba(255,255,255,0.1) !important'}}>
-                    <Link className="nav-link text-warning" to="/login">
-                        <i className="bi bi-box-arrow-left me-2"></i> Déconnexion
-                    </Link>
-                </li>
             </ul>
         </nav>
     );
