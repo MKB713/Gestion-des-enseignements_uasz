@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Générer Emploi du Temps Optimisé - UASZ</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body { background-color: #f8f9fa; }
+        .sidebar {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .nav-link {
+            color: rgba(255,255,255,0.8);
+            transition: all 0.3s;
+        }
+        .nav-link:hover, .nav-link.active {
+            color: #fff;
+            background-color: rgba(255,255,255,0.1);
+        }
+        .card { border: none; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .card-header { background-color: #007bff; color: white; font-weight: bold; }
+    </style>
+</head>
+<body>
+<div class="container-fluid">
+    <div class="row">
+        <nav class="col-md-3 col-lg-2 d-md-block sidebar collapse p-0">
+            <div class="position-sticky pt-3">
+                <div class="text-center mb-4">
+                    <h4 class="text-white fw-bold">UASZ</h4>
+                    <p class="text-white-50 small">Gestion des Enseignements</p>
+                </div>
+                <ul class="nav flex-column px-2">
+                    <li class="nav-item">
+                        <a class="nav-link rounded mb-1" href="/seances" th:href="@{/seances}">
+                            <i class="bi bi-calendar-event me-2"></i> Gestion des Emplois du Temps
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link rounded mb-1" href="/salles" th:href="@{/salles}">
+                            <i class="bi bi-door-open me-2"></i> Gestion des Salles
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link rounded mb-1" href="/salles/disponibilites/search" th:href="@{/salles/disponibilites/search}">
+                            <i class="bi bi-search me-2"></i> Salles Disponibles
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link rounded mb-1" href="/planning/hebdomadaire" th:href="@{/planning/hebdomadaire}">
+                            <i class="bi bi-calendar-week me-2"></i> Planning Hebdomadaire
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link rounded mb-1" href="/planning/semestriel" th:href="@{/planning/semestriel}">
+                            <i class="bi bi-calendar-range me-2"></i> Planning Semestriel
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link rounded mb-1 active" href="/planning/generer" th:href="@{/planning/generer}">
+                            <i class="bi bi-cpu me-2"></i> Générer Optimisé
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            <div class="pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">Générer Emploi du Temps Optimisé</h1>
+            </div>
+
+            <div th:if="${message}" class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle me-2"></i>
+                <span th:text="${message}">Success message</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                <span th:text="${error}">Error message</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-gear me-2"></i>Options de Génération</h5>
+                </div>
+                <div class="card-body">
+                    <form th:action="@{/planning/generer}" method="post">
+                        <div class="mb-3">
+                            <label for="dateDebut" class="form-label">Date de Début</label>
+                            <input type="date" class="form-control" id="dateDebut" name="dateDebut" th:value="${#dates.format(#dates.createToday(), 'yyyy-MM-dd')}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="dateFin" class="form-label">Date de Fin</label>
+                            <input type="date" class="form-control" id="dateFin" name="dateFin" th:value="${#dates.format(#dates.createToday().plusWeeks(1), 'yyyy-MM-dd')}" required>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg"><i class="bi bi-play-circle me-2"></i>Lancer la Génération</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div th:if="${generatedPlanning != null}" class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-calendar-check me-2"></i>Emploi du Temps Généré</h5>
+                </div>
+                <div class="card-body">
+                    <p>La génération a été effectuée avec succès. Vous pouvez consulter l'emploi du temps généré ci-dessous ou le télécharger.</p>
+                    <a th:href="@{/planning/hebdomadaire(date=${generatedPlanning.dateDebut})}" class="btn btn-info me-2"><i class="bi bi-eye me-2"></i>Voir le Planning Hebdomadaire</a>
+                    <a th:href="@{/planning/semestriel(dateDebut=${generatedPlanning.dateDebut}, dateFin=${generatedPlanning.dateFin})}" class="btn btn-info"><i class="bi bi-eye me-2"></i>Voir le Planning Semestriel</a>
+                    <!-- TODO: Add download PDF button -->
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
