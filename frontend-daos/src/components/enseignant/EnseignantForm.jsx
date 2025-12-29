@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import EnseignantService from '../services/EnseignantService';
+import EnseignantService from '../../services/EnseignantService';
 
 const EnseignantForm = () => {
     const navigate = useNavigate();
