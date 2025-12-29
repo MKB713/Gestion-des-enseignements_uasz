@@ -98,7 +98,6 @@
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-openfeign</artifactId>
         </dependency>
-    </dependencies>
 
         <!-- H2 Database pour les tests -->
         <dependency>
@@ -107,6 +106,7 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
     <dependencyManagement>
         <dependencies>
             <dependency>

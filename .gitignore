@@ -85,3 +85,4 @@ Desktop.ini
 # Database
 *.db
 *.sqlite
+.env
