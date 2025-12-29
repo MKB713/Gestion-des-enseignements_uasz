@@ -174,6 +174,7 @@ const Sidebar = () => {
                     </Link>
                 </li>
                 {/* --- DÉROULEMENT ENSEIGNEMENT (Dropdown) --- */}
+                </li>
                 <li className="nav-item mb-1">
                     <a className={`nav-link d-flex justify-content-between align-items-center ${isParentActive(['/lst-seances', '/progression', '/statistiques'])}`}
                        onClick={() => toggleMenu('deroulement')}
