@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = "http://localhost:8080/api/auth";
+const API_URL = "http://localhost:8081/api/auth";
 
 class AuthService {
 
@@ -9,22 +9,27 @@ class AuthService {
         return axios.post(API_URL + "/login", {
             email,
             password
-        });
+        })
+            .then(response => response.data); // ⚡️ On retourne directement response.data
     }
 
-    // Sauvegarder l'utilisateur dans le navigateur
-    saveUser(token, user) {
-        localStorage.setItem("user", JSON.stringify(user));
-        localStorage.setItem("token", token);
+    // Sauvegarder les tokens dans le navigateur
+    saveTokens(accessToken, refreshToken) {
+        localStorage.setItem("accessToken", accessToken);
+        localStorage.setItem("refreshToken", refreshToken);
     }
 
     logout() {
-        localStorage.removeItem("user");
-        localStorage.removeItem("token");
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
     }
 
-    getCurrentUser() {
-        return JSON.parse(localStorage.getItem("user"));
+    getAccessToken() {
+        return localStorage.getItem("accessToken");
+    }
+
+    getRefreshToken() {
+        return localStorage.getItem("refreshToken");
     }
 }
 
