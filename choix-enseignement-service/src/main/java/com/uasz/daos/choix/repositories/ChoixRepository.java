@@ -1,6 +1,6 @@
 package com.uasz.daos.choix.repositories;
 
-import com.uasz.daos.choix.entities.Choix;
+import com.uasz.daos.choix.model.Choix;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

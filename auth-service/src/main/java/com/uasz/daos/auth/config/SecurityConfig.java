@@ -47,11 +47,10 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authorize -> authorize
 
-                        //  PERMETTRE création utilisateur SANS AUTH (TEMPORAIRE) 
+                        //  PERMETTRE création utilisateur SANS AUTH (TEMPORAIRE)
                         .requestMatchers(HttpMethod.POST, "/api/management/users").permitAll()
 
-
-
+                        // Swagger UI & Docs
                         .requestMatchers(
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
@@ -69,7 +68,6 @@ public class SecurityConfig {
                         // API publique
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/public/**").permitAll()
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/actuator/health").permitAll()
 
                         // API par rôle
@@ -95,7 +93,6 @@ public class SecurityConfig {
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-                // SUPPRIMER formLogin() - le frontend React gère le login
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
@@ -105,6 +102,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
+        // Attention : en prod, remplacez par l'URL exacte du front, pas localhost
         configuration.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:5173"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));

@@ -1,6 +1,6 @@
 package com.uasz.daos.choix.proxy;
 
-import com.uasz.daos.choix.dto.UEDTO;
+import com.uasz.daos.choix.dtos.UEDTO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;

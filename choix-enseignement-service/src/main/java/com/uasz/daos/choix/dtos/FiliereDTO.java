@@ -1,4 +1,4 @@
-package com.uasz.daos.choix.dto;
+package com.uasz.daos.choix.dtos;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
