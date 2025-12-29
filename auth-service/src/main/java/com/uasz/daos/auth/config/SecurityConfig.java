@@ -43,12 +43,15 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authorize -> authorize
 
                         //  PERMETTRE création utilisateur SANS AUTH (TEMPORAIRE)
                         .requestMatchers(HttpMethod.POST, "/api/management/users").permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
 
                         // Swagger UI & Docs
                         .requestMatchers(
@@ -103,7 +106,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         // Attention : en prod, remplacez par l'URL exacte du front, pas localhost
-        configuration.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:5173"));
+        configuration.setAllowedOrigins(List.of( "http://localhost:5173"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setExposedHeaders(Arrays.asList("Authorization", "Content-Type"));

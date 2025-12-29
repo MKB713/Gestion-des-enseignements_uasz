@@ -1,15 +1,11 @@
-package com.uasz.daos.choix.dtos;
 
+package com.uasz.daos.choix.dtos;
 import com.uasz.daos.choix.dtos.FiliereDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import java.util.Date;
 
-/**
- * DTO pour recevoir les données de Formation depuis le microservice Maquette
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -19,7 +15,7 @@ public class FormationDTO {
     private String libelle;
     private String description;
     private Date dateCreation;
-    private FiliereDTO filiere;
-    private com.uasz.daos.choix.dto.NiveauDTO niveau;
+    private FiliereDTO filiere; 
+    private com.uasz.daos.choix.dto.NiveauDTO niveau;  
     private String statutFormation;
 }
