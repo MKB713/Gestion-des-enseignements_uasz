@@ -172,6 +172,7 @@ const Sidebar = () => {
                     <Link to="/seances/search" className={`nav-link ${isActive('/seances/search')}`}>
                         <i className="bi bi-search me-2"></i> Rechercher Séances
                     </Link>
+                </li>
                 {/* --- DÉROULEMENT ENSEIGNEMENT (Dropdown) --- */}
                 <li className="nav-item mb-1">
                     <a className={`nav-link d-flex justify-content-between align-items-center ${isParentActive(['/lst-seances', '/progression', '/statistiques'])}`}
