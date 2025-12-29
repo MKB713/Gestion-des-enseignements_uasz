@@ -12,19 +12,16 @@ const Login = () => {
 
     // --- LOGIQUE ---
     const handleLogin = async (e) => {
-        e.preventDefault(); // Empêche le rechargement de la page
+        e.preventDefault();
         setLoading(true);
         setError('');
 
         try {
-            // Appel au backend via Axios
-            const response = await AuthService.login(email, password);
+            const data = await AuthService.login(email, password);
 
-            // Si succès (à adapter selon le retour JSON de votre AuthController)
-            // Supposons que le backend renvoie { token: "...", user: {...} }
-            AuthService.saveUser(response.data.token, response.data.user);
+            localStorage.setItem("accessToken", data.access_token);
+            localStorage.setItem("refreshToken", data.refresh_token);
 
-            // Redirection (on verra le Router à l'étape suivante)
             window.location.href = "/dashboard";
 
         } catch (err) {

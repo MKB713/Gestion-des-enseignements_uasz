@@ -1,8 +1,5 @@
-package com.uasz.daos.choix.dto;
+package com.uasz.daos.choix.dtos;
 
-import lombok.Data;
-
-@Data
 public class EnseignantDTO {
     private Long id;
     private String nom;

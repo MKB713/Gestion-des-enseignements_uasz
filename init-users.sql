@@ -17,7 +17,7 @@ VALUES (
     'Diallo',
     'Mamadou',
     '221771234568',
-    'chef.departement@uasz.sn',
+        'chef.departement@uasz.sn',
     '$2a$10$FlySioELwHXuiZz9/xfn5uE4Cw3cK57zgVIN5yUptHridm/SZgQv2',  -- password123
     'CHEF_DE_DEPARTEMENT',
     'ACTIF'

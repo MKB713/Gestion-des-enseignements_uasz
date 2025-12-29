@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import DeroulementService from '../../services/DeroulementService';
-import MaquetteService from '../../services/MaquetteService';
+import DeroulementService from "../../../services/DeroulementService";
+import MaquetteService from "../../../services/MaquetteService";
 
 function ProgressionBoard() {
     const [progressions, setProgressions] = useState([]);

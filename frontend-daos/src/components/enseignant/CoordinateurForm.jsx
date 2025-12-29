@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import EnseignantService from '../services/EnseignantService';
-import MaquetteService from '../services/MaquetteService';
+import EnseignantService from "../../services/EnseignantService";
+import MaquetteService from "../../services/MaquetteService";
 
 const CoordinateurForm = () => {
     const navigate = useNavigate();

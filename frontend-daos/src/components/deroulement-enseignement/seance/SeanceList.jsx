@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import DeroulementService from '../../services/DeroulementService';
-import MaquetteService from '../../services/MaquetteService';
+import DeroulementService from "../../../services/DeroulementService";
+import MaquetteService from "../../../services/MaquetteService";
 
 function SeanceList() {
     const [seances, setSeances] = useState([]);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import DeroulementService from '../../services/DeroulementService';
+import DeroulementService from "../../../services/DeroulementService.js";
 
 function StatistiquesBoard() {
     const [stats, setStats] = useState({});
