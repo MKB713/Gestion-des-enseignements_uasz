@@ -3,76 +3,69 @@ package com.uasz.daos.maquette.controller;
 import com.uasz.daos.maquette.model.UE;
 import com.uasz.daos.maquette.service.UEService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-@Controller
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/maquette/ues")
+@CrossOrigin(origins = "*")
 public class UEController {
 
     @Autowired
     private UEService ueService;
 
-    // --- PAGE PRINCIPALE ---
-    @GetMapping("/lst-ues")
-    public String index(Model model) {
-        model.addAttribute("ues", ueService.getAllUEs());
-        model.addAttribute("ue", new UE()); // Pour le formulaire vide
-        return "lst-ues";
+    @GetMapping
+    public ResponseEntity<List<UE>> getAllUEs() {
+        return ResponseEntity.ok(ueService.getAllUEs());
     }
 
-    // --- SAUVEGARDE ---
-    @PostMapping("/save-ue")
-    public String save(@ModelAttribute UE ue, RedirectAttributes ra) {
-        try {
-            ueService.saveUE(ue);
-            ra.addFlashAttribute("success", ue.getId() != null ? "UE modifiée." : "Nouvelle UE ajoutée.");
-        } catch (Exception e) {
-            ra.addFlashAttribute("error", e.getMessage());
-        }
-        return "redirect:/lst-ues";
+    @GetMapping("/archives")
+    public ResponseEntity<List<UE>> getArchivedUEs() {
+        return ResponseEntity.ok(ueService.getArchivedUEs());
     }
 
-    // --- API JSON (Pour Modale) ---
-    @GetMapping("/api/ues/{id}")
-    @ResponseBody
-    public ResponseEntity<UE> getUEJson(@PathVariable Long id) {
+    @GetMapping("/{id}")
+    public ResponseEntity<UE> getUEById(@PathVariable Long id) {
         return ResponseEntity.ok(ueService.getUEById(id));
     }
 
-    // --- ACTIONS ---
-    @PostMapping("/ues/archiver/{id}")
-    public String archiver(@PathVariable Long id, RedirectAttributes ra) {
+    @PostMapping
+    public ResponseEntity<UE> createUE(@RequestBody UE ue) {
+        ueService.saveUE(ue); // Assurez-vous que votre service retourne l'objet si possible, sinon renvoyez OK
+        return new ResponseEntity<>(ue, HttpStatus.CREATED);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<UE> updateUE(@PathVariable Long id, @RequestBody UE ue) {
+        ue.setId(id);
+        ueService.saveUE(ue);
+        return ResponseEntity.ok(ue);
+    }
+
+    @PatchMapping("/{id}/archiver")
+    public ResponseEntity<Void> archiver(@PathVariable Long id) {
         ueService.archiver(id);
-        ra.addFlashAttribute("success", "UE archivée.");
-        return "redirect:/lst-ues";
+        return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/ues/activer/{id}")
-    public String activer(@PathVariable Long id, RedirectAttributes ra) {
-        ueService.activer(id);
-        return "redirect:/lst-ues";
-    }
-
-    @PostMapping("/ues/desactiver/{id}")
-    public String desactiver(@PathVariable Long id, RedirectAttributes ra) {
-        ueService.desactiver(id);
-        return "redirect:/lst-ues";
-    }
-
-    // --- PAGE ARCHIVES ---
-    @GetMapping("/lst-ues-archives")
-    public String archives(Model model) {
-        model.addAttribute("ues", ueService.getArchivedUEs());
-        return "ue-archived-list";
-    }
-
-    @PostMapping("/ues/restaurer/{id}")
-    public String restaurer(@PathVariable Long id, RedirectAttributes ra) {
+    @PatchMapping("/{id}/restaurer")
+    public ResponseEntity<Void> restaurer(@PathVariable Long id) {
         ueService.restaurer(id);
-        ra.addFlashAttribute("success", "UE restaurée.");
-        return "redirect:/lst-ues-archives";
+        return ResponseEntity.ok().build();
+    }
+
+    @PatchMapping("/{id}/activer")
+    public ResponseEntity<Void> activer(@PathVariable Long id) {
+        ueService.activer(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @PatchMapping("/{id}/desactiver")
+    public ResponseEntity<Void> desactiver(@PathVariable Long id) {
+        ueService.desactiver(id);
+        return ResponseEntity.ok().build();
     }
 }

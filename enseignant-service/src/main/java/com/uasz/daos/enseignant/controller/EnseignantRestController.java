@@ -58,14 +58,14 @@ public class EnseignantRestController {
      * Créer un nouvel enseignant
      */
     @PostMapping
-    public ResponseEntity<Enseignant> createEnseignant(@RequestBody Enseignant enseignant) {
-        try {
-            Enseignant saved = enseignantService.saveEnseignant(enseignant);
-            return ResponseEntity.status(HttpStatus.CREATED).body(saved);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build();
-        }
-    }
+//    public ResponseEntity<Enseignant> createEnseignant(@RequestBody Enseignant enseignant) {
+//        try {
+//            Enseignant saved = enseignantService.saveEnseignant(enseignant);
+//            return ResponseEntity.status(HttpStatus.CREATED).body(saved);
+//        } catch (IllegalArgumentException e) {
+//            return ResponseEntity.badRequest().build();
+//        }
+//    }
 
     /**
      * Mettre à jour un enseignant

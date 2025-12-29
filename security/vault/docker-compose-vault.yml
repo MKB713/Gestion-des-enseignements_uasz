@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  # HashiCorp Vault pour la gestion des secrets
+  vault:
+    image: vault:1.15.4
+    container_name: daos-vault
+    ports:
+      - "8200:8200"
+    environment:
+      VAULT_DEV_ROOT_TOKEN_ID: ${VAULT_ROOT_TOKEN:-daos-root-token}
+      VAULT_DEV_LISTEN_ADDRESS: 0.0.0.0:8200
+      VAULT_ADDR: http://0.0.0.0:8200
+    cap_add:
+      - IPC_LOCK
+    volumes:
+      - vault-data:/vault/file
+      - ./vault-config.hcl:/vault/config/vault.hcl
+    command: server -dev
+    networks:
+      - daos-network
+    healthcheck:
+      test: ["CMD", "vault", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+  # Vault UI (optionnel)
+  vault-ui:
+    image: djenriquez/vault-ui:latest
+    container_name: daos-vault-ui
+    ports:
+      - "8000:8000"
+    environment:
+      VAULT_URL_DEFAULT: http://vault:8200
+      VAULT_AUTH_DEFAULT: TOKEN
+    depends_on:
+      vault:
+        condition: service_healthy
+    networks:
+      - daos-network
+    restart: unless-stopped
+
+networks:
+  daos-network:
+    external: true
+
+volumes:
+  vault-data:

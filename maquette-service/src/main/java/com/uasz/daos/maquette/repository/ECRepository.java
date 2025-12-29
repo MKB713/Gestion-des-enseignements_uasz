@@ -5,11 +5,13 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ECRepository extends JpaRepository<EC, Long> {
-    List<EC> findByLibelleContainingIgnoreCase(String keyword);
+    boolean existsByCode(String code);
+
+    Optional<EC> findByCode(String code);
+
     List<EC> findByArchive(boolean archive);
-    // Rechercher par libellé et exclure les archivés
-    List<EC> findByLibelleContainingIgnoreCaseAndArchive(String keyword, boolean archive);
 }

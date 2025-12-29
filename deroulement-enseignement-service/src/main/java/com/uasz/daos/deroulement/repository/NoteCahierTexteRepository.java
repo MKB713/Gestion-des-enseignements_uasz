@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -34,7 +35,14 @@ public interface NoteCahierTexteRepository extends JpaRepository<NoteCahierTexte
     List<NoteCahierTexte> findBySemestre();
 
     @Query("SELECT n FROM NoteCahierTexte n WHERE " +
-           "(:enseignantId IS NULL OR n.enseignantId = :enseignantId) " +
+           "(:enseignantId IS NULL OR n.enseignantId = :enseignantId) AND " +
+           "(:seanceId IS NULL OR n.seanceId = :seanceId) " +
            "ORDER BY n.dateCreation DESC")
-    List<NoteCahierTexte> findWithFilters(@Param("enseignantId") Long enseignantId);
+    List<NoteCahierTexte> findWithFilters(@Param("enseignantId") Long enseignantId, 
+                                          @Param("seanceId") Long seanceId);
+
+    @Query("SELECT n FROM NoteCahierTexte n WHERE n.enseignantId = :enseignantId AND n.dateCreation BETWEEN :start AND :end ORDER BY n.dateCreation DESC")
+    List<NoteCahierTexte> findByEnseignantAndDateRange(@Param("enseignantId") Long enseignantId, 
+                                                       @Param("start") LocalDateTime start,
+                                                       @Param("end") LocalDateTime end);
 }
