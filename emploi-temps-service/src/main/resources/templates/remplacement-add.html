@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Déclarer un Remplacement - UASZ</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body { background-color: #f8f9fa; }
+        .container { margin-top: 30px; max-width: 700px; }
+        .card { border: none; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .card-header { background-color: #ffc107; color: white; font-weight: bold; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="card">
+        <div class="card-header">
+            <h2 class="mb-0"><i class="bi bi-person-fill-up me-2"></i>Déclarer un Remplacement</h2>
+        </div>
+        <div class="card-body">
+            <form th:action="@{/remplacements}" th:object="${remplacementDTO}" method="post">
+                <div class="mb-3">
+                    <label for="seanceId" class="form-label">Séance Concernée</label>
+                    <select class="form-select" id="seanceId" th:field="*{seanceId}" required>
+                        <option value="">Sélectionner une séance</option>
+                        <!-- Options will be dynamically loaded from a list of Seances in the model -->
+                        <option th:each="seance : ${seances}" th:value="${seance.id}" th:text="${#temporals.format(seance.dateSeance, 'dd/MM/yyyy')} + ' ' + ${#temporals.format(seance.heureDebut, 'HH:mm')} + ' - ' + ${seance.ecNom} + ' (' + ${seance.enseignantNom} + ')'"></option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="enseignantInitialId" class="form-label">Enseignant Initial</label>
+                    <select class="form-select" id="enseignantInitialId" th:field="*{enseignantInitialId}" required>
+                        <option value="">Sélectionner l'enseignant initial</option>
+                        <!-- Options will be dynamically loaded from a list of Enseignants in the model -->
+                        <option th:each="enseignant : ${enseignants}" th:value="${enseignant.id}" th:text="${enseignant.nom}"></option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="enseignantRemplacantId" class="form-label">Enseignant Remplaçant</label>
+                    <select class="form-select" id="enseignantRemplacantId" th:field="*{enseignantRemplacantId}" required>
+                        <option value="">Sélectionner l'enseignant remplaçant</option>
+                        <!-- Options will be dynamically loaded from a list of Enseignants in the model -->
+                        <option th:each="enseignant : ${enseignants}" th:value="${enseignant.id}" th:text="${enseignant.nom}"></option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="motif" class="form-label">Motif du Remplacement</label>
+                    <textarea class="form-control" id="motif" th:field="*{motif}" rows="3" required></textarea>
+                </div>
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <button type="submit" class="btn btn-warning"><i class="bi bi-save me-2"></i>Déclarer Remplacement</button>
+                    <a th:href="@{/remplacements}" class="btn btn-secondary"><i class="bi bi-x-circle me-2"></i>Annuler</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
