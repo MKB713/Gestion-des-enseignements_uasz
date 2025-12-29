@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import MaquetteService from '../../services/MaquetteService';
 
+
 const FormationForm = () => {
     const navigate = useNavigate();
     const { id } = useParams(); // Get ID from URL if editing
@@ -65,21 +66,15 @@ const FormationForm = () => {
         setFormation({ ...formation, [type]: selectedObject });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-
-        const savePromise = id
-            ? MaquetteService.updateFormation(id, formation)
-            : MaquetteService.createFormation(formation);
-
-        savePromise
-            .then(() => {
-                navigate('/lst-formations');
-            })
-            .catch(err => {
-                console.error("Error saving formation:", err);
-                alert("Une erreur est survenue lors de l'enregistrement.");
-            });
+        try {
+            // Cet appel utilisera maintenant l'URL http://localhost:8080/api/maquette/...
+            await MaquetteService.createFormation(formData);
+            // ... reste du code (redirection ou message de succès)
+        } catch (error) {
+            console.error("Error saving formation:", error);
+        }
     };
 
     if (loading) return <div className="text-center mt-5"><div className="spinner-border text-success"></div></div>;

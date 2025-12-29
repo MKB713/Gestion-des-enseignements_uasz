@@ -1,6 +1,6 @@
 package com.uasz.daos.choix.client;
 
-import com.uasz.daos.choix.dto.MaquetteDTO;
+import com.uasz.daos.choix.dtos.MaquetteDTO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
