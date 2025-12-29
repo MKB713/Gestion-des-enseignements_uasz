@@ -18,6 +18,9 @@ import ModuleList from './components/module/ModuleList'; // ou './components/maq
 import UEList from './components/ue/UEList';
 import ECList from './components/ec/ECList';
 
+// Our new imports
+import EmploiDuTempsPage from './components/emploi-du-temps/EmploiDuTempsPage';
+import SeanceSearchPage from './components/emploi-du-temps/SeanceSearchPage'; // Import the new search page
 // ==================== ENSEIGNANT ====================
 import EnseignantList from './components/EnseignantList';
 import EnseignantForm from './components/enseignant/EnseignantForm';
@@ -43,6 +46,10 @@ function App() {
                 {/* APPLICATION (Avec Sidebar) */}
                 <Route element={<MainLayout />}>
                     <Route path="/dashboard" element={<div className="text-center mt-5"><h2>Bienvenue sur le Portail UASZ</h2></div>} />
+
+                    {/* --- EMPLOI DU TEMPS --- */}
+                    <Route path="/emploi-du-temps" element={<EmploiDuTempsPage />} />
+                    <Route path="/seances/search" element={<SeanceSearchPage />} />
 
                     {/* --- FORMATIONS --- */}
                     <Route path="/lst-formations" element={<FormationList />} />

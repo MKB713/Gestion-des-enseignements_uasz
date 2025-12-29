@@ -98,25 +98,6 @@ public class SecurityConfig {
                 // SUPPRIMER formLogin() - le frontend React gère le login
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
-            .authorizeHttpRequests(authorize -> authorize
-                .requestMatchers("/", "/login", "/auth2", "/css/**", "/js/**", "/img/**", "/images/**").permitAll()
-                .requestMatchers("/swagger-ui/**", "/api-docs/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
-                .anyRequest().authenticated()
-            )
-            .formLogin(form -> form
-                .loginPage("/login")
-                .loginProcessingUrl("/auth2")
-                .usernameParameter("email")
-                .passwordParameter("password")
-                .successHandler(successHandler)
-                .permitAll()
-            )
-            .logout(logout -> logout
-                .logoutUrl("/logout")
-                .logoutSuccessUrl("/login?logout")
-                .permitAll()
-            )
-            .csrf(csrf -> csrf.disable());
 
         return http.build();
     }
