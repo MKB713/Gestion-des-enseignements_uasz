@@ -1,5 +1,6 @@
-package com.uasz.daos.choix.dto;
+package com.uasz.daos.choix.dtos;
 
+import com.uasz.daos.choix.dtos.FiliereDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -19,6 +20,6 @@ public class FormationDTO {
     private String description;
     private Date dateCreation;
     private FiliereDTO filiere;
-    private NiveauDTO niveau;
+    private com.uasz.daos.choix.dto.NiveauDTO niveau;
     private String statutFormation;
 }
