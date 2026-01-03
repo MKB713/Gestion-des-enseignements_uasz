@@ -9,7 +9,13 @@ import {
     LogOut,
     GitBranch,
     FileText,
-    School
+    School,
+    Building2,
+    GraduationCap,
+    BookMarked,
+    Layers,
+    UserCheck,
+    ClipboardList
 } from 'lucide-react';
 
 const Sidebar = ({ user, logout }) => {
@@ -23,30 +29,94 @@ const Sidebar = ({ user, logout }) => {
                 ];
             case 'ENSEIGNANT':
                 return [
-                    { path: '/teacher/dashboard', label: 'Vue Globale', icon: LayoutDashboard },
-                    { path: '/teacher/classes', label: 'Mes Classes', icon: Users },
+                    { path: '/teacher/dashboard', label: 'Tableau de bord', icon: LayoutDashboard },
+                    { isHeader: true, label: 'MAQUETTE PÉDAGOGIQUE' },
+                    { path: '/teacher/classes', label: 'Classes', icon: Users },
                     { path: '/teacher/maquettes', label: 'Maquettes', icon: GitBranch },
                     { path: '/teacher/pedagogie', label: 'Pédagogie', icon: BookOpen }, // Modules, UEs, ECs
-                    { path: '/teacher/planning', label: 'Planning & Cahier de Texte', icon: Calendar }
+                    { isHeader: true, label: 'PLANNING' },
+                    { path: '/teacher/emploi-temps', label: 'Emploi du Temps', icon: Calendar },
+                    { path: '/teacher/cahier-texte', label: 'Cahier de Texte', icon: ClipboardList }
                 ];
             case 'COORDONATEUR_DES_LICENCES':
                 return [
                     { path: '/coordinator/dashboard', label: 'Tableau de bord', icon: LayoutDashboard },
-                    { path: '/coordinator/licences', label: 'Gestion Licences', icon: School }
+                    { isHeader: true, label: 'MAQUETTE PÉDAGOGIQUE' },
+                    { path: '/coordinator/formations', label: 'Formations', icon: GraduationCap },
+                    { path: '/coordinator/filieres', label: 'Filières', icon: GitBranch },
+                    { path: '/coordinator/classes', label: 'Classes', icon: Users },
+                    { path: '/coordinator/structures', label: 'Structures', icon: Building2 },
+                    { path: '/coordinator/maquettes', label: 'Maquettes', icon: FileText },
+                    {
+                        path: '/coordinator/pedagogie', label: 'Pédagogie', icon: BookOpen,
+                        submenu: [
+                            { path: '/coordinator/modules', label: 'Modules' },
+                            { path: '/coordinator/ues', label: 'Unités d\'Enseignement (UE)' },
+                            { path: '/coordinator/ecs', label: 'Éléments Constitutifs (EC)' }
+                        ]
+                    },
+                    { path: '/coordinator/enseignants', label: 'Enseignants', icon: UserCheck },
+                    { isHeader: true, label: 'PLANNING' },
+                    { path: '/coordinator/emploi-temps', label: 'Emploi du Temps', icon: Calendar },
+                    { path: '/coordinator/cahier-texte', label: 'Cahier de Texte', icon: ClipboardList }
                 ];
             case 'RESPONSABLE_MASTER':
                 return [
                     { path: '/master/dashboard', label: 'Tableau de bord', icon: LayoutDashboard },
-                    { path: '/master/masters', label: 'Gestion Masters', icon: School }
+                    { isHeader: true, label: 'MAQUETTE PÉDAGOGIQUE' },
+                    { path: '/master/formations', label: 'Formations', icon: GraduationCap },
+                    { path: '/master/filieres', label: 'Filières', icon: GitBranch },
+                    { path: '/master/classes', label: 'Classes', icon: Users },
+                    {
+                        path: '/master/structures', label: 'Structure', icon: Building2,
+                        submenu: [
+                            { path: '/master/departements', label: 'Départements' }, // Suggested
+                            { path: '/master/etablissements', label: 'Établissements' } // Suggested
+                        ]
+                    },
+                    { path: '/master/niveaux', label: 'Niveaux', icon: Layers },
+                    { path: '/master/maquettes', label: 'Moquettes', icon: FileText }, // Screenshot says 'Moquettes'? No 'Maquettes'. Screenshot says 'Maquettes'.
+                    {
+                        path: '/master/pedagogie', label: 'Pédagogie', icon: BookOpen,
+                        submenu: [
+                            { path: '/master/modules', label: 'Modules' },
+                            { path: '/master/ues', label: 'Unités d\'Enseignement (UE)' },
+                            { path: '/master/ecs', label: 'Éléments Constitutifs (EC)' }
+                        ]
+                    },
+                    { path: '/master/enseignants', label: 'Enseignants', icon: UserCheck },
+                    { isHeader: true, label: 'PLANNING' },
+                    { path: '/master/emploi-temps', label: 'Emploi du Temps', icon: Calendar },
+                    { path: '/master/cahier-texte', label: 'Cahier de Texte', icon: ClipboardList }
                 ];
             case 'ADMIN':
             case 'CHEF_DE_DEPARTEMENT':
                 return [
                     { path: '/admin/dashboard', label: 'Vue d\'Ensemble', icon: LayoutDashboard },
+
+                    { isHeader: true, label: 'ADMINISTRATION' },
                     { path: '/admin/users', label: 'Utilisateurs', icon: Users },
-                    { path: '/admin/maquettes', label: 'Maquettes', icon: GitBranch },
-                    { path: '/admin/plannings', label: 'Plannings', icon: Calendar },
-                    { path: '/admin/departments', label: 'Départements', icon: Building2 }
+                    { path: '/admin/departments', label: 'Départements', icon: Building2 },
+
+                    { isHeader: true, label: 'MAQUETTE PÉDAGOGIQUE' },
+                    { path: '/admin/formations', label: 'Formations', icon: GraduationCap },
+                    { path: '/admin/filieres', label: 'Filières', icon: GitBranch },
+                    { path: '/admin/classes', label: 'Classes', icon: Users },
+                    { path: '/admin/structures', label: 'Structures', icon: Building2 },
+                    { path: '/admin/maquettes', label: 'Maquettes', icon: FileText },
+                    {
+                        path: '/admin/pedagogie', label: 'Pédagogie', icon: BookOpen,
+                        submenu: [
+                            { path: '/admin/modules', label: 'Modules' },
+                            { path: '/admin/ues', label: 'Unités d\'Enseignement (UE)' },
+                            { path: '/admin/ecs', label: 'Éléments Constitutifs (EC)' }
+                        ]
+                    },
+                    { path: '/admin/enseignants', label: 'Enseignants', icon: UserCheck },
+
+                    { isHeader: true, label: 'PLANNING' },
+                    { path: '/admin/plannings', label: 'Emploi du Temps', icon: Calendar },
+                    { path: '/admin/cahier-texte', label: 'Cahier de Texte', icon: ClipboardList }
                 ];
             default:
                 return [];
@@ -64,15 +134,23 @@ const Sidebar = ({ user, logout }) => {
 
             <nav className="sidebar-nav">
                 <ul>
-                    {links.map((link) => {
+                    {links.map((link, index) => {
+                        if (link.isHeader) {
+                            return (
+                                <li key={`header-${index}`} className="sidebar-section-header">
+                                    <span>{link.label}</span>
+                                </li>
+                            );
+                        }
+
                         const Icon = link.icon;
                         return (
-                            <li key={link.path}>
+                            <li key={link.path || index}>
                                 <Link
                                     to={link.path}
                                     className={`nav-link ${location.pathname === link.path ? 'active' : ''}`}
                                 >
-                                    <Icon size={20} />
+                                    {Icon && <Icon size={20} />}
                                     <span>{link.label}</span>
                                 </Link>
                             </li>
@@ -91,5 +169,4 @@ const Sidebar = ({ user, logout }) => {
     );
 };
 
-export default Sidebar;
-import { Building2 } from 'lucide-react'; 
+export default Sidebar; 

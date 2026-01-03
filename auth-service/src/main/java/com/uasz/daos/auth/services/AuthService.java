@@ -82,10 +82,20 @@ public class AuthService {
         // Log de l'action
         auditLogService.logAction(utilisateur, "INSCRIPTION", "Utilisateur", ResultatAction.SUCCES, null);
 
+        // Créer les informations utilisateur
+        AuthenticationResponse.UserInfo userInfo = AuthenticationResponse.UserInfo.builder()
+                .id(utilisateur.getId())
+                .email(utilisateur.getEmail())
+                .nom(utilisateur.getNom())
+                .prenom(utilisateur.getPrenom())
+                .role(utilisateur.getRole())
+                .build();
+
         return AuthenticationResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .expiresIn(86400L) // 24 heures
+                .user(userInfo)
                 .build();
     }
 
@@ -125,10 +135,20 @@ public class AuthService {
             // Log de l'action
             auditLogService.logAction(utilisateur, "CONNEXION", "Utilisateur", ResultatAction.SUCCES, null);
 
+            // Créer les informations utilisateur
+            AuthenticationResponse.UserInfo userInfo = AuthenticationResponse.UserInfo.builder()
+                    .id(utilisateur.getId())
+                    .email(utilisateur.getEmail())
+                    .nom(utilisateur.getNom())
+                    .prenom(utilisateur.getPrenom())
+                    .role(utilisateur.getRole())
+                    .build();
+
             return AuthenticationResponse.builder()
                     .accessToken(accessToken)
                     .refreshToken(refreshToken)
                     .expiresIn(86400L)
+                    .user(userInfo)
                     .build();
 
         } catch (BadCredentialsException e) {

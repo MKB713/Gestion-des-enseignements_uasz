@@ -42,7 +42,7 @@ public class Utilisateur implements UserDetails {
     @Email(message = "Format email invalide")
     private String email;
 
-    @Column(nullable = false)
+    @Column(name = "password", nullable = false)
     @NotBlank(message = "Le mot de passe est obligatoire")
     private String motDePasse;
 
