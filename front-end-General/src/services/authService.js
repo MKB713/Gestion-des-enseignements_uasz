@@ -23,8 +23,10 @@ class AuthService {
 
       const data = await response.json();
 
-      // Stocker les tokens et les informations utilisateur
-      this.setTokens(data.access_token, data.refresh_token);
+      console.log('Response data:', data); // Pour debug
+
+      // CORRECTION : Utiliser les bons noms de propriétés (camelCase)
+      this.setTokens(data.accessToken, data.refreshToken);
       this.setUser(data.user);
 
       return {
@@ -36,8 +38,8 @@ class AuthService {
           role: data.user.role,
           name: `${data.user.prenom} ${data.user.nom}`
         },
-        accessToken: data.access_token,
-        refreshToken: data.refresh_token
+        accessToken: data.accessToken,
+        refreshToken: data.refreshToken
       };
     } catch (error) {
       console.error('Login error:', error);
@@ -70,9 +72,10 @@ class AuthService {
       }
 
       const data = await response.json();
-      this.setTokens(data.access_token, data.refresh_token);
+      // CORRECTION : camelCase
+      this.setTokens(data.accessToken, data.refreshToken);
 
-      return data.access_token;
+      return data.accessToken;
     } catch (error) {
       console.error('Refresh token error:', error);
       this.logout();
@@ -106,7 +109,9 @@ class AuthService {
    * Stocker les tokens
    */
   setTokens(accessToken, refreshToken) {
-    localStorage.setItem('access_token', accessToken);
+    if (accessToken) {
+      localStorage.setItem('access_token', accessToken);
+    }
     if (refreshToken) {
       localStorage.setItem('refresh_token', refreshToken);
     }
@@ -116,7 +121,9 @@ class AuthService {
    * Stocker les informations utilisateur
    */
   setUser(user) {
-    localStorage.setItem('user', JSON.stringify(user));
+    if (user) {
+      localStorage.setItem('user', JSON.stringify(user));
+    }
   }
 
   /**

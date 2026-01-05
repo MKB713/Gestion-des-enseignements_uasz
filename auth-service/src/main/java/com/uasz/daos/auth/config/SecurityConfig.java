@@ -43,63 +43,31 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                //.cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authorize -> authorize
 
                         //  PERMETTRE création utilisateur SANS AUTH (TEMPORAIRE)
-                        .requestMatchers(HttpMethod.POST, "/api/management/users").permitAll()
+                        //.requestMatchers(HttpMethod.POST, "/api/management/users").permitAll()
 
                         // Swagger UI & Docs
-                        .requestMatchers(
-                                "/swagger-ui/**",
-                                "/swagger-ui.html",
-                                "/v3/api-docs/**",
-                                "/api-docs/**",
-                                "/api-docs.yaml",
-                                "/api-docs.yml",
-                                "/api-docs",
-                                "/webjars/**",
-                                "/swagger-resources/**",
-                                "/configuration/ui",
-                                "/configuration/security"
-                        ).permitAll()
 
-                        // API publique
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/public/**").permitAll()
-                        .requestMatchers("/actuator/health").permitAll()
 
-                        // API par rôle
-                        .requestMatchers("/api/admin/**").hasAnyAuthority(
-                                Role.ADMIN.name(), Role.CHEF_DE_DEPARTEMENT.name())
 
-                        .requestMatchers("/api/enseignant/**").hasAnyAuthority(
-                                Role.ENSEIGNANT.name(),
-                                Role.ADMIN.name(),
-                                Role.CHEF_DE_DEPARTEMENT.name(),
-                                Role.RESPONSABLE_MASTER.name(),
-                                Role.COORDONATEUR_DES_LICENCES.name())
-
-                        .requestMatchers("/api/etudiant/**").hasAnyAuthority(
-                                Role.ETUDIANT.name(),
-                                Role.ADMIN.name())
-
-                        .requestMatchers("/api/users/**").authenticated()
 
                         // Tout le reste nécessite une authentification
-                        .anyRequest().authenticated()
+                        .anyRequest().permitAll()
                 )
-                .sessionManagement(session -> session
+               /* .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
-                .authenticationProvider(authenticationProvider())
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                )*/
+                .authenticationProvider(authenticationProvider());
+                //.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
-    @Bean
+   /* @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         // Attention : en prod, remplacez par l'URL exacte du front, pas localhost
@@ -113,7 +81,7 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
-    }
+    }*/
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
