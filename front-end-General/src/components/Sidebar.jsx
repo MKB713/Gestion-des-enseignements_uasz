@@ -15,7 +15,8 @@ import {
     BookMarked,
     Layers,
     UserCheck,
-    ClipboardList
+    ClipboardList,
+    MapPin
 } from 'lucide-react';
 
 const Sidebar = ({ user, logout }) => {
@@ -115,9 +116,16 @@ const Sidebar = ({ user, logout }) => {
                     },
                     { path: '/admin/enseignants', label: 'Enseignants', icon: UserCheck },
 
+                    { isHeader: true, label: 'SCOLARITÉ' },
+                    { path: '/admin/etudiants', label: 'Étudiants', icon: Users },
+                    { path: '/admin/deroulement-classes', label: 'Classes (Année)', icon: School },
+                    { path: '/admin/cahier-texte', label: 'Cahier de Texte', icon: ClipboardList },
+
                     { isHeader: true, label: 'PLANNING' },
                     { path: '/admin/plannings', label: 'Emploi du Temps', icon: Calendar },
-                    { path: '/admin/cahier-texte', label: 'Cahier de Texte', icon: ClipboardList }
+                    { path: '/admin/salles', label: 'Salles', icon: School },
+                    { path: '/admin/batiments', label: 'Bâtiments', icon: MapPin },
+                    { path: '/admin/cahier-texte', label: 'Cahier de Texte', icon: ClipboardList },
                 ];
             default:
                 return [];

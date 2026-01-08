@@ -42,6 +42,46 @@ public class UserController {
                 return ResponseEntity.ok(userDTO);
         }
 
+        @PostMapping
+        @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
+        public ResponseEntity<Utilisateur> createUser(@RequestBody com.uasz.daos.auth.dto.RegisterRequest request) {
+                // 1. Générer le Matricule Automatique (Année + Séquence)
+                String year = String.valueOf(java.time.Year.now().getValue());
+                long count = utilisateurService.count() + 1;
+                String matricule = year + String.format("%04d", count);
+
+                // Vérifier unicité (simplifié)
+                // Note: Idéalement déplacer cette logique dans un service, mais pour l'instant
+                // duplication du AuthService par nécessité de rapidité
+                // (En production, refactorisez dans un UserGeneratorService)
+
+                // 2. Générer l'Email Institutionnel
+                char firstP = request.getPrenom() != null && !request.getPrenom().isEmpty()
+                                ? request.getPrenom().toLowerCase().charAt(0)
+                                : 'x';
+                char firstN = request.getNom() != null && !request.getNom().isEmpty()
+                                ? request.getNom().toLowerCase().charAt(0)
+                                : 'x';
+                String randomDigits = String.format("%03d", (int) (Math.random() * 1000));
+                String generatedEmail = firstP + "." + firstN + randomDigits + "@zig.univ.sn";
+
+                // 3. Créer l'objet Utilisateur
+                Utilisateur utilisateur = new Utilisateur();
+                utilisateur.setMatricule(matricule);
+                utilisateur.setNom(request.getNom());
+                utilisateur.setPrenom(request.getPrenom());
+                utilisateur.setEmail(generatedEmail);
+                utilisateur.setRole(request.getRole() != null ? request.getRole()
+                                : com.uasz.daos.auth.enums.Role.ENSEIGNANT);
+                utilisateur.setEtat(com.uasz.daos.auth.enums.Etat.ACTIF);
+
+                // 4. Appel au service pour sauvegarder (qui génère mdp et envoie mail)
+                // Mais UtilisateurService.createUser génère aussi un MDP et envoie un mail !
+                // Donc on passe l'utilisateur pré-rempli au service ET l'email personnel pour
+                // l'envoi.
+                return ResponseEntity.ok(utilisateurService.createUser(utilisateur, request.getEmailPersonnel()));
+        }
+
         @GetMapping("/{id}")
         @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_CHEF_DE_DEPARTEMENT') or #id == principal.id")
         public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {

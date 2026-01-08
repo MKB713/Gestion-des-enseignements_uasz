@@ -22,6 +22,12 @@ import AdminModules from "./pages/admin/Modules";
 import AdminECs from "./pages/admin/ECs";
 import AdminEnseignants from "./pages/admin/Enseignants";
 import AdminFormations from './pages/admin/Formations';
+import AdminCahierTexte from "./pages/admin/CahierTexte";
+import AdminEtudiants from "./pages/admin/Etudiants";
+import AdminDeroulementClasses from "./pages/admin/DeroulementClasses";
+import AdminPlannings from "./pages/admin/Plannings";
+import AdminSalles from "./pages/admin/Salles";
+import AdminBatiments from "./pages/admin/Batiments";
 
 // Master Pages
 import MasterFormations from './pages/master/Formations';
@@ -113,9 +119,14 @@ function App() {
               <Route path="/admin/modules" element={<PrivateRoute role="ADMIN"><AdminModules /></PrivateRoute>} />
               <Route path="/admin/ecs" element={<PrivateRoute role="ADMIN"><AdminECs /></PrivateRoute>} />
               <Route path="/admin/enseignants" element={<PrivateRoute role="ADMIN"><AdminEnseignants /></PrivateRoute>} />
-              <Route path="/admin/structures" element={<Navigate to="/admin/departments" replace />} /> {/* Redirect Structures to Departments for now */}
+              <Route path="/admin/structures" element={<Navigate to="/admin/departments" replace />} />
               <Route path="/admin/formations" element={<AdminFormations />} />
-              <Route path="/admin/plannings" element={<TimetablePage roleTitle="Planning Général" />} />
+              <Route path="/admin/plannings" element={<AdminPlannings />} />
+              <Route path="/admin/salles" element={<AdminSalles />} />
+              <Route path="/admin/batiments" element={<AdminBatiments />} />
+              <Route path="/admin/cahier-texte" element={<AdminCahierTexte />} />
+              <Route path="/admin/etudiants" element={<AdminEtudiants />} />
+              <Route path="/admin/deroulement-classes" element={<AdminDeroulementClasses />} />
               <Route path="/admin/*" element={<AdminDashboard />} />
             </Route>
 

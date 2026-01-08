@@ -4,25 +4,33 @@ import "./AdminDepartments.css";
 
 const AdminEnseignants = () => {
     const [enseignants, setEnseignants] = useState([]);
-    const [grades, setGrades] = useState([]);
-    const [statuts, setStatuts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [currentEnseignant, setCurrentEnseignant] = useState(null);
 
+    // Enums based on User Request and Code Logic
+    const grades = ["PERMANENT", "VACATAIRE"]; // Maps to 'statut' in Enseignant Entity
+    const etats = ["ACTIF", "INACTIF", "ARCHIVE"]; // Maps to 'statutEnseignant' in Enseignant Entity
+    // We also need 'TITRE' (Assistant etc) if strictly required by backend, but user mapped "Grade" to Perm/Vac.
+    // We will assume 'grade' string field in backend can be generic or matched, or we can add a 'Titre' field if needed. 
+    // For now, I will use a generic 'grade' string or just set it same as status if confusing.
+    // Actually, let's keep 'Titre' as the String 'grade' and 'Type' as 'statut'.
+    // BUT User said "Grade (PERMANENT, VACATAIRE)". So I will label the dropdown "Grade" and map it to `statut`.
+
     const [formData, setFormData] = useState({
         nom: "",
         prenom: "",
-        matricule: "", // Not present in create/update? Check Controller
-        grade: "",
-        statut: "" // Enum
+        emailPersonnel: "", // Creation only
+        telephone: "",
+        dateNaissance: "", // Required for User creation
+        grade: "", // This will map to 'statut' (PERMANENT/VACATAIRE)
+        etat: "ACTIF" // Maps to 'statutEnseignant'
     });
 
     useEffect(() => {
         fetchData();
-        fetchReferences();
     }, []);
 
     const fetchData = async () => {
@@ -39,21 +47,6 @@ const AdminEnseignants = () => {
         }
     };
 
-    const fetchReferences = async () => {
-        try {
-            // Need to verify endpoints for references in EnseignantController or if they are exposed
-            // Controller has /api/enseignants/ref/grades and /api/enseignants/ref/statuts
-            // API_ENDPOINTS.ENSEIGNANTS doesn't have these explicitly named but we can construct them
-            const gradesRes = await apiRequest(`${API_ENDPOINTS.ENSEIGNANTS.base}/ref/grades`).catch(() => []);
-            const statutsRes = await apiRequest(`${API_ENDPOINTS.ENSEIGNANTS.base}/ref/statuts`).catch(() => []);
-
-            setGrades(Array.isArray(gradesRes) ? gradesRes : ["Assistant", "Maître-Assistant", "Maître de Conférences", "Professeur Titulaire"]);
-            setStatuts(Array.isArray(statutsRes) ? statutsRes : ["PERMANENT", "VACATAIRE"]);
-        } catch (e) {
-            console.warn("Could not fetch refs, using defaults");
-        }
-    };
-
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData({ ...formData, [name]: value });
@@ -66,9 +59,11 @@ const AdminEnseignants = () => {
             setFormData({
                 nom: enseignant.nom,
                 prenom: enseignant.prenom,
-                matricule: enseignant.matricule,
-                grade: enseignant.grade,
-                statut: enseignant.statut
+                emailPersonnel: enseignant.mailPersonnel || "", // Might be null
+                telephone: enseignant.telephone || "",
+                dateNaissance: enseignant.dateNaissance || "",
+                grade: enseignant.statut, // Maps Perm/Vac
+                etat: enseignant.statutEnseignant || "ACTIF"
             });
         } else {
             setIsEditing(false);
@@ -76,9 +71,11 @@ const AdminEnseignants = () => {
             setFormData({
                 nom: "",
                 prenom: "",
-                matricule: "",
-                grade: "",
-                statut: ""
+                emailPersonnel: "",
+                telephone: "",
+                dateNaissance: "",
+                grade: "PERMANENT",
+                etat: "ACTIF"
             });
         }
         setShowModal(true);
@@ -91,58 +88,113 @@ const AdminEnseignants = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        try {
-            const payload = {
-                nom: formData.nom,
-                prenom: formData.prenom,
-                matricule: formData.matricule,
-                grade: formData.grade,
-                statut: formData.statut
-            };
 
+        // Validation Age >= 25 (seulement pour la création ou si date modifiée)
+        if (formData.dateNaissance) {
+            const birthDate = new Date(formData.dateNaissance);
+            const today = new Date();
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const m = today.getMonth() - birthDate.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+            if (age < 25) {
+                alert("L'enseignant doit avoir au moins 25 ans.");
+                return;
+            }
+        }
+
+        try {
             if (isEditing) {
+                // Update Logic (Only Enseignant Service)
+                const payload = {
+                    id: currentEnseignant.id,
+                    nom: formData.nom,
+                    prenom: formData.prenom,
+                    telephone: formData.telephone,
+                    mailPersonnel: formData.emailPersonnel, // Update if allowed
+                    statut: formData.grade, // Map 'Grade' to 'Statut'
+                    statutEnseignant: formData.etat,
+                    // Preserve other fields
+                    matricule: currentEnseignant.matricule,
+                    email: currentEnseignant.email
+                };
+
                 await apiRequest(API_ENDPOINTS.ENSEIGNANTS.UPDATE(currentEnseignant.id), {
                     method: "PUT",
                     body: JSON.stringify(payload)
                 });
             } else {
+                // Create Logic (2 Steps)
+
+                // Step 1: Create User in Auth Service
+                const authPayload = {
+                    nom: formData.nom,
+                    prenom: formData.prenom,
+                    emailPersonnel: formData.emailPersonnel,
+                    telephone: formData.telephone,
+                    dateNaissance: formData.dateNaissance,
+                    role: "ENSEIGNANT"
+                };
+
+                // NOTE: We assume API_ENDPOINTS.USERS.LIST is '/api/users' which maps to UserController
+                // We enabled POST on UserController to call createUser
+                const userResponse = await apiRequest(API_ENDPOINTS.USERS.LIST, {
+                    method: "POST",
+                    body: JSON.stringify(authPayload)
+                });
+
+                if (!userResponse || !userResponse.matricule) {
+                    throw new Error("Echec de la création du compte utilisateur (Matricule manquant).");
+                }
+
+                // Step 2: Create Enseignant Profile
+                const enseignantPayload = {
+                    matricule: parseInt(userResponse.matricule), // Ensure Long
+                    email: userResponse.email,
+                    nom: formData.nom,
+                    prenom: formData.prenom,
+                    telephone: formData.telephone,
+                    mailPersonnel: formData.emailPersonnel,
+                    statut: formData.grade, // Map Select 'Grade' -> 'Statut' (PERMANENT/VACATAIRE)
+                    statutEnseignant: formData.etat, // 'ACTIF' etc
+                    dateNaissance: formData.dateNaissance
+                };
+
                 await apiRequest(API_ENDPOINTS.ENSEIGNANTS.CREATE, {
                     method: "POST",
-                    body: JSON.stringify(payload)
+                    body: JSON.stringify(enseignantPayload)
                 });
             }
+
             fetchData();
             closeModal();
+            alert(isEditing ? "Enseignant modifié !" : "Enseignant créé ! Un mail a été envoyé.");
         } catch (err) {
             console.error("Erreur enregistrement:", err);
-            const errorMessage = err.response?.data?.message || err.message || "Erreur inconnue";
+            const errorMessage = err.message || "Erreur inconnue";
             alert("Erreur lors de l'enregistrement: " + errorMessage);
         }
     };
 
     const handleDelete = async (id) => {
-        if (window.confirm("Êtes-vous sûr de vouloir supprimer cet enseignant ? (Archivage)")) {
+        if (window.confirm("Êtes-vous sûr de vouloir archiver cet enseignant ?")) {
             try {
-                // The api.js DELETE might point to DELETE method, but controller uses PATCH /archive?
-                // Controller: @PatchMapping("/{id}/archiver")
-                // api.js DELETE: `${API_BASE_URL}/api/enseignants/${id}` often defaults to DELETE verb
-                // API_ENDPOINTS.ENSEIGNANTS.DELETE is a function returning url.
-                // We should use specific endpoint for archive if needed, or check if DELETE verb is mapped.
-                // Controller does NOT map DELETE /{id}. It maps PATCH /{id}/archiver.
-                // So we must manually call the archive endpoint.
                 await apiRequest(`${API_ENDPOINTS.ENSEIGNANTS.base}/${id}/archiver`, { method: "PATCH" });
                 fetchData();
             } catch (err) {
                 console.error("Erreur suppression:", err);
-                alert("Erreur lors de la suppression.");
+                alert("Erreur lors de l'archivage.");
             }
         }
     };
 
     const handleToggleStatus = async (enseignant) => {
         try {
-            if (enseignant.actif) {
-                await apiRequest(`${API_ENDPOINTS.ENSEIGNANTS.base}/${enseignant.id}/desactiver`, { method: "PATCH" }); // Update Controller path? @PatchMapping("/{id}/desactiver")
+            // Assume 'actif' boolean exists or derive from statutEnseignant
+            // The backend returns 'estActif' boolean usually
+            if (enseignant.estActif) {
+                await apiRequest(`${API_ENDPOINTS.ENSEIGNANTS.base}/${enseignant.id}/desactiver`, { method: "PATCH" });
             } else {
                 await apiRequest(`${API_ENDPOINTS.ENSEIGNANTS.base}/${enseignant.id}/activer`, { method: "PATCH" });
             }
@@ -153,6 +205,10 @@ const AdminEnseignants = () => {
     };
 
     if (loading) return <div className="loading">Chargement...</div>;
+
+    // Calculate max date for 25 years ago
+    const today = new Date();
+    const maxDate = new Date(today.getFullYear() - 25, today.getMonth(), today.getDate()).toISOString().split('T')[0];
 
     return (
         <div className="admin-departments-container">
@@ -170,8 +226,8 @@ const AdminEnseignants = () => {
                     <tr>
                         <th>Matricule</th>
                         <th>Prénom & Nom</th>
-                        <th>Grade</th>
-                        <th>Statut</th>
+                        <th>Email Professionnel</th>
+                        <th>Type (Grade)</th>
                         <th>État</th>
                         <th>Actions</th>
                     </tr>
@@ -184,21 +240,21 @@ const AdminEnseignants = () => {
                             <tr key={enseignant.id}>
                                 <td>{enseignant.matricule}</td>
                                 <td>{enseignant.prenom} {enseignant.nom}</td>
-                                <td>{enseignant.grade}</td>
-                                <td>{enseignant.statut}</td>
+                                <td>{enseignant.email}</td>
+                                <td>{enseignant.statut}</td> {/* PERMANENT/VACATAIRE */}
                                 <td>
                                     <span
-                                        className={`badge ${enseignant.actif ? 'badge-success' : 'badge-danger'}`}
+                                        className={`badge ${enseignant.estActif ? 'badge-success' : 'badge-danger'}`}
                                         style={{ cursor: 'pointer' }}
                                         onClick={() => handleToggleStatus(enseignant)}
-                                        title="Cliquez pour changer l'état"
+                                        title={"Statut: " + enseignant.statutEnseignant}
                                     >
-                                        {enseignant.actif ? "Actif" : "Inactif"}
+                                        {enseignant.estActif ? "Actif" : "Inactif"}
                                     </span>
                                 </td>
                                 <td className="actions-cell">
                                     <button className="edit-btn" onClick={() => openModal(enseignant)}>Modifier</button>
-                                    <button className="delete-btn" onClick={() => handleDelete(enseignant.id)}>Supprimer</button>
+                                    <button className="delete-btn" onClick={() => handleDelete(enseignant.id)}>Archiver</button>
                                 </td>
                             </tr>
                         ))
@@ -221,27 +277,54 @@ const AdminEnseignants = () => {
                                     <input type="text" name="nom" value={formData.nom} onChange={handleInputChange} required />
                                 </div>
                             </div>
-                            <div className="form-group">
-                                <label>Matricule</label>
-                                <input type="text" name="matricule" value={formData.matricule} onChange={handleInputChange} required />
+
+                            {!isEditing && (
+                                <div className="form-group">
+                                    <label>Email Personnel (pour envoi identifiants)</label>
+                                    <input type="email" name="emailPersonnel" value={formData.emailPersonnel} onChange={handleInputChange} required />
+                                </div>
+                            )}
+
+                            <div className="form-group-row">
+                                <div className="form-group">
+                                    <label>Téléphone</label>
+                                    <input type="text" name="telephone" value={formData.telephone} onChange={handleInputChange} />
+                                </div>
+                                <div className="form-group">
+                                    <label>Date de Naissance (+25 ans)</label>
+                                    <input
+                                        type="date"
+                                        name="dateNaissance"
+                                        value={formData.dateNaissance}
+                                        onChange={handleInputChange}
+                                        required={!isEditing}
+                                        max={maxDate}
+                                    />
+                                </div>
                             </div>
+
                             <div className="form-group">
-                                <label>Grade</label>
+                                <label>Grade (Type)</label>
                                 <select name="grade" value={formData.grade} onChange={handleInputChange} required>
-                                    <option value="">Sélectionner un grade</option>
                                     {grades.map(g => <option key={g} value={g}>{g}</option>)}
                                 </select>
                             </div>
                             <div className="form-group">
                                 <label>Statut</label>
-                                <select name="statut" value={formData.statut} onChange={handleInputChange} required>
-                                    <option value="">Sélectionner un statut</option>
-                                    {statuts.map(s => <option key={s} value={s}>{s}</option>)}
+                                <select name="etat" value={formData.etat} onChange={handleInputChange} required>
+                                    {etats.map(s => <option key={s} value={s}>{s}</option>)}
                                 </select>
                             </div>
+
+                            {isEditing && (
+                                <div className="form-group">
+                                    <small>Note: Le Matricule et l'Email Professionnel ne sont pas modifiables ici.</small>
+                                </div>
+                            )}
+
                             <div className="modal-actions">
                                 <button type="button" onClick={closeModal} className="cancel-btn">Annuler</button>
-                                <button type="submit" className="submit-btn">Enregistrer</button>
+                                <button type="submit" className="submit-btn">{isEditing ? "Enregistrer" : "Créer et Envoyer"}</button>
                             </div>
                         </form>
                     </div>

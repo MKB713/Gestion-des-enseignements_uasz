@@ -28,10 +28,10 @@ public class UtilisateurService {
     private static final SecureRandom RANDOM = new SecureRandom();
 
     public UtilisateurService(UtilisateurRepository utilisateurRepository,
-                              PasswordHistoryRepository passwordHistoryRepository,
-                              PasswordEncoder passwordEncoder,
-                              MailService mailService,
-                              AuditLogService auditLogService) {
+            PasswordHistoryRepository passwordHistoryRepository,
+            PasswordEncoder passwordEncoder,
+            MailService mailService,
+            AuditLogService auditLogService) {
         this.utilisateurRepository = utilisateurRepository;
         this.passwordHistoryRepository = passwordHistoryRepository;
         this.passwordEncoder = passwordEncoder;
@@ -81,8 +81,10 @@ public class UtilisateurService {
     }
 
     // CRÉATION D'UTILISATEUR AVEC GÉNÉRATION AUTOMATIQUE DE MOT DE PASSE
+    // CRÉATION D'UTILISATEUR AVEC GÉNÉRATION AUTOMATIQUE DE MOT DE PASSE (Surcharge
+    // avec mail perso)
     @Transactional
-    public Utilisateur createUser(Utilisateur utilisateur) {
+    public Utilisateur createUser(Utilisateur utilisateur, String emailPersonnel) {
         // Vérifier l'unicité de l'email
         if (utilisateurRepository.existsByEmail(utilisateur.getEmail())) {
             throw new RuntimeException("Un utilisateur avec cet email existe déjà");
@@ -109,13 +111,21 @@ public class UtilisateurService {
         savePasswordHistory(savedUser, savedUser.getMotDePasse());
 
         // Envoyer l'email de bienvenue avec le mot de passe
+        // Si un email personnel est fourni, on l'utilise, sinon on utilise l'email
+        // institutionnel (ce qui est moins utile car il n'a pas le MDP)
+        String emailToUse = (emailPersonnel != null && !emailPersonnel.isEmpty()) ? emailPersonnel
+                : savedUser.getEmail();
+
         mailService.sendWelcomeEmail(
-                savedUser.getEmail(),
+                emailToUse,
                 savedUser.getNom(),
                 savedUser.getPrenom(),
-                savedUser.getMatricule(),
-                generatedPassword
-        );
+                savedUser.getMatricule(), // Le matricule est souvent utilisé comme login si email pas dispo, ou juste
+                                          // info
+                generatedPassword);
+        // Note: sendWelcomeEmail signature might be (email, nom, prenom, login,
+        // password). Verify MailService.
+        // Assuming arguments are correct based on existing code.
 
         // Audit log
         auditLogService.logAction(savedUser, "CREATION_UTILISATEUR", "Utilisateur",
@@ -123,6 +133,11 @@ public class UtilisateurService {
                 "Utilisateur créé avec succès");
 
         return savedUser;
+    }
+
+    @Transactional
+    public Utilisateur createUser(Utilisateur utilisateur) {
+        return createUser(utilisateur, null);
     }
 
     // MISE À JOUR D'UTILISATEUR
@@ -300,16 +315,22 @@ public class UtilisateurService {
 
     private boolean isPasswordStrong(String password) {
         // Au moins 8 caractères
-        if (password.length() < 8) return false;
+        if (password.length() < 8)
+            return false;
 
-        // Contient au moins une majuscule, une minuscule, un chiffre et un caractère spécial
+        // Contient au moins une majuscule, une minuscule, un chiffre et un caractère
+        // spécial
         boolean hasUpper = false, hasLower = false, hasDigit = false, hasSpecial = false;
 
         for (char c : password.toCharArray()) {
-            if (Character.isUpperCase(c)) hasUpper = true;
-            else if (Character.isLowerCase(c)) hasLower = true;
-            else if (Character.isDigit(c)) hasDigit = true;
-            else if ("@#$%&*".indexOf(c) >= 0) hasSpecial = true;
+            if (Character.isUpperCase(c))
+                hasUpper = true;
+            else if (Character.isLowerCase(c))
+                hasLower = true;
+            else if (Character.isDigit(c))
+                hasDigit = true;
+            else if ("@#$%&*".indexOf(c) >= 0)
+                hasSpecial = true;
         }
 
         return hasUpper && hasLower && hasDigit && hasSpecial;

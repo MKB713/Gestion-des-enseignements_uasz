@@ -1,21 +1,58 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import Timetable from '../../components/Timetable';
-
-// Mock Data - In a real app, this would be fetched based on role/user
-const mockEvents = [
-    { day: 'Lundi', startHour: 8, duration: 4, module: 'Algorithmique Avancée', type: 'CM', room: 'Amphi A', professor: 'Dr. Diop' },
-    { day: 'Lundi', startHour: 14, duration: 2, module: 'Algorithmique Avancée', type: 'TD', room: 'Salle 12', professor: 'M. Ndiaye' },
-    { day: 'Mardi', startHour: 10, duration: 2, module: 'Architecture Web', type: 'CM', room: 'Amphi B', professor: 'Dr. Fall' },
-    { day: 'Mercredi', startHour: 8, duration: 4, module: 'Bases de Données', type: 'CM', room: 'Amphi C', professor: 'Dr. Sow' },
-    { day: 'Jeudi', startHour: 14, duration: 3, module: 'Développement Mobile', type: 'TP', room: 'Labo Info 1', professor: 'Mme. Faye' },
-    { day: 'Vendredi', startHour: 9, duration: 3, module: 'Anglais Technique', type: 'TD', room: 'Salle 24', professor: 'Mr. Smith' },
-    { day: 'Samedi', startHour: 10, duration: 2, module: 'Conférence Tech', type: 'CM', room: 'Auditorium', professor: 'Invité' },
-];
+import { apiRequest, API_ENDPOINTS } from '../../config/api';
 
 const TimetablePage = ({ roleTitle = 'Emploi du Temps' }) => {
+    const [events, setEvents] = useState([]);
+    const [currentDate, setCurrentDate] = useState(new Date());
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+        fetchTimetable();
+    }, [currentDate]);
+
+    const fetchTimetable = async () => {
+        try {
+            setLoading(true);
+            // Format date as YYYY-MM-DD
+            const formattedDate = currentDate.toISOString().split('T')[0];
+
+            // Build query params
+            // For now, fetching global or user-specific if logic was here.
+            // The endpoint `/semaine` returns data.
+            // If we are "student", maybe we need to filter? 
+            // For now, let's just fetch the generic weekly planning or filtered by user context if we had it.
+            // The API supports ?date=...
+
+            const data = await apiRequest(`${API_ENDPOINTS.EMPLOI_TEMPS.WEEKLY}?date=${formattedDate}`);
+
+            if (data && data.seancesParJour) {
+                // Flatten the map of lists into a single array
+                const allSeances = Object.values(data.seancesParJour).flat();
+                setEvents(allSeances);
+            } else {
+                setEvents([]);
+            }
+            setError(null);
+
+        } catch (err) {
+            console.error("Erreur chargement emploi du temps:", err);
+            // Don't show error to user immediately on first load if it's empty, but logging is good
+            // setError("Impossible de charger l'emploi du temps."); 
+            setEvents([]);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleWeekChange = (newDate) => {
+        setCurrentDate(newDate);
+    };
+
     return (
-        <div className="master-dashboard"> {/* Reusing generic dashboard wrapper for padding */}
+        <div className="master-dashboard">
             <div className="dashboard-title-section">
                 <h1 className="dashboard-title">
                     <CalendarIcon size={32} className="mr-2" />
@@ -28,7 +65,13 @@ const TimetablePage = ({ roleTitle = 'Emploi du Temps' }) => {
                 <p>Consultez et gérez l'emploi du temps des cours, examens et activités pédagogiques.</p>
             </div>
 
-            <Timetable events={mockEvents} />
+            {loading && <div className="loading" style={{ textAlign: 'center', padding: '20px' }}>Chargement...</div>}
+
+            <Timetable
+                events={events}
+                weekStart={currentDate}
+                onWeekChange={handleWeekChange}
+            />
         </div>
     );
 };

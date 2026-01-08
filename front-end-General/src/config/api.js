@@ -161,12 +161,90 @@ export const API_ENDPOINTS = {
   // DEROULEMENT ENSEIGNEMENT SERVICE
   // Gateway: /api/deroulement-enseignements/**
   // ==================================
-  DEROULEMENT: {
-    LIST: `${API_BASE_URL}/api/deroulement-enseignements`,
-    BY_ID: (id) => `${API_BASE_URL}/api/deroulement-enseignements/${id}`,
-    CREATE: `${API_BASE_URL}/api/deroulement-enseignements`,
-    UPDATE: (id) => `${API_BASE_URL}/api/deroulement-enseignements/${id}`,
-    DELETE: (id) => `${API_BASE_URL}/api/deroulement-enseignements/${id}`,
+  // ==================================
+  // CAHIER DE TEXTE SERVICE (Deroulement Enseignement)
+  // Gateway: /api/notes-cahier/**
+  // ==================================
+  CAHIER_TEXTE: {
+    base: `${API_BASE_URL}/api/notes-cahier`,
+    LIST: `${API_BASE_URL}/api/notes-cahier`,
+    BY_ID: (id) => `${API_BASE_URL}/api/notes-cahier/${id}`,
+    CREATE: `${API_BASE_URL}/api/notes-cahier`,
+    UPDATE: (id) => `${API_BASE_URL}/api/notes-cahier/${id}`,
+    DELETE: (id) => `${API_BASE_URL}/api/notes-cahier/${id}`,
+    VALIDATE: (id) => `${API_BASE_URL}/api/notes-cahier/${id}/valider`,
+    EXPORT_PDF: `${API_BASE_URL}/api/notes-cahier/export/pdf`,
+  },
+
+  // ==================================
+  // ETUDIANT SERVICE (Deroulement Enseignement)
+  // Gateway: /api/etudiants/**
+  // ==================================
+  DEROULEMENT_ETUDIANTS: {
+    base: `${API_BASE_URL}/api/etudiants`,
+    LIST: `${API_BASE_URL}/api/etudiants`,
+    BY_ID: (id) => `${API_BASE_URL}/api/etudiants/${id}`,
+    CREATE: `${API_BASE_URL}/api/etudiants`,
+    UPDATE: (id) => `${API_BASE_URL}/api/etudiants/${id}`,
+    DELETE: (id) => `${API_BASE_URL}/api/etudiants/${id}`,
+    SUSPEND: (id) => `${API_BASE_URL}/api/etudiants/${id}/suspendre`,
+    REACTIVATE: (id) => `${API_BASE_URL}/api/etudiants/${id}/reactiver`,
+  },
+
+  // ==================================
+  // CLASSE SERVICE (Deroulement Enseignement - Instances)
+  // Gateway: /api/classes/** (Careful conflict with Maquette classes?)
+  // Maquette uses /api/maquette/classes
+  // Deroulement uses /api/classes (root?) or /api/deroulement/classes?
+  // Controller @RequestMapping is root /api/classes
+  // ==================================
+  DEROULEMENT_CLASSES: {
+    base: `${API_BASE_URL}/api/classes`,
+    LIST: `${API_BASE_URL}/api/classes`,
+    BY_ID: (id) => `${API_BASE_URL}/api/classes/${id}`,
+    CREATE: `${API_BASE_URL}/api/classes`,
+    UPDATE: (id) => `${API_BASE_URL}/api/classes/${id}`,
+    DELETE: (id) => `${API_BASE_URL}/api/classes/${id}`, // Uses archive logic if DELETE provided? Controller maps DELETE too.
+    ARCHIVE: (id) => `${API_BASE_URL}/api/classes/${id}/archive`,
+    DESARCHIVE: (id) => `${API_BASE_URL}/api/classes/${id}/desarchiver`,
+  },
+
+  // ==================================
+  // EMPLOI DU TEMPS SERVICE
+  // ==================================
+  EMPLOI_TEMPS: {
+    base: `${API_BASE_URL}/api/emploi-du-temps`,
+    WEEKLY: `${API_BASE_URL}/api/emploi-du-temps/semaine`, // ?date=...&filtrePar=...&filtreId=...
+    SEMESTER: `${API_BASE_URL}/api/emploi-du-temps/semestre`,
+    BY_TEACHER: (id) => `${API_BASE_URL}/api/emploi-du-temps/enseignant/${id}/semaine`,
+    BY_ROOM: (id) => `${API_BASE_URL}/api/emploi-du-temps/salle/${id}/semaine`,
+  },
+
+  SEANCES: {
+    base: `${API_BASE_URL}/api/seances`,
+    LIST: `${API_BASE_URL}/api/seances`,
+    SEARCH: `${API_BASE_URL}/api/emploi-du-temps/search`, // Uses EmploiController for search
+    CREATE: `${API_BASE_URL}/api/seances`,
+    UPDATE: (id) => `${API_BASE_URL}/api/seances/${id}`,
+    DELETE: (id) => `${API_BASE_URL}/api/seances/${id}`,
+    HISTORY: (id) => `${API_BASE_URL}/api/seances/${id}/historique`,
+  },
+
+  SALLES: {
+    base: `${API_BASE_URL}/api/salles`,
+    LIST: `${API_BASE_URL}/api/salles`,
+    AVAILABLE: `${API_BASE_URL}/api/salles/disponibilites`,
+    CREATE: `${API_BASE_URL}/api/salles`,
+    UPDATE: (id) => `${API_BASE_URL}/api/salles/${id}`,
+    DELETE: (id) => `${API_BASE_URL}/api/salles/${id}`,
+  },
+
+  BATIMENTS: {
+    base: `${API_BASE_URL}/api/batiments`,
+    LIST: `${API_BASE_URL}/api/batiments`,
+    CREATE: `${API_BASE_URL}/api/batiments`,
+    UPDATE: (id) => `${API_BASE_URL}/api/batiments/${id}`,
+    DELETE: (id) => `${API_BASE_URL}/api/batiments/${id}`,
   },
 };
 
