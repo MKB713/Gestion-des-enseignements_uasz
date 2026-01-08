@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
     Users,
     GraduationCap,
@@ -27,27 +28,20 @@ const adminChartData = [
     { name: 'Avr', value: 98 },
 ];
 
-const adminDistributionData1 = [
-    { name: 'Etudiants', value: 1250 },
-    { name: 'Enseignants', value: 85 },
-];
-
-const adminDistributionData2 = [
-    { name: 'Informatique', value: 450 },
-    { name: 'Mathématiques', value: 300 },
-    { name: 'Physique', value: 250 },
-    { name: 'Chimie', value: 200 },
-];
-import DistributionChart from '../../components/DistributionChart';
-
-const ActionCard = ({ icon: Icon, title, subtitle, btnText, btnClass = '', iconColor = '#064e3b' }) => (
+const ActionCard = ({ icon: Icon, title, subtitle, btnText, btnClass = '', iconColor = '#064e3b', onClick }) => (
     <div className="action-card">
         <div className="card-icon" style={{ color: iconColor }}>
             <Icon size={24} />
         </div>
         <h3>{title}</h3>
         <p>{subtitle}</p>
-        <button className={`card-btn ${btnClass}`} style={{ backgroundColor: iconColor }}>{btnText}</button>
+        <button
+            className={`card-btn ${btnClass}`}
+            style={{ backgroundColor: iconColor }}
+            onClick={onClick}
+        >
+            {btnText}
+        </button>
     </div>
 );
 
@@ -59,6 +53,8 @@ const StatCard = ({ value, label, color }) => (
 );
 
 const AdminDashboard = () => {
+    const navigate = useNavigate();
+
     return (
         <div className="master-dashboard">
             <div className="dashboard-title-section">
@@ -81,8 +77,6 @@ const AdminDashboard = () => {
                 <StatCard value="12" label="DÉPARTEMENTS" color="#b91c1c" />
             </div>
 
-
-
             {/* Evolution Chart */}
             <EvolutionChart
                 data={adminChartData}
@@ -104,6 +98,7 @@ const AdminDashboard = () => {
                         subtitle="Gestion des comptes"
                         btnText="Administrer"
                         iconColor="#b91c1c"
+                        onClick={() => navigate('/admin/users')}
                     />
                     <ActionCard
                         icon={Building2}

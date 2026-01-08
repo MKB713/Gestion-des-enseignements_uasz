@@ -10,15 +10,28 @@ export const API_ENDPOINTS = {
 
   // =====================
   // AUTH SERVICE
+  // Direct: http://localhost:8081/api/auth/**
   // Gateway: /api/auth/**
   // =====================
   AUTH: {
-    BASE: `${API_BASE_URL}/api/auth`,
-    LOGIN: `${API_BASE_URL}/api/auth/login`,
-    REGISTER: `${API_BASE_URL}/api/auth/register`,
-    LOGOUT: `${API_BASE_URL}/api/auth/logout`,
-    REFRESH: `${API_BASE_URL}/api/auth/refresh`,
-    VALIDATE: `${API_BASE_URL}/api/auth/validate`,
+    BASE: 'http://localhost:8081/api/auth',
+    LOGIN: 'http://localhost:8081/api/auth/login',
+    REGISTER: 'http://localhost:8081/api/auth/register',
+    LOGOUT: 'http://localhost:8081/api/auth/logout',
+    REFRESH: 'http://localhost:8081/api/auth/refresh',
+    VALIDATE: 'http://localhost:8081/api/auth/validate',
+  },
+
+  // =====================
+  // USERS SERVICE (Auth Service)
+  // Direct: http://localhost:8081/api/users/**
+  // =====================
+  USERS: {
+    base: 'http://localhost:8081/api/users',
+    LIST: 'http://localhost:8081/api/users',
+    SEARCH: 'http://localhost:8081/api/users/search',
+    BY_ID: (id) => `http://localhost:8081/api/users/${id}`,
+    BY_ROLE: (role) => `http://localhost:8081/api/users/role/${role}`,
   },
 
   // =========================
@@ -160,11 +173,11 @@ export const apiRequest = async (url, options = {}) => {
 export const api = {
   get: (url, options = {}) => apiRequest(url, { ...options, method: 'GET' }),
   post: (url, data, options = {}) =>
-      apiRequest(url, { ...options, method: 'POST', body: JSON.stringify(data) }),
+    apiRequest(url, { ...options, method: 'POST', body: JSON.stringify(data) }),
   put: (url, data, options = {}) =>
-      apiRequest(url, { ...options, method: 'PUT', body: JSON.stringify(data) }),
+    apiRequest(url, { ...options, method: 'PUT', body: JSON.stringify(data) }),
   delete: (url, options = {}) =>
-      apiRequest(url, { ...options, method: 'DELETE' }),
+    apiRequest(url, { ...options, method: 'DELETE' }),
 };
 
 export default API_ENDPOINTS;

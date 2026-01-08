@@ -34,8 +34,7 @@ public class SecurityConfig {
 
     public SecurityConfig(
             JwtAuthenticationFilter jwtAuthFilter,
-            UserDetailsServiceImpl userDetailsService
-    ) {
+            UserDetailsServiceImpl userDetailsService) {
         this.jwtAuthFilter = jwtAuthFilter;
         this.userDetailsService = userDetailsService;
     }
@@ -43,31 +42,29 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                //.cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authorize -> authorize
 
-                        //  PERMETTRE création utilisateur SANS AUTH (TEMPORAIRE)
-                        //.requestMatchers(HttpMethod.POST, "/api/management/users").permitAll()
+                        // PERMETTRE création utilisateur SANS AUTH (TEMPORAIRE)
+                        // .requestMatchers(HttpMethod.POST, "/api/management/users").permitAll()
 
                         // Swagger UI & Docs
 
-
-
-
                         // Tout le reste nécessite une authentification
-                        .anyRequest().permitAll()
-                )
-               /* .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )*/
+                        .anyRequest().permitAll())
+                /*
+                 * .sessionManagement(session -> session
+                 * .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                 * )
+                 */
                 .authenticationProvider(authenticationProvider());
-                //.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+        // .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
-   /* @Bean
+    @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         // Attention : en prod, remplacez par l'URL exacte du front, pas localhost
@@ -81,7 +78,7 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
-    }*/
+    }
 
     @Bean
     public AuthenticationProvider authenticationProvider() {

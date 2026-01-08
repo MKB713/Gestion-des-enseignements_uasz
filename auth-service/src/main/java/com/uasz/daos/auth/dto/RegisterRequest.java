@@ -17,13 +17,16 @@ public class RegisterRequest {
     @NotBlank(message = "Le prénom est obligatoire")
     private String prenom;
 
-    @NotBlank(message = "L'email est obligatoire")
-    @Email(message = "Format d'email invalide")
+    // Email institutionnel (généré automatiquement si vide)
     private String email;
 
-    @NotBlank(message = "Le mot de passe est obligatoire")
-    @Size(min = 8, message = "Le mot de passe doit contenir au moins 8 caractères")
-    private String password; // CHANGÉ DE motDePasse À password
+    // Email personnel pour recevoir les identifiants
+    @NotBlank(message = "L'email personnel est obligatoire")
+    @Email(message = "Format d'email personnel invalide")
+    private String emailPersonnel;
+
+    // Mot de passe (généré automatiquement si vide)
+    private String password;
 
     @NotNull(message = "La date de naissance est obligatoire")
     @MinimumAge(value = 18, message = "L'utilisateur doit avoir au moins 18 ans")
@@ -32,6 +35,7 @@ public class RegisterRequest {
     @NotNull(message = "Le rôle est obligatoire")
     private Role role;
 
+    // Matricule (généré automatiquement si vide)
     private String matricule;
 
     private String telephone;
@@ -41,16 +45,12 @@ public class RegisterRequest {
     public RegisterRequest() {
     }
 
-    public RegisterRequest(String nom, String prenom, String email, String password, LocalDate dateNaissance, Role role, String matricule, String telephone, String adresse) {
+    public RegisterRequest(String nom, String prenom, String emailPersonnel, Role role, LocalDate dateNaissance) {
         this.nom = nom;
         this.prenom = prenom;
-        this.email = email;
-        this.password = password;
-        this.dateNaissance = dateNaissance;
+        this.emailPersonnel = emailPersonnel;
         this.role = role;
-        this.matricule = matricule;
-        this.telephone = telephone;
-        this.adresse = adresse;
+        this.dateNaissance = dateNaissance;
     }
 
     public String getNom() {
@@ -75,6 +75,14 @@ public class RegisterRequest {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getEmailPersonnel() {
+        return emailPersonnel;
+    }
+
+    public void setEmailPersonnel(String emailPersonnel) {
+        this.emailPersonnel = emailPersonnel;
     }
 
     public String getPassword() {

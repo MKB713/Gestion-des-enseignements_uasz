@@ -11,6 +11,7 @@ import TeacherDashboard from './pages/dashboards/TeacherDashboard';
 import MasterDashboard from './pages/dashboards/MasterDashboard';
 import CoordinatorDashboard from './pages/dashboards/CoordinatorDashboard';
 import AdminDashboard from './pages/dashboards/AdminDashboard';
+import AdminUsers from './pages/admin/Users';
 
 // Master Pages
 import MasterFormations from './pages/master/Formations';
@@ -92,6 +93,7 @@ function App() {
 
             <Route element={<PrivateRoute allowedRoles={['ADMIN', 'CHEF_DE_DEPARTEMENT']} />}>
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
+              <Route path="/admin/users" element={<AdminUsers />} />
               <Route path="/admin/plannings" element={<TimetablePage roleTitle="Planning Général" />} />
               <Route path="/admin/*" element={<AdminDashboard />} />
             </Route>

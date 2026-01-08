@@ -28,6 +28,7 @@ public class AuthService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final AuditLogService auditLogService;
+    private final MailService mailService;
 
     public AuthService(
             UtilisateurRepository utilisateurRepository,
@@ -35,7 +36,8 @@ public class AuthService {
             PasswordEncoder passwordEncoder,
             JwtService jwtService,
             AuthenticationManager authenticationManager,
-            AuditLogService auditLogService
+            AuditLogService auditLogService,
+            MailService mailService // Injection MailService
     ) {
         this.utilisateurRepository = utilisateurRepository;
         this.refreshTokenRepository = refreshTokenRepository;
@@ -43,46 +45,74 @@ public class AuthService {
         this.jwtService = jwtService;
         this.authenticationManager = authenticationManager;
         this.auditLogService = auditLogService;
+        this.mailService = mailService;
     }
 
     @Transactional
     public AuthenticationResponse register(RegisterRequest request) {
-        // Vérifier si l'email existe déjà
-        if (utilisateurRepository.existsByEmail(request.getEmail())) {
-            throw new MatriculeAlreadyExistsException("Un utilisateur avec cet email existe déjà");
+        // 1. Générer le Matricule Automatique (Année + Séquence)
+        String year = String.valueOf(java.time.Year.now().getValue());
+        long count = utilisateurRepository.count() + 1;
+        String matricule = year + String.format("%04d", count);
+
+        // Vérifier unicité et incrémenter si nécessaire (boucle simple pour MVP)
+        while (utilisateurRepository.existsByMatricule(matricule)) {
+            count++;
+            matricule = year + String.format("%04d", count);
         }
 
-        // Vérifier si le matricule existe déjà
-        if (utilisateurRepository.existsByMatricule(request.getMatricule())) {
-            throw new MatriculeAlreadyExistsException("Un utilisateur avec ce matricule existe déjà");
+        // 2. Générer l'Email Institutionnel (P.N + 3 chiffres aléatoires +
+        // @zig.univ.sn)
+        char firstP = request.getPrenom() != null && !request.getPrenom().isEmpty()
+                ? request.getPrenom().toLowerCase().charAt(0)
+                : 'x';
+        char firstN = request.getNom() != null && !request.getNom().isEmpty() ? request.getNom().toLowerCase().charAt(0)
+                : 'x';
+        String randomDigits = String.format("%03d", (int) (Math.random() * 1000));
+        String generatedEmail = firstP + "." + firstN + randomDigits + "@zig.univ.sn";
+
+        // Vérifier unicité email
+        while (utilisateurRepository.existsByEmail(generatedEmail)) {
+            randomDigits = String.format("%03d", (int) (Math.random() * 1000));
+            generatedEmail = firstP + "." + firstN + randomDigits + "@zig.univ.sn";
         }
+
+        // 3. Générer le Mot de passe
+        String generatedPassword = generateSecurePassword(10); // Helper method needed or duplicate logic
 
         // Créer l'utilisateur
         Utilisateur utilisateur = new Utilisateur();
-        utilisateur.setMatricule(request.getMatricule());
+        utilisateur.setMatricule(matricule);
         utilisateur.setNom(request.getNom());
         utilisateur.setPrenom(request.getPrenom());
-        utilisateur.setEmail(request.getEmail());
-        utilisateur.setMotDePasse(passwordEncoder.encode(request.getPassword())); // CORRIGÉ ICI
+        utilisateur.setEmail(generatedEmail); // Email Institutionnel
+        utilisateur.setMotDePasse(passwordEncoder.encode(generatedPassword));
         utilisateur.setDateNaissance(request.getDateNaissance());
         utilisateur.setTelephone(request.getTelephone());
         utilisateur.setAdresse(request.getAdresse());
         utilisateur.setRole(request.getRole() != null ? request.getRole() : Role.ETUDIANT);
-        utilisateur.setEtat(Etat.ACTIF);
+        utilisateur.setEtat(Etat.ACTIF); // Actif par défaut
 
         utilisateur = utilisateurRepository.save(utilisateur);
+
+        // 4. Envoyer l'email avec les identifiants
+        if (request.getEmailPersonnel() != null && !request.getEmailPersonnel().isEmpty()) {
+            mailService.sendWelcomeEmail(
+                    request.getEmailPersonnel(), // Envoi au mail personnel
+                    request.getNom(),
+                    request.getPrenom(),
+                    generatedEmail, // On envoie l'email institutionnel comme login
+                    generatedPassword);
+        }
 
         // Générer les tokens
         String accessToken = jwtService.generateToken(utilisateur);
         String refreshToken = jwtService.generateRefreshToken(utilisateur);
 
-        // Sauvegarder le refresh token
         saveRefreshToken(utilisateur, refreshToken);
+        auditLogService.logAction(utilisateur, "INSCRIPTION_AUTO", "Utilisateur", ResultatAction.SUCCES,
+                "Compte créé avec " + generatedEmail);
 
-        // Log de l'action
-        auditLogService.logAction(utilisateur, "INSCRIPTION", "Utilisateur", ResultatAction.SUCCES, null);
-
-        // Créer les informations utilisateur
         AuthenticationResponse.UserInfo userInfo = AuthenticationResponse.UserInfo.builder()
                 .id(utilisateur.getId())
                 .email(utilisateur.getEmail())
@@ -94,9 +124,19 @@ public class AuthService {
         return AuthenticationResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
-                .expiresIn(86400L) // 24 heures
+                .expiresIn(86400L)
                 .user(userInfo)
                 .build();
+    }
+
+    private String generateSecurePassword(int length) {
+        String CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%";
+        StringBuilder sb = new StringBuilder(length);
+        java.util.Random random = new java.security.SecureRandom();
+        for (int i = 0; i < length; i++) {
+            sb.append(CHARS.charAt(random.nextInt(CHARS.length())));
+        }
+        return sb.toString();
     }
 
     @Transactional
@@ -114,8 +154,7 @@ public class AuthService {
                     new UsernamePasswordAuthenticationToken(
                             request.getEmail(),
                             request.getPassword() // CORRIGÉ ICI
-                    )
-            );
+                    ));
 
             // Réinitialiser les tentatives de connexion
             utilisateur.setTentativesConnexion(0);
@@ -164,7 +203,8 @@ public class AuthService {
             utilisateurRepository.save(utilisateur);
 
             // Log de l'action
-            auditLogService.logAction(utilisateur, "TENTATIVE_CONNEXION_ECHEC", "Utilisateur", ResultatAction.ECHEC, null);
+            auditLogService.logAction(utilisateur, "TENTATIVE_CONNEXION_ECHEC", "Utilisateur", ResultatAction.ECHEC,
+                    null);
 
             throw new BadCredentialsException("Email ou mot de passe incorrect");
         }
