@@ -79,7 +79,8 @@ public class AuthService {
 
         // 3. Générer le Mot de passe
         String generatedPassword = generateSecurePassword(10); // Helper method needed or duplicate logic
-
+        System.out.println("Generated Password: " + generatedPassword);
+        System.out.println("Encoded Password: " + passwordEncoder.encode(generatedPassword));
         // Créer l'utilisateur
         Utilisateur utilisateur = new Utilisateur();
         utilisateur.setMatricule(matricule);

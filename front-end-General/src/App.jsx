@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import Accueil from './pages/Accueil';
 import Login from './pages/Login';
@@ -12,6 +12,16 @@ import MasterDashboard from './pages/dashboards/MasterDashboard';
 import CoordinatorDashboard from './pages/dashboards/CoordinatorDashboard';
 import AdminDashboard from './pages/dashboards/AdminDashboard';
 import AdminUsers from './pages/admin/Users';
+import AdminDepartments from './pages/admin/Departments';
+import AdminFilieres from './pages/admin/Filieres';
+import AdminNiveaux from './pages/admin/Niveaux';
+import AdminClasses from "./pages/admin/Classes";
+import AdminMaquettes from "./pages/admin/Maquettes";
+import AdminUEs from "./pages/admin/UEs";
+import AdminModules from "./pages/admin/Modules";
+import AdminECs from "./pages/admin/ECs";
+import AdminEnseignants from "./pages/admin/Enseignants";
+import AdminFormations from './pages/admin/Formations';
 
 // Master Pages
 import MasterFormations from './pages/master/Formations';
@@ -94,6 +104,17 @@ function App() {
             <Route element={<PrivateRoute allowedRoles={['ADMIN', 'CHEF_DE_DEPARTEMENT']} />}>
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
               <Route path="/admin/users" element={<AdminUsers />} />
+              <Route path="/admin/departments" element={<AdminDepartments />} />
+              <Route path="/admin/filieres" element={<AdminFilieres />} />
+              <Route path="/admin/niveaux" element={<AdminNiveaux />} />
+              <Route path="/admin/classes" element={<PrivateRoute role="ADMIN"><AdminClasses /></PrivateRoute>} />
+              <Route path="/admin/maquettes" element={<PrivateRoute role="ADMIN"><AdminMaquettes /></PrivateRoute>} />
+              <Route path="/admin/ues" element={<PrivateRoute role="ADMIN"><AdminUEs /></PrivateRoute>} />
+              <Route path="/admin/modules" element={<PrivateRoute role="ADMIN"><AdminModules /></PrivateRoute>} />
+              <Route path="/admin/ecs" element={<PrivateRoute role="ADMIN"><AdminECs /></PrivateRoute>} />
+              <Route path="/admin/enseignants" element={<PrivateRoute role="ADMIN"><AdminEnseignants /></PrivateRoute>} />
+              <Route path="/admin/structures" element={<Navigate to="/admin/departments" replace />} /> {/* Redirect Structures to Departments for now */}
+              <Route path="/admin/formations" element={<AdminFormations />} />
               <Route path="/admin/plannings" element={<TimetablePage roleTitle="Planning Général" />} />
               <Route path="/admin/*" element={<AdminDashboard />} />
             </Route>

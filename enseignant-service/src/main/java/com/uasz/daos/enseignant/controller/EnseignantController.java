@@ -12,8 +12,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @RestController
-@RequestMapping("/enseignants") // L'URL sera /api/enseignants via le Gateway
-@CrossOrigin(origins = "*") // Permet au Front React d'appeler directement si besoin
+@RequestMapping("/api/enseignants") // L'URL sera /api/enseignants via le Gateway
 public class EnseignantController {
 
     @Autowired
@@ -140,8 +139,7 @@ public class EnseignantController {
                 "Maître-Assistant",
                 "Maître de Conférences",
                 "Professeur Titulaire",
-                "Professeur Assimilé"
-        ));
+                "Professeur Assimilé"));
     }
 
     @GetMapping("/ref/statuts")

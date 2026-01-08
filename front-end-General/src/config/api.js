@@ -51,35 +51,110 @@ export const API_ENDPOINTS = {
   // Gateway: /api/maquettes/**
   // =====================
   MAQUETTES: {
-    LIST: `${API_BASE_URL}/api/maquettes`,
-    BY_ID: (id) => `${API_BASE_URL}/api/maquettes/${id}`,
-    CREATE: `${API_BASE_URL}/api/maquettes`,
-    UPDATE: (id) => `${API_BASE_URL}/api/maquettes/${id}`,
-    DELETE: (id) => `${API_BASE_URL}/api/maquettes/${id}`,
+    base: `${API_BASE_URL}/api/maquette/maquettes`,
+    LIST: `${API_BASE_URL}/api/maquette/maquettes`,
+    BY_ID: (id) => `${API_BASE_URL}/api/maquette/maquettes/${id}`,
+    CREATE: `${API_BASE_URL}/api/maquette/maquettes`,
+    UPDATE: (id) => `${API_BASE_URL}/api/maquette/maquettes/${id}`,
+    DELETE: (id) => `${API_BASE_URL}/api/maquette/maquettes/${id}`,
+    PUBLISH: (id) => `${API_BASE_URL}/api/maquette/maquettes/${id}/publier`,
   },
 
-  // ===============================
-  // CHOIX ENSEIGNEMENT SERVICE
-  // Gateway: /api/choix-enseignements/**
-  // ===============================
-  CHOIX_ENSEIGNEMENT: {
-    LIST: `${API_BASE_URL}/api/choix-enseignements`,
-    BY_ID: (id) => `${API_BASE_URL}/api/choix-enseignements/${id}`,
-    CREATE: `${API_BASE_URL}/api/choix-enseignements`,
-    UPDATE: (id) => `${API_BASE_URL}/api/choix-enseignements/${id}`,
-    DELETE: (id) => `${API_BASE_URL}/api/choix-enseignements/${id}`,
+  // =====================
+  // CLASSE SERVICE (Maquette Service)
+  // Gateway: /api/maquette/classes
+  // =====================
+  CLASSES: {
+    BASE: `${API_BASE_URL}/api/maquette/classes`,
+    LIST: `${API_BASE_URL}/api/maquette/classes`,
+    BY_ID: (id) => `${API_BASE_URL}/api/maquette/classes/${id}`,
+    CREATE: `${API_BASE_URL}/api/maquette/classes`,
+    UPDATE: (id) => `${API_BASE_URL}/api/maquette/classes/${id}`,
+    DELETE: (id) => `${API_BASE_URL}/api/maquette/classes/${id}`,
   },
 
-  // =========================
-  // EMPLOI DU TEMPS SERVICE
-  // Gateway: /api/emploi-temps/**
-  // =========================
-  EMPLOI_TEMPS: {
-    LIST: `${API_BASE_URL}/api/emploi-temps`,
-    BY_ID: (id) => `${API_BASE_URL}/api/emploi-temps/${id}`,
-    CREATE: `${API_BASE_URL}/api/emploi-temps`,
-    UPDATE: (id) => `${API_BASE_URL}/api/emploi-temps/${id}`,
-    DELETE: (id) => `${API_BASE_URL}/api/emploi-temps/${id}`,
+  // =====================
+  // DEPARTEMENT SERVICE (Maquette Service)
+  // Gateway: /api/maquette/departements
+  // =====================
+  DEPARTMENTS: {
+    BASE: `${API_BASE_URL}/api/maquette/departements`,
+    LIST: `${API_BASE_URL}/api/maquette/departements`,
+    CREATE: `${API_BASE_URL}/api/maquette/departements`,
+    UPDATE: (id) => `${API_BASE_URL}/api/maquette/departements/${id}`,
+    DELETE: (id) => `${API_BASE_URL}/api/maquette/departements/${id}`,
+  },
+
+  // =====================
+  // FORMATION SERVICE (Maquette Service)
+  // Gateway: /api/maquette/formations
+  // =====================
+  FORMATIONS: {
+    BASE: `${API_BASE_URL}/api/maquette/formations`,
+    LIST: `${API_BASE_URL}/api/maquette/formations`,
+    CREATE: `${API_BASE_URL}/api/maquette/formations`,
+    UPDATE: (id) => `${API_BASE_URL}/api/maquette/formations/${id}`,
+    DELETE: (id) => `${API_BASE_URL}/api/maquette/formations/${id}`,
+  },
+
+  // =====================
+  // FILIERE SERVICE (Maquette Service)
+  // Gateway: /api/maquette/filieres
+  // =====================
+  FILIERES: {
+    BASE: `${API_BASE_URL}/api/maquette/filieres`,
+    LIST: `${API_BASE_URL}/api/maquette/filieres`,
+    CREATE: `${API_BASE_URL}/api/maquette/filieres`,
+    UPDATE: (id) => `${API_BASE_URL}/api/maquette/filieres/${id}`,
+    DELETE: (id) => `${API_BASE_URL}/api/maquette/filieres/${id}`,
+  },
+
+  // =====================
+  // NIVEAU SERVICE (Maquette Service)
+  // Gateway: /api/maquette/niveaux
+  // =====================
+  NIVEAUX: {
+    BASE: `${API_BASE_URL}/api/maquette/niveaux`,
+    LIST: `${API_BASE_URL}/api/maquette/niveaux`,
+    CREATE: `${API_BASE_URL}/api/maquette/niveaux`,
+    UPDATE: (id) => `${API_BASE_URL}/api/maquette/niveaux/${id}`,
+    DELETE: (id) => `${API_BASE_URL}/api/maquette/niveaux/${id}`,
+  },
+
+  // =====================
+  // MODULE SERVICE (Maquette Service)
+  // Gateway: /api/maquette/modules
+  // =====================
+  MODULES: {
+    base: `${API_BASE_URL}/api/maquette/modules`,
+    LIST: `${API_BASE_URL}/api/maquette/modules`,
+    CREATE: `${API_BASE_URL}/api/maquette/modules`,
+    UPDATE: (id) => `${API_BASE_URL}/api/maquette/modules/${id}`,
+    DELETE: (id) => `${API_BASE_URL}/api/maquette/modules/${id}`,
+  },
+
+  // =====================
+  // UE SERVICE (Maquette Service)
+  // Gateway: /api/maquette/ues
+  // =====================
+  UES: {
+    base: `${API_BASE_URL}/api/maquette/ues`,
+    LIST: `${API_BASE_URL}/api/maquette/ues`,
+    CREATE: `${API_BASE_URL}/api/maquette/ues`,
+    UPDATE: (id) => `${API_BASE_URL}/api/maquette/ues/${id}`,
+    DELETE: (id) => `${API_BASE_URL}/api/maquette/ues/${id}`,
+  },
+
+  // =====================
+  // EC SERVICE (Maquette Service)
+  // Gateway: /api/maquette/ecs
+  // =====================
+  ECS: {
+    base: `${API_BASE_URL}/api/maquette/ecs`,
+    LIST: `${API_BASE_URL}/api/maquette/ecs`,
+    CREATE: `${API_BASE_URL}/api/maquette/ecs`,
+    UPDATE: (id) => `${API_BASE_URL}/api/maquette/ecs/${id}`,
+    DELETE: (id) => `${API_BASE_URL}/api/maquette/ecs/${id}`,
   },
 
   // ==================================

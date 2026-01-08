@@ -2,30 +2,31 @@ import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-const PrivateRoute = ({ allowedRoles }) => {
+const PrivateRoute = ({ allowedRoles, role, children }) => {
     const { user } = useAuth();
 
     if (!user) {
         return <Navigate to="/login" replace />;
     }
 
-    // Check if user has one of the allowed roles
-    // Logic: if allowedRoles includes the user's role OR if user is ADMIN (admins can usually access everything, but here we enforce strict dashboards unless specified)
-    // For this strict dashboard requirement:
-    if (!allowedRoles.includes(user.role) && user.role !== 'ADMIN') {
-        // Redirect to their own dashboard or 403
-        // For simplicity, redirect to home or show unauthorized
-        return <Navigate to="/" replace />;
+    // Normalize roles to an array
+    const roles = allowedRoles || (role ? [role] : []);
+
+    // If no roles specified, assume open to authenticated users (or restrict? safe default is restrict)
+    if (roles.length === 0) {
+        // If no specific roles required, allow access (or maybe check logic)
+        return children ? children : <Outlet />;
     }
 
-    // Special case: If user IS admin but tries to access a restricted view that might confuse them (e.g. student view), we might allow it or not.
-    // For this requirement, Admin has "full access", so we simply allow if user is admin.
-    if (user.role === 'ADMIN' || user.role === 'CHEF_DE_DEPARTEMENT') {
-        return <Outlet />;
+    // Check if user has permission
+    // Admin always has access
+    if (user.role === 'ADMIN') {
+        return children ? children : <Outlet />;
     }
 
-    if (allowedRoles.includes(user.role)) {
-        return <Outlet />;
+    // Check if user's role is in the allowed list
+    if (roles.includes(user.role)) {
+        return children ? children : <Outlet />;
     }
 
     return <Navigate to="/unauthorized" replace />;

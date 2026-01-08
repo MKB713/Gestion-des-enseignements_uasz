@@ -30,6 +30,7 @@ public class Formation {
 
     // Si vous n'avez pas encore la classe Maquette, commentez ces lignes :
     @OneToOne(mappedBy = "formation")
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private Maquette maquette;
 
     @Enumerated(EnumType.STRING)

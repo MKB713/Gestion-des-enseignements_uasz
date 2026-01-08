@@ -11,7 +11,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/maquette/ecs")
-@CrossOrigin(origins = "*")
 public class ECController {
 
     @Autowired

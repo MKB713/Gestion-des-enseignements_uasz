@@ -11,7 +11,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/maquette/ues")
-@CrossOrigin(origins = "*")
 public class UEController {
 
     @Autowired
@@ -34,7 +33,8 @@ public class UEController {
 
     @PostMapping
     public ResponseEntity<UE> createUE(@RequestBody UE ue) {
-        ueService.saveUE(ue); // Assurez-vous que votre service retourne l'objet si possible, sinon renvoyez OK
+        ueService.saveUE(ue); // Assurez-vous que votre service retourne l'objet si possible, sinon renvoyez
+                              // OK
         return new ResponseEntity<>(ue, HttpStatus.CREATED);
     }
 

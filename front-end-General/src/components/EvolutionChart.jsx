@@ -46,8 +46,8 @@ const EvolutionChart = ({ data, title, color = "#15803d", subtitle }) => {
                 {subtitle && <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.85rem', color: 'var(--text-muted)' }}>{subtitle}</p>}
             </div>
 
-            <div style={{ width: '100%', height: 300 }}>
-                <ResponsiveContainer>
+            <div style={{ width: '100%', height: 300, minWidth: 0 }}>
+                <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                         <defs>
                             <linearGradient id={`colorGradient-${title}`} x1="0" y1="0" x2="0" y2="1">

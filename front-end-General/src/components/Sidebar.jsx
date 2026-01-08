@@ -101,6 +101,7 @@ const Sidebar = ({ user, logout }) => {
                     { isHeader: true, label: 'MAQUETTE PÉDAGOGIQUE' },
                     { path: '/admin/formations', label: 'Formations', icon: GraduationCap },
                     { path: '/admin/filieres', label: 'Filières', icon: GitBranch },
+                    { path: '/admin/niveaux', label: 'Niveaux', icon: Layers },
                     { path: '/admin/classes', label: 'Classes', icon: Users },
                     { path: '/admin/structures', label: 'Structures', icon: Building2 },
                     { path: '/admin/maquettes', label: 'Maquettes', icon: FileText },
