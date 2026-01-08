@@ -45,21 +45,12 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authorize -> authorize
-
-                        // PERMETTRE création utilisateur SANS AUTH (TEMPORAIRE)
-                        // .requestMatchers(HttpMethod.POST, "/api/management/users").permitAll()
-
-                        // Swagger UI & Docs
-
-                        // Tout le reste nécessite une authentification
-                        .anyRequest().permitAll())
-                /*
-                 * .sessionManagement(session -> session
-                 * .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                 * )
-                 */
-                .authenticationProvider(authenticationProvider());
-        // .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .anyRequest().authenticated())
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authenticationProvider(authenticationProvider())
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

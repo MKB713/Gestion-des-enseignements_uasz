@@ -25,8 +25,8 @@ class AuthService {
 
       console.log('Response data:', data); // Pour debug
 
-      // CORRECTION : Utiliser les bons noms de propriétés (camelCase)
-      this.setTokens(data.accessToken, data.refreshToken);
+      // CORRECTION : Utiliser les propriétés snake_case du backend
+      this.setTokens(data.access_token, data.refresh_token);
       this.setUser(data.user);
 
       return {
@@ -38,8 +38,8 @@ class AuthService {
           role: data.user.role,
           name: `${data.user.prenom} ${data.user.nom}`
         },
-        accessToken: data.accessToken,
-        refreshToken: data.refreshToken
+        accessToken: data.access_token,
+        refreshToken: data.refresh_token
       };
     } catch (error) {
       console.error('Login error:', error);
@@ -72,10 +72,10 @@ class AuthService {
       }
 
       const data = await response.json();
-      // CORRECTION : camelCase
-      this.setTokens(data.accessToken, data.refreshToken);
+      // CORRECTION : snake_case
+      this.setTokens(data.access_token, data.refresh_token);
 
-      return data.accessToken;
+      return data.access_token;
     } catch (error) {
       console.error('Refresh token error:', error);
       this.logout();

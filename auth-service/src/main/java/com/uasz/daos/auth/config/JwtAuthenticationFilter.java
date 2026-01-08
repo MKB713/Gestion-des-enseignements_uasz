@@ -29,8 +29,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request,
-                                    @NonNull HttpServletResponse response,
-                                    @NonNull FilterChain filterChain)
+            @NonNull HttpServletResponse response,
+            @NonNull FilterChain filterChain)
             throws ServletException, IOException {
 
         if (shouldNotFilter(request)) {
@@ -50,18 +50,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = userDetailsService.loadUserByUsername(userEmail);
+                System.out.println("DEBUG: User loaded: " + userDetails.getUsername() + ", Authorities: "
+                        + userDetails.getAuthorities());
 
                 if (jwtService.isTokenValid(jwt, userDetails)) {
-                    UsernamePasswordAuthenticationToken authToken =
-                            new UsernamePasswordAuthenticationToken(
-                                    userDetails, null, userDetails.getAuthorities()
-                            );
+                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                            userDetails, null, userDetails.getAuthorities());
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
+                    System.out.println("DEBUG: Auth set in SecurityContext");
+                } else {
+                    System.out.println("DEBUG: Token invalid for user");
                 }
             }
         } catch (Exception e) {
-            logger.error("Cannot set user authentication: {}"+ e.getMessage(), e);
+            logger.error("Cannot set user authentication: {}" + e.getMessage(), e);
         }
 
         filterChain.doFilter(request, response);

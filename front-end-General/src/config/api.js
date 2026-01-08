@@ -115,6 +115,7 @@ const onTokenRefreshed = (token) => {
 // ==================================================
 export const apiRequest = async (url, options = {}) => {
   const token = authService.getAccessToken();
+  console.log("DEBUG: Token used for request to", url, ":", token ? token.substring(0, 10) + "..." : "NONE");
 
   const headers = {
     'Content-Type': 'application/json',
