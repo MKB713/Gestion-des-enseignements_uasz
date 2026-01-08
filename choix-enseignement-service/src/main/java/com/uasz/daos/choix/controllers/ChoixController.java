@@ -20,7 +20,7 @@ import java.util.List;
 @RequestMapping("/api/choix")
 @RequiredArgsConstructor
 @Slf4j
-@CrossOrigin(origins = "*")
+// @CrossOrigin removed - CORS is handled by API Gateway
 public class ChoixController {
 
     private final ChoixService choixService;

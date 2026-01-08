@@ -13,7 +13,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/enseignant")
 @PreAuthorize("hasAnyAuthority('ENSEIGNANT', 'ADMIN', 'CHEF_DE_DEPARTEMENT')")
-@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:5173"})
+// @CrossOrigin removed - CORS is handled by API Gateway
 public class EnseignantController {
 
     private final UtilisateurService utilisateurService;

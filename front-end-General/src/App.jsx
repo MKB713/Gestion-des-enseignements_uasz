@@ -17,6 +17,7 @@ import AdminFilieres from './pages/admin/Filieres';
 import AdminNiveaux from './pages/admin/Niveaux';
 import AdminClasses from "./pages/admin/Classes";
 import AdminMaquettes from "./pages/admin/Maquettes";
+import MaquetteDetails from "./pages/admin/MaquetteDetails";
 import AdminUEs from "./pages/admin/UEs";
 import AdminModules from "./pages/admin/Modules";
 import AdminECs from "./pages/admin/ECs";
@@ -26,6 +27,7 @@ import AdminCahierTexte from "./pages/admin/CahierTexte";
 import AdminEtudiants from "./pages/admin/Etudiants";
 import AdminDeroulementClasses from "./pages/admin/DeroulementClasses";
 import AdminPlannings from "./pages/admin/Plannings";
+import RepartitionEnseignements from "./pages/admin/RepartitionEnseignements";
 import AdminSalles from "./pages/admin/Salles";
 import AdminBatiments from "./pages/admin/Batiments";
 
@@ -115,6 +117,8 @@ function App() {
               <Route path="/admin/niveaux" element={<AdminNiveaux />} />
               <Route path="/admin/classes" element={<PrivateRoute role="ADMIN"><AdminClasses /></PrivateRoute>} />
               <Route path="/admin/maquettes" element={<PrivateRoute role="ADMIN"><AdminMaquettes /></PrivateRoute>} />
+              <Route path="/admin/maquette-details" element={<PrivateRoute role="ADMIN"><MaquetteDetails /></PrivateRoute>} />
+              <Route path="/admin/maquettes/:id" element={<PrivateRoute role="ADMIN"><MaquetteDetails /></PrivateRoute>} />
               <Route path="/admin/ues" element={<PrivateRoute role="ADMIN"><AdminUEs /></PrivateRoute>} />
               <Route path="/admin/modules" element={<PrivateRoute role="ADMIN"><AdminModules /></PrivateRoute>} />
               <Route path="/admin/ecs" element={<PrivateRoute role="ADMIN"><AdminECs /></PrivateRoute>} />
@@ -127,6 +131,7 @@ function App() {
               <Route path="/admin/cahier-texte" element={<AdminCahierTexte />} />
               <Route path="/admin/etudiants" element={<AdminEtudiants />} />
               <Route path="/admin/deroulement-classes" element={<AdminDeroulementClasses />} />
+              <Route path="/admin/repartition" element={<PrivateRoute role="ADMIN"><RepartitionEnseignements /></PrivateRoute>} />
               <Route path="/admin/*" element={<AdminDashboard />} />
             </Route>
 

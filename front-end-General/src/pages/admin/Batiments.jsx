@@ -11,7 +11,9 @@ const AdminBatiments = () => {
     const [currentBatiment, setCurrentBatiment] = useState(null);
 
     const [formData, setFormData] = useState({
+        code: "",
         libelle: "",
+        position: "",
         description: ""
     });
 
@@ -43,14 +45,18 @@ const AdminBatiments = () => {
             setIsEditing(true);
             setCurrentBatiment(batiment);
             setFormData({
+                code: batiment.code || "",
                 libelle: batiment.libelle,
+                position: batiment.position || "",
                 description: batiment.description || ""
             });
         } else {
             setIsEditing(false);
             setCurrentBatiment(null);
             setFormData({
+                code: "",
                 libelle: "",
+                position: "",
                 description: ""
             });
         }
@@ -112,7 +118,9 @@ const AdminBatiments = () => {
             <table className="departments-table">
                 <thead>
                     <tr>
+                        <th>Code</th>
                         <th>Libellé</th>
+                        <th>Position</th>
                         <th>Description</th>
                         <th>Salles</th>
                         <th>Actions</th>
@@ -120,11 +128,13 @@ const AdminBatiments = () => {
                 </thead>
                 <tbody>
                     {batiments.length === 0 ? (
-                        <tr><td colSpan="4" style={{ textAlign: "center" }}>Aucun bâtiment trouvé.</td></tr>
+                        <tr><td colSpan="6" style={{ textAlign: "center" }}>Aucun bâtiment trouvé.</td></tr>
                     ) : (
                         batiments.map((bat) => (
                             <tr key={bat.id}>
-                                <td>{bat.libelle}</td>
+                                <td><span className="badge badge-secondary">{bat.code}</span></td>
+                                <td><strong>{bat.libelle}</strong></td>
+                                <td>{bat.position}</td>
                                 <td>{bat.description}</td>
                                 <td>
                                     <span className="badge badge-info">
@@ -147,8 +157,18 @@ const AdminBatiments = () => {
                         <h3>{isEditing ? "Modifier Bâtiment" : "Nouveau Bâtiment"}</h3>
                         <form onSubmit={handleSubmit}>
                             <div className="form-group">
+                                <label>Code</label>
+                                <input type="text" name="code" value={formData.code} onChange={handleInputChange} required placeholder="Ex: BAT-A" />
+                            </div>
+
+                            <div className="form-group">
                                 <label>Libellé</label>
                                 <input type="text" name="libelle" value={formData.libelle} onChange={handleInputChange} required placeholder="Ex: Batiment A" />
+                            </div>
+
+                            <div className="form-group">
+                                <label>Position</label>
+                                <input type="text" name="position" value={formData.position} onChange={handleInputChange} placeholder="Ex: Campus Principal, Bloc Nord" />
                             </div>
 
                             <div className="form-group">

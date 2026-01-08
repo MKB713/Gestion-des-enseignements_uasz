@@ -13,7 +13,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/users")
-@CrossOrigin(origins = { "http://localhost:3000", "http://localhost:5173" })
+// @CrossOrigin removed - CORS is handled by API Gateway
 public class UserController {
 
         private final UtilisateurService utilisateurService;

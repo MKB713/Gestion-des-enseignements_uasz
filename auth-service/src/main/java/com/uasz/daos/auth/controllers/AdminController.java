@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/admin")
 @PreAuthorize("hasAnyAuthority('ADMIN', 'CHEF_DE_DEPARTEMENT')")
-@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:5173"})
+// @CrossOrigin removed - CORS is handled by API Gateway
 public class AdminController {
 
     private final DashboardService dashboardService;

@@ -15,7 +15,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/auth")
 @Tag(name = "Password Reset", description = "API pour la réinitialisation de mot de passe")
-@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:5173"})
+// @CrossOrigin removed - CORS is handled by API Gateway
 public class PasswordResetController {
 
     private final PasswordResetService passwordResetService;

@@ -106,6 +106,7 @@ const Sidebar = ({ user, logout }) => {
                     { path: '/admin/classes', label: 'Classes', icon: Users },
                     { path: '/admin/structures', label: 'Structures', icon: Building2 },
                     { path: '/admin/maquettes', label: 'Maquettes', icon: FileText },
+                    { path: '/admin/maquette-details', label: 'MaquetteDetails', icon: FileText },
                     {
                         path: '/admin/pedagogie', label: 'Pédagogie', icon: BookOpen,
                         submenu: [
@@ -115,6 +116,7 @@ const Sidebar = ({ user, logout }) => {
                         ]
                     },
                     { path: '/admin/enseignants', label: 'Enseignants', icon: UserCheck },
+                    { path: '/admin/repartition', label: 'Répartition', icon: ClipboardList },
 
                     { isHeader: true, label: 'SCOLARITÉ' },
                     { path: '/admin/etudiants', label: 'Étudiants', icon: Users },

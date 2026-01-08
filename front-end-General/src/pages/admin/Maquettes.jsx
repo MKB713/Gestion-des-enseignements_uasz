@@ -185,6 +185,7 @@ const AdminMaquettes = () => {
                                     }
                                 </td>
                                 <td className="actions-cell">
+                                    <button className="edit-btn" style={{ backgroundColor: "#17a2b8" }} onClick={() => window.location.href = `/admin/maquettes/${maquette.id}`}>Voir</button>
                                     <button className="edit-btn" onClick={() => openModal(maquette)}>Modifier</button>
 
                                     {maquette.statut === "BROUILLON" && (

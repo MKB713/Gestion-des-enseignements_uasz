@@ -11,27 +11,35 @@ export const API_ENDPOINTS = {
   // =====================
   // AUTH SERVICE
   // Direct: http://localhost:8081/api/auth/**
-  // Gateway: /api/auth/**
+  // Gateway: /api/auth/** (via API Gateway on port 8080)
   // =====================
   AUTH: {
-    BASE: 'http://localhost:8081/api/auth',
-    LOGIN: 'http://localhost:8081/api/auth/login',
-    REGISTER: 'http://localhost:8081/api/auth/register',
-    LOGOUT: 'http://localhost:8081/api/auth/logout',
-    REFRESH: 'http://localhost:8081/api/auth/refresh',
-    VALIDATE: 'http://localhost:8081/api/auth/validate',
+    BASE: `${API_BASE_URL}/api/auth`,
+    LOGIN: `${API_BASE_URL}/api/auth/login`,
+    REGISTER: `${API_BASE_URL}/api/auth/register`,
+    LOGOUT: `${API_BASE_URL}/api/auth/logout`,
+    REFRESH: `${API_BASE_URL}/api/auth/refresh`,
+    VALIDATE: `${API_BASE_URL}/api/auth/validate`,
   },
 
   // =====================
   // USERS SERVICE (Auth Service)
-  // Direct: http://localhost:8081/api/users/**
+  // Gateway: /api/users/** (via API Gateway on port 8080)
   // =====================
   USERS: {
-    base: 'http://localhost:8081/api/users',
-    LIST: 'http://localhost:8081/api/users',
-    SEARCH: 'http://localhost:8081/api/users/search',
-    BY_ID: (id) => `http://localhost:8081/api/users/${id}`,
-    BY_ROLE: (role) => `http://localhost:8081/api/users/role/${role}`,
+    base: `${API_BASE_URL}/api/users`,
+    LIST: `${API_BASE_URL}/api/users`,
+    SEARCH: `${API_BASE_URL}/api/users/search`,
+    BY_ID: (id) => `${API_BASE_URL}/api/users/${id}`,
+    BY_ROLE: (role) => `${API_BASE_URL}/api/users/role/${role}`,
+  },
+
+  BATIMENTS: {
+    base: `${API_BASE_URL}/api/batiments`,
+    LIST: `${API_BASE_URL}/api/batiments`,
+    CREATE: `${API_BASE_URL}/api/batiments`,
+    UPDATE: (id) => `${API_BASE_URL}/api/batiments/${id}`,
+    DELETE: (id) => `${API_BASE_URL}/api/batiments/${id}`,
   },
 
   // =========================
@@ -239,13 +247,31 @@ export const API_ENDPOINTS = {
     DELETE: (id) => `${API_BASE_URL}/api/salles/${id}`,
   },
 
-  BATIMENTS: {
-    base: `${API_BASE_URL}/api/batiments`,
-    LIST: `${API_BASE_URL}/api/batiments`,
-    CREATE: `${API_BASE_URL}/api/batiments`,
-    UPDATE: (id) => `${API_BASE_URL}/api/batiments/${id}`,
-    DELETE: (id) => `${API_BASE_URL}/api/batiments/${id}`,
+  // =====================
+  // CHOIX SERVICE
+  // =====================
+  CHOIX: {
+    base: `${API_BASE_URL}/api/choix`,
+    LIST: `${API_BASE_URL}/api/choix`,
+    CREATE: `${API_BASE_URL}/api/choix`,
+    UPDATE: (id) => `${API_BASE_URL}/api/choix/${id}`,
+    DELETE: (id) => `${API_BASE_URL}/api/choix/${id}`,
+    BY_ENSEIGNANT: (id) => `${API_BASE_URL}/api/choix/enseignant/${id}`,
   },
+
+
+  // ==================================
+  // BATIMENTS SERVICE (DUPLICATE - REMOVED)
+  // Already defined above at line 37
+  // ==================================
+  // BATIMENTS: {
+  //   base: `${API_BASE_URL}/api/batiments`,
+  //   LIST: `${API_BASE_URL}/api/batiments`,
+  //   CREATE: `${API_BASE_URL}/api/batiments`,
+  //   UPDATE: (id) => `${API_BASE_URL}/api/batiments/${id}`,
+  //   DELETE: (id) => `${API_BASE_URL}/api/batiments/${id}`,
+  // },
+
 };
 
 // ==================================================
