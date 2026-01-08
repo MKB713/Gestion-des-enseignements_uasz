@@ -107,14 +107,9 @@ const Sidebar = ({ user, logout }) => {
                     { path: '/admin/structures', label: 'Structures', icon: Building2 },
                     { path: '/admin/maquettes', label: 'Maquettes', icon: FileText },
                     { path: '/admin/maquette-details', label: 'MaquetteDetails', icon: FileText },
-                    {
-                        path: '/admin/pedagogie', label: 'Pédagogie', icon: BookOpen,
-                        submenu: [
-                            { path: '/admin/modules', label: 'Modules' },
-                            { path: '/admin/ues', label: 'Unités d\'Enseignement (UE)' },
-                            { path: '/admin/ecs', label: 'Éléments Constitutifs (EC)' }
-                        ]
-                    },
+                    { path: '/admin/modules', label: 'Modules', icon: BookMarked },
+                    { path: '/admin/ues', label: 'UEs', icon: BookOpen },
+                    { path: '/admin/ecs', label: 'ECs', icon: FileText },
                     { path: '/admin/enseignants', label: 'Enseignants', icon: UserCheck },
                     { path: '/admin/repartition', label: 'Répartition', icon: ClipboardList },
 
