@@ -27,15 +27,16 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(authz -> authz
-                        .requestMatchers("/actuator/health", "/actuator/info").permitAll()
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/eureka/**").permitAll()   // ✅ OBLIGATOIRE
+                        .requestMatchers("/actuator/**").permitAll()
                         .anyRequest().authenticated()
                 )
-            .httpBasic(basic -> {}); // Active Basic Auth
-
+                .httpBasic();
 
         return http.build();
     }
+
 
     @Bean
     public UserDetailsService userDetailsService() {

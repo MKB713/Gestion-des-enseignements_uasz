@@ -1,0 +1,109 @@
+.repartition-container {
+    padding: 20px;
+    background-color: #f4f6f9;
+}
+
+.title-header {
+    background-color: #cccccc;
+    text-align: center;
+    border: 1px solid #000;
+    margin: 0;
+    padding: 10px;
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.semester-header {
+    background-color: #ffffff;
+    color: red;
+    /* "Semestre 2" is red in image? Wait. No, usually distinctive. */
+    /* Looking at image 5: "Semestre 2" is in Red text, centered. */
+    color: #ff0000;
+    text-align: center;
+    font-size: 1.5rem;
+    margin: 10px 0;
+    font-weight: bold;
+}
+
+.table-wrapper {
+    overflow-x: auto;
+}
+
+.repartition-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+    border: 2px solid #000;
+}
+
+.repartition-table th,
+.repartition-table td {
+    border: 1px solid #777;
+    padding: 6px;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.repartition-table thead th {
+    background-color: #acaaaa;
+    /* Grayish headers */
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.merged-cell {
+    background-color: #ffffff;
+}
+
+.red-bg {
+    background-color: #ff0000;
+    /* Sidebar red block */
+    color: white;
+    font-weight: bold;
+    writing-mode: vertical-rl;
+    /* Text rotated ? */
+    /* Image shows "Master 1 Génie Logiciel / R&S" in white on Red background. */
+    /* It is NOT rotated in the image provided (Image 5). It is just a red block. Wait. */
+    /* Looking at Image 5: The "Classe" column is "Master 1 Génie Logiciel/R&S" - White text on Red bg. */
+    background-color: #ee1d23;
+    color: white;
+    font-size: 1.1rem;
+    width: 100px;
+}
+
+.bold {
+    font-weight: bold;
+}
+
+.red-text {
+    color: red;
+}
+
+.resp-text-red {
+    color: #d9534f;
+    /* Reddish for names in TP column */
+    font-weight: bold;
+}
+
+.ue-cell {
+    text-align: left;
+    color: #007bff;
+    /* Blue text */
+    text-decoration: underline;
+    /* Looks like links or simplified blue text */
+    /* Image shows blue plain text mostly. "Administration BD (GL)" is blue. */
+    color: #3366cc;
+}
+
+.odd-row {
+    background-color: #ffffff;
+}
+
+.even-row {
+    background-color: #f9f9f9;
+}
+
+/* Specific overrides */
+.repartition-table tbody tr:hover {
+    background-color: #eaeaea;
+}

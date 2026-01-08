@@ -18,6 +18,7 @@ public class Niveau {
     private Cycle cycle;
 
     @OneToMany(mappedBy = "niveau")
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private List<Formation> formations = new ArrayList<>();
 
     public Niveau() {

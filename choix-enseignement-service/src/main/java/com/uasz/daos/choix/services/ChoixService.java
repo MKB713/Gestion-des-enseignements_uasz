@@ -4,7 +4,7 @@ import com.uasz.daos.choix.dtos.ChoixCreateDTO;
 import com.uasz.daos.choix.dtos.ChoixResponseDTO;
 import com.uasz.daos.choix.dtos.ChoixUpdateDTO;
 import com.uasz.daos.choix.dtos.PageResponseDTO;
-import com.uasz.daos.choix.entities.Choix;
+import com.uasz.daos.choix.model.Choix;
 import com.uasz.daos.choix.exceptions.*;
 import com.uasz.daos.choix.mappers.ChoixMapper;
 import com.uasz.daos.choix.repositories.ChoixRepository;

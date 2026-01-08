@@ -11,7 +11,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/maquette/classes")
-@CrossOrigin(origins = "*")
+
 public class ClasseController {
     @Autowired
     private ClasseService classeService;

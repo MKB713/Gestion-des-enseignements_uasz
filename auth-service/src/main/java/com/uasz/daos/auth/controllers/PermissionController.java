@@ -11,7 +11,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/permissions")
-@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:5173"})
+// @CrossOrigin removed - CORS is handled by API Gateway
 public class PermissionController {
 
     private final PermissionService permissionService;

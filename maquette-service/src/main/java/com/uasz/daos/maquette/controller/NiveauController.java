@@ -11,7 +11,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/maquette/niveaux")
-@CrossOrigin(origins = "*")
+
 public class NiveauController {
 
     @Autowired

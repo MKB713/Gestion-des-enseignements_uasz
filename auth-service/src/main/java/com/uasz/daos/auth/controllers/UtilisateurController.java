@@ -229,7 +229,6 @@ public class UtilisateurController {
     }
 
     // Request DTOs
-    @lombok.Data
     public static class CreateUserRequest {
         private String matricule;
         private String nom;
@@ -239,9 +238,72 @@ public class UtilisateurController {
         private String telephone;
         private String adresse;
         private Role role;
+
+        public String getMatricule() {
+            return matricule;
+        }
+
+        public void setMatricule(String matricule) {
+            this.matricule = matricule;
+        }
+
+        public String getNom() {
+            return nom;
+        }
+
+        public void setNom(String nom) {
+            this.nom = nom;
+        }
+
+        public String getPrenom() {
+            return prenom;
+        }
+
+        public void setPrenom(String prenom) {
+            this.prenom = prenom;
+        }
+
+        public String getEmail() {
+            return email;
+        }
+
+        public void setEmail(String email) {
+            this.email = email;
+        }
+
+        public java.time.LocalDate getDateNaissance() {
+            return dateNaissance;
+        }
+
+        public void setDateNaissance(java.time.LocalDate dateNaissance) {
+            this.dateNaissance = dateNaissance;
+        }
+
+        public String getTelephone() {
+            return telephone;
+        }
+
+        public void setTelephone(String telephone) {
+            this.telephone = telephone;
+        }
+
+        public String getAdresse() {
+            return adresse;
+        }
+
+        public void setAdresse(String adresse) {
+            this.adresse = adresse;
+        }
+
+        public Role getRole() {
+            return role;
+        }
+
+        public void setRole(Role role) {
+            this.role = role;
+        }
     }
 
-    @lombok.Data
     public static class UpdateUserRequest {
         private String nom;
         private String prenom;
@@ -251,12 +313,99 @@ public class UtilisateurController {
         private String adresse;
         private Role role;
         private Etat etat;
+
+        public String getNom() {
+            return nom;
+        }
+
+        public void setNom(String nom) {
+            this.nom = nom;
+        }
+
+        public String getPrenom() {
+            return prenom;
+        }
+
+        public void setPrenom(String prenom) {
+            this.prenom = prenom;
+        }
+
+        public String getEmail() {
+            return email;
+        }
+
+        public void setEmail(String email) {
+            this.email = email;
+        }
+
+        public java.time.LocalDate getDateNaissance() {
+            return dateNaissance;
+        }
+
+        public void setDateNaissance(java.time.LocalDate dateNaissance) {
+            this.dateNaissance = dateNaissance;
+        }
+
+        public String getTelephone() {
+            return telephone;
+        }
+
+        public void setTelephone(String telephone) {
+            this.telephone = telephone;
+        }
+
+        public String getAdresse() {
+            return adresse;
+        }
+
+        public void setAdresse(String adresse) {
+            this.adresse = adresse;
+        }
+
+        public Role getRole() {
+            return role;
+        }
+
+        public void setRole(Role role) {
+            this.role = role;
+        }
+
+        public Etat getEtat() {
+            return etat;
+        }
+
+        public void setEtat(Etat etat) {
+            this.etat = etat;
+        }
     }
 
-    @lombok.Data
     public static class ChangePasswordRequest {
         private String currentPassword;
         private String newPassword;
         private String confirmPassword;
+
+        public String getCurrentPassword() {
+            return currentPassword;
+        }
+
+        public void setCurrentPassword(String currentPassword) {
+            this.currentPassword = currentPassword;
+        }
+
+        public String getNewPassword() {
+            return newPassword;
+        }
+
+        public void setNewPassword(String newPassword) {
+            this.newPassword = newPassword;
+        }
+
+        public String getConfirmPassword() {
+            return confirmPassword;
+        }
+
+        public void setConfirmPassword(String confirmPassword) {
+            this.confirmPassword = confirmPassword;
+        }
     }
 }

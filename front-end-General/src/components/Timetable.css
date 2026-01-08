@@ -1,0 +1,148 @@
+.timetable-container {
+    background: var(--bg-surface);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    padding: 1.5rem;
+    overflow-x: auto;
+}
+
+.timetable-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.timetable-controls {
+    display: flex;
+    gap: 1rem;
+}
+
+.timetable-grid {
+    display: grid;
+    grid-template-columns: 60px repeat(6, 1fr);
+    /* Time column + 6 Days */
+    grid-template-rows: 50px repeat(14, 1fr);
+    /* Header row + 14 time slots (08:00 - 22:00) */
+    gap: 1px;
+    background-color: var(--border-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    overflow: hidden;
+    min-width: 800px;
+}
+
+.grid-cell {
+    background-color: var(--bg-surface);
+    padding: 0.5rem;
+    min-height: 60px;
+    position: relative;
+}
+
+/* Header Cells (Days) */
+.header-cell {
+    background-color: var(--bg-surface);
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.header-cell.today {
+    color: var(--primary-600);
+    background-color: var(--primary-50);
+}
+
+/* Time Column Cells */
+.time-cell {
+    background-color: var(--bg-surface);
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 0.5rem;
+    font-weight: 500;
+}
+
+/* Event Card */
+.event-card {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    right: 2px;
+    bottom: 2px;
+    border-radius: 6px;
+    padding: 0.5rem;
+    font-size: 0.75rem;
+    color: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+    cursor: pointer;
+    overflow: hidden;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.event-card:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    z-index: 20;
+}
+
+.event-title {
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.event-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    opacity: 0.9;
+}
+
+.event-location,
+.event-prof {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* Colors based on type */
+.event-cm {
+    background: linear-gradient(135deg, #15803d, #166534);
+    border-left: 4px solid #14532d;
+}
+
+.event-td {
+    background: linear-gradient(135deg, #ca8a04, #a16207);
+    border-left: 4px solid #713f12;
+}
+
+.event-tp {
+    background: linear-gradient(135deg, #0ea5e9, #0284c7);
+    border-left: 4px solid #075985;
+}
+
+.event-exam {
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
+    border-left: 4px solid #7f1d1d;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 4rem;
+    color: var(--text-muted);
+}

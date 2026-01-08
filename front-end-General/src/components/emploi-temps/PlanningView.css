@@ -1,0 +1,9 @@
+.planning-view {
+    padding: 16px;
+}
+
+.no-data {
+    text-align: center;
+    color: #777;
+    font-style: italic;
+}

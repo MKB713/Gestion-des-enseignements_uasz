@@ -11,13 +11,13 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name="enseignants")
+@Table(name = "enseignants")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class Enseignant {
     @Id
-    @GeneratedValue(strategy=GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(unique = true, nullable = false)
@@ -29,7 +29,9 @@ public class Enseignant {
     private String telephone;
 
     @Column(unique = true)
-    private String email;
+    private String email; // Email Institutionnel
+
+    private String mailPersonnel; // Email Personnel
 
     private String grade;
     private LocalDate dateEmbauche;

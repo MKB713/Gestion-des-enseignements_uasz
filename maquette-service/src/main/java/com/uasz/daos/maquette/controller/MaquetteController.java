@@ -12,8 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/maquettes")
-@CrossOrigin(origins = "*")
+@RequestMapping("/api/maquette/maquettes")
 @RequiredArgsConstructor
 public class MaquetteController {
 

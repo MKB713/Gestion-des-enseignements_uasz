@@ -15,7 +15,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/auth")
 @Tag(name = "Password Reset", description = "API pour la réinitialisation de mot de passe")
-@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:5173"})
+// @CrossOrigin removed - CORS is handled by API Gateway
 public class PasswordResetController {
 
     private final PasswordResetService passwordResetService;
@@ -95,11 +95,34 @@ public class PasswordResetController {
         return request.getRemoteAddr();
     }
 
-    @Data
     public static class ResetPasswordRequest {
         private String token;
         private String newPassword;
         private String confirmPassword;
+
+        public String getToken() {
+            return token;
+        }
+
+        public void setToken(String token) {
+            this.token = token;
+        }
+
+        public String getNewPassword() {
+            return newPassword;
+        }
+
+        public void setNewPassword(String newPassword) {
+            this.newPassword = newPassword;
+        }
+
+        public String getConfirmPassword() {
+            return confirmPassword;
+        }
+
+        public void setConfirmPassword(String confirmPassword) {
+            this.confirmPassword = confirmPassword;
+        }
     }
 
     // Méthode utilitaire pour créer des maps

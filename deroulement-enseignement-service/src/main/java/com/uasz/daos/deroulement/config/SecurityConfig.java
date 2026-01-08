@@ -17,8 +17,7 @@ public class SecurityConfig {
                 .anyRequest().permitAll()  // Permet l'accès à toutes les pages sans authentification
             )
             .csrf(csrf -> csrf.disable())  // Désactive CSRF pour faciliter les tests
-            .formLogin(form -> form.disable())  // Désactive le formulaire de login
-            .httpBasic(basic -> basic.disable());  // Désactive l'authentification HTTP Basic
+            .formLogin(form -> form.disable());  // Désactive le formulaire de login
 
         return http.build();
     }

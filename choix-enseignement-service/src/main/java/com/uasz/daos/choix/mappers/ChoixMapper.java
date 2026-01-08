@@ -2,7 +2,7 @@ package com.uasz.daos.choix.mappers;
 
 import com.uasz.daos.choix.dtos.ChoixCreateDTO;
 import com.uasz.daos.choix.dtos.ChoixResponseDTO;
-import com.uasz.daos.choix.entities.Choix;
+import com.uasz.daos.choix.model.Choix;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;

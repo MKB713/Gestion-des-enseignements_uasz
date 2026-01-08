@@ -11,7 +11,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/maquette/modules")
-@CrossOrigin(origins = "*")
 public class ModuleController {
 
     @Autowired

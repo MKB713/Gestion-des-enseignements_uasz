@@ -11,7 +11,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/maquette/filieres")
-@CrossOrigin(origins = "*")
+
 public class FiliereController {
 
     @Autowired
