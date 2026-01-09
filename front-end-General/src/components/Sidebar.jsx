@@ -121,7 +121,6 @@ const Sidebar = ({ user, logout }) => {
                             { path: '/admin/ecs', label: 'Éléments Constitutifs (EC)', icon: FileText },
                             { path: '/admin/modules', label: 'Modules', icon: BookMarked },
                             { path: '/admin/maquettes', label: 'Maquettes', icon: List },
-                            { path: '/admin/maquette-details', label: 'Détails Maquette', icon: FileText },
                             { path: '/admin/classes', label: 'Classes', icon: Users },
                         ]
                     },

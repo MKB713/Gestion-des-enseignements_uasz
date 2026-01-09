@@ -1,9 +1,12 @@
 package com.uasz.daos.maquette.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 @Entity
 @Table(name = "ecs")
@@ -35,7 +38,9 @@ public class EC {
     @JoinColumn(name = "ue_id")
     private UE ue;
 
-    @ManyToOne
-    @JoinColumn(name = "module_id")
-    private Module module;
+    @OneToMany(mappedBy = "ec")
+    @JsonIgnore  // Évite la boucle infinie JSON avec Module
+    private List<Module> modules;
+
+    private String description;
 }

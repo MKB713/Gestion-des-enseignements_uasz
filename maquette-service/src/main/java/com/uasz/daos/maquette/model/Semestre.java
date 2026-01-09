@@ -1,5 +1,6 @@
 package com.uasz.daos.maquette.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -24,6 +25,7 @@ public class Semestre {
 
     @ManyToOne
     @JoinColumn(name = "maquette_id")
+    @JsonIgnore  // Évite la boucle infinie JSON avec Maquette
     private Maquette maquette;
 
     @OneToMany(mappedBy = "semestre", cascade = CascadeType.ALL, orphanRemoval = true)

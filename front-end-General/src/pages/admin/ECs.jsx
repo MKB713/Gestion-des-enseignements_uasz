@@ -3,15 +3,18 @@ import { apiRequest, API_ENDPOINTS } from "../../config/api";
 import "./AdminDepartments.css";
 
 const AdminECs = () => {
+    // States
     const [ecs, setECs] = useState([]);
     const [ues, setUEs] = useState([]);
-    const [modules, setModules] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+
     const [showModal, setShowModal] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [currentEC, setCurrentEC] = useState(null);
+    const [searchTerm, setSearchTerm] = useState("");
 
+    // Form Data with requested attributes
     const [formData, setFormData] = useState({
         code: "",
         libelle: "",
@@ -19,36 +22,41 @@ const AdminECs = () => {
         td: 0,
         tp: 0,
         tpe: 0,
-        vht: 0,
         coefficient: 0,
-        ue: "",
-        module: ""
+        description: "",
+        ue: "" // UE selection
     });
 
+    // Load Data
     useEffect(() => {
         fetchData();
+        fetchUEs();
     }, []);
 
     const fetchData = async () => {
         try {
             setLoading(true);
-            const [ecsRes, uesRes, modulesRes] = await Promise.all([
-                apiRequest(API_ENDPOINTS.ECS.LIST),
-                apiRequest(API_ENDPOINTS.UES.LIST),
-                apiRequest(API_ENDPOINTS.MODULES.LIST)
-            ]);
-            setECs(Array.isArray(ecsRes) ? ecsRes : []);
-            setUEs(Array.isArray(uesRes) ? uesRes : []);
-            setModules(Array.isArray(modulesRes) ? modulesRes : []);
+            const data = await apiRequest(API_ENDPOINTS.ECS.LIST);
+            setECs(Array.isArray(data) ? data : []);
             setError(null);
         } catch (err) {
-            console.error("Erreur chargement:", err);
-            setError("Erreur lors du chargement des données.");
+            console.error("Erreur chargement ECs:", err);
+            setError("Erreur lors du chargement des ECs.");
         } finally {
             setLoading(false);
         }
     };
 
+    const fetchUEs = async () => {
+        try {
+            const data = await apiRequest(API_ENDPOINTS.UES.LIST);
+            setUEs(Array.isArray(data) ? data : []);
+        } catch (err) {
+            console.error("Erreur chargement UEs:", err);
+        }
+    };
+
+    // Form Handling
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData({ ...formData, [name]: value });
@@ -65,10 +73,9 @@ const AdminECs = () => {
                 td: ec.td,
                 tp: ec.tp,
                 tpe: ec.tpe,
-                vht: ec.vht,
                 coefficient: ec.coefficient,
-                ue: ec.ue ? ec.ue.id : "",
-                module: ec.module ? ec.module.id : ""
+                description: ec.description || "",
+                ue: ec.ue ? ec.ue.id : ""
             });
         } else {
             setIsEditing(false);
@@ -80,10 +87,9 @@ const AdminECs = () => {
                 td: 0,
                 tp: 0,
                 tpe: 0,
-                vht: 0,
                 coefficient: 0,
-                ue: "",
-                module: ""
+                description: "",
+                ue: ""
             });
         }
         setShowModal(true);
@@ -104,10 +110,9 @@ const AdminECs = () => {
                 td: parseInt(formData.td),
                 tp: parseInt(formData.tp),
                 tpe: parseInt(formData.tpe),
-                vht: parseInt(formData.vht),
                 coefficient: parseFloat(formData.coefficient),
-                ue: formData.ue ? { id: parseInt(formData.ue) } : null,
-                module: formData.module ? { id: parseInt(formData.module) } : null
+                description: formData.description,
+                ue: formData.ue ? { id: parseInt(formData.ue) } : null
             };
 
             if (isEditing) {
@@ -142,50 +147,80 @@ const AdminECs = () => {
         }
     };
 
+    const filteredECs = ecs.filter(ec =>
+        ec.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        ec.libelle.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
     if (loading) return <div className="loading">Chargement...</div>;
+
+    // Calcul du Total Heures (CM + TD + TP) - TPE est souvent travail personnel
+    const calculateTotal = (ec) => (ec.cm || 0) + (ec.td || 0) + (ec.tp || 0);
 
     return (
         <div className="admin-departments-container">
             <div className="header-actions">
-                <h2>Gestion des Éléments Constitutifs (EC)</h2>
-                <button className="add-btn" onClick={() => openModal()} disabled={ues.length === 0 && modules.length === 0}>
-                    + Nouveau EC
+                <h2>Éléments Constitutifs (EC)</h2>
+                <button className="add-btn" onClick={() => openModal()}>
+                    + Nouvel EC
                 </button>
             </div>
 
-            {(ues.length === 0 && modules.length === 0) && (
-                <div className="warning-box" style={{ backgroundColor: "#fff3cd", color: "#856404", padding: "10px", marginBottom: "15px", borderRadius: "5px", border: "1px solid #ffeeba" }}>
-                    <strong>Attention :</strong> Créez d'abord des UEs ou des Modules.
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px', gap: '15px' }}>
+                <div className="search-bar" style={{ flex: 1 }}>
+                    <input
+                        type="text"
+                        placeholder="Rechercher par Code ou Libellé..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '5px' }}
+                    />
                 </div>
-            )}
+            </div>
 
             {error && <div className="error">{error}</div>}
 
             <table className="departments-table">
                 <thead>
                     <tr>
-                        <th>Code</th>
-                        <th>Libellé</th>
-                        <th>UE</th>
-                        <th>Module</th>
-                        <th>VHT</th>
-                        <th>Actions</th>
+                        <th>CODE</th>
+                        <th>LIBELLÉ</th>
+                        <th>UE PARENT</th>
+                        <th>CM</th>
+                        <th>TD</th>
+                        <th>TP</th>
+                        <th>TPE</th>
+                        <th>COEFF</th>
+                        <th>MODULES</th>
+                        <th>ACTIONS</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {ecs.length === 0 ? (
-                        <tr><td colSpan="6" style={{ textAlign: "center" }}>Aucun EC trouvé.</td></tr>
+                    {filteredECs.length === 0 ? (
+                        <tr><td colSpan="10" style={{ textAlign: "center" }}>Aucun EC trouvé.</td></tr>
                     ) : (
-                        ecs.map((ec) => (
+                        filteredECs.map((ec) => (
                             <tr key={ec.id}>
-                                <td>{ec.code}</td>
-                                <td>{ec.libelle}</td>
+                                <td><span className="badge-code badge-blue">{ec.code}</span></td>
+                                <td><strong>{ec.libelle}</strong></td>
                                 <td>{ec.ue ? ec.ue.code : "-"}</td>
-                                <td>{ec.module ? ec.module.code : "-"}</td>
-                                <td>{ec.vht}h</td>
+                                <td>{ec.cm}</td>
+                                <td>{ec.td}</td>
+                                <td>{ec.tp}</td>
+                                <td>{ec.tpe}</td>
+                                <td>{ec.coefficient}</td>
+                                <td>
+                                    {ec.modules && ec.modules.length > 0 ? (
+                                        ec.modules.map(m => (
+                                            <span key={m.id} className="badge-code badge-purple" style={{ marginRight: '3px' }}>
+                                                {m.code}
+                                            </span>
+                                        ))
+                                    ) : "-"}
+                                </td>
                                 <td className="actions-cell">
-                                    <button className="edit-btn" onClick={() => openModal(ec)}>Modifier</button>
-                                    <button className="delete-btn" onClick={() => handleDelete(ec.id)}>Supprimer</button>
+                                    <button className="edit-btn" onClick={() => openModal(ec)}>modifier</button>
+                                    <button className="delete-btn" onClick={() => handleDelete(ec.id)}>supprimer</button>
                                 </td>
                             </tr>
                         ))
@@ -195,44 +230,47 @@ const AdminECs = () => {
 
             {showModal && (
                 <div className="modal-overlay">
-                    <div className="modal-content" style={{ maxWidth: '600px' }}>
-                        <h3>{isEditing ? "Modifier l'EC" : "Nouveau EC"}</h3>
+                    <div className="modal-content" style={{ maxWidth: '700px' }}>
+                        <h3>{isEditing ? "Modifier l'EC" : "Nouvel EC"}</h3>
                         <form onSubmit={handleSubmit}>
                             <div className="form-group-row">
-                                <div className="form-group">
-                                    <label>Code</label>
+                                <div className="form-group" style={{ flex: 1 }}>
+                                    <label>Code EC</label>
                                     <input type="text" name="code" value={formData.code} onChange={handleInputChange} required />
                                 </div>
-                                <div className="form-group">
+                                <div className="form-group" style={{ flex: 2 }}>
                                     <label>Libellé</label>
                                     <input type="text" name="libelle" value={formData.libelle} onChange={handleInputChange} required />
                                 </div>
                             </div>
 
+                            <div className="form-group">
+                                <label>UE de rattachement</label>
+                                <select name="ue" value={formData.ue} onChange={handleInputChange}>
+                                    <option value="">Sélectionner une UE</option>
+                                    {ues.map(u => (
+                                        <option key={u.id} value={u.id}>{u.code} - {u.libelle}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="form-group-row" style={{ display: "flex", gap: "10px" }}>
+                                <div className="form-group"><label>CM (h)</label><input type="number" name="cm" value={formData.cm} onChange={handleInputChange} /></div>
+                                <div className="form-group"><label>TD (h)</label><input type="number" name="td" value={formData.td} onChange={handleInputChange} /></div>
+                                <div className="form-group"><label>TP (h)</label><input type="number" name="tp" value={formData.tp} onChange={handleInputChange} /></div>
+                                <div className="form-group"><label>TPE (h)</label><input type="number" name="tpe" value={formData.tpe} onChange={handleInputChange} /></div>
+                            </div>
+
                             <div className="form-group-row" style={{ display: "flex", gap: "10px" }}>
                                 <div className="form-group">
-                                    <label>UE</label>
-                                    <select name="ue" value={formData.ue} onChange={handleInputChange}>
-                                        <option value="">-- Aucune --</option>
-                                        {ues.map(u => (<option key={u.id} value={u.id}>{u.code} - {u.libelle}</option>))}
-                                    </select>
-                                </div>
-                                <div className="form-group">
-                                    <label>Module</label>
-                                    <select name="module" value={formData.module} onChange={handleInputChange}>
-                                        <option value="">-- Aucun --</option>
-                                        {modules.map(m => (<option key={m.id} value={m.id}>{m.code} - {m.libelle}</option>))}
-                                    </select>
+                                    <label>Coefficient</label>
+                                    <input type="number" step="0.1" name="coefficient" value={formData.coefficient} onChange={handleInputChange} />
                                 </div>
                             </div>
 
-                            <div className="form-group-row" style={{ display: "flex", gap: "5px", flexWrap: "wrap" }}>
-                                <div className="form-group" style={{ flex: 1 }}><label>CM (h)</label><input type="number" name="cm" value={formData.cm} onChange={handleInputChange} /></div>
-                                <div className="form-group" style={{ flex: 1 }}><label>TD (h)</label><input type="number" name="td" value={formData.td} onChange={handleInputChange} /></div>
-                                <div className="form-group" style={{ flex: 1 }}><label>TP (h)</label><input type="number" name="tp" value={formData.tp} onChange={handleInputChange} /></div>
-                                <div className="form-group" style={{ flex: 1 }}><label>TPE (h)</label><input type="number" name="tpe" value={formData.tpe} onChange={handleInputChange} /></div>
-                                <div className="form-group" style={{ flex: 1 }}><label>VHT (h)</label><input type="number" name="vht" value={formData.vht} onChange={handleInputChange} /></div>
-                                <div className="form-group" style={{ flex: 1 }}><label>Coeff</label><input type="number" step="0.1" name="coefficient" value={formData.coefficient} onChange={handleInputChange} /></div>
+                            <div className="form-group">
+                                <label>Description</label>
+                                <textarea name="description" value={formData.description} onChange={handleInputChange} rows="2" style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}></textarea>
                             </div>
 
                             <div className="modal-actions">

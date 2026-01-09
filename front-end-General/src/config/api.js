@@ -165,6 +165,19 @@ export const API_ENDPOINTS = {
     DELETE: (id) => `${API_BASE_URL}/api/maquette/ecs/${id}`,
   },
 
+  // =====================
+  // SEMESTRE SERVICE (Maquette Service)
+  // Gateway: /api/maquette/semestres
+  // =====================
+  SEMESTRES: {
+    base: `${API_BASE_URL}/api/maquette/semestres`,
+    LIST: `${API_BASE_URL}/api/maquette/semestres`,
+    CREATE: `${API_BASE_URL}/api/maquette/semestres`,
+    UPDATE: (id) => `${API_BASE_URL}/api/maquette/semestres/${id}`,
+    DELETE: (id) => `${API_BASE_URL}/api/maquette/semestres/${id}`,
+    BY_ID: (id) => `${API_BASE_URL}/api/maquette/semestres/${id}`,
+  },
+
   // ==================================
   // DEROULEMENT ENSEIGNEMENT SERVICE
   // Gateway: /api/deroulement-enseignements/**
