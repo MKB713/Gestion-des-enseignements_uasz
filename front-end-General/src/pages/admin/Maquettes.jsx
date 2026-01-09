@@ -1,50 +1,65 @@
 import React, { useState, useEffect } from "react";
 import { apiRequest, API_ENDPOINTS } from "../../config/api";
-import "./AdminDepartments.css"; // Reuse existing styles
+import "./AdminDepartments.css";
 
 const AdminMaquettes = () => {
+    // State management
     const [maquettes, setMaquettes] = useState([]);
-    const [formations, setFormations] = useState([]);
+    const [modules, setModules] = useState([]);
+    const [semestres, setSemestres] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+
     const [showModal, setShowModal] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [currentMaquette, setCurrentMaquette] = useState(null);
+    const [searchTerm, setSearchTerm] = useState("");
 
+    // Form Data - Matching request
     const [formData, setFormData] = useState({
         code: "",
         libelle: "",
-        description: "",
-        formation: ""
+        module: "", // Selection (Module ID)
+        credits: 0,
+        coefficientUE: 0,
+        cm: 0,
+        td: 0,
+        tp: 0,
+        vht: 0, // CM+TP/TD = VHT (Input field)
+        semestre: "", // Selection (Semestre ID)
+        responsable: "",
+        prerequis: "",
+        objectifs: "",
+        modalitesEvaluation: ""
     });
 
     useEffect(() => {
         fetchData();
+        fetchDependencies();
     }, []);
 
     const fetchData = async () => {
         try {
             setLoading(true);
-            const [maquettesRes, formationsRes] = await Promise.all([
-                apiRequest(API_ENDPOINTS.MAQUETTES.LIST),
-                apiRequest(API_ENDPOINTS.FORMATIONS.LIST)
-            ]);
-            // Maquette API returns standardized ApiResponse wrapped list
-            // But API_ENDPOINTS.MAQUETTES.LIST called via apiRequest might return payload directly if wrapper logic in api.js handles it? 
-            // The controller returns ApiResponse<List<...>>. api.js returns response.json().
-            // So maquettesRes might be { success: true, message: "...", data: [...] }
-            // Let's handle both cases just to be safe, or inspecting api.js again... 
-            // api.js returns await response.json(); So it returns the wrapper.
-
-            const maquettesData = maquettesRes.data ? maquettesRes.data : (Array.isArray(maquettesRes) ? maquettesRes : []);
-            setMaquettes(maquettesData);
-            setFormations(formationsRes || []);
+            const data = await apiRequest(API_ENDPOINTS.MAQUETTES.LIST);
+            setMaquettes(Array.isArray(data) ? data : []);
             setError(null);
         } catch (err) {
-            console.error("Erreur chargement données:", err);
-            setError("Erreur lors du chargement des données.");
+            console.error("Erreur chargement maquettes:", err);
+            setError("Erreur lors du chargement des maquettes.");
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchDependencies = async () => {
+        try {
+            const mods = await apiRequest(API_ENDPOINTS.MODULES.LIST);
+            setModules(Array.isArray(mods) ? mods : []);
+            const sems = await apiRequest(API_ENDPOINTS.SEMESTRES.LIST);
+            setSemestres(Array.isArray(sems) ? sems : []);
+        } catch (e) {
+            console.error("Erreur chargement dépendances:", e);
         }
     };
 
@@ -53,15 +68,25 @@ const AdminMaquettes = () => {
         setFormData({ ...formData, [name]: value });
     };
 
-    const openModal = (maquette = null) => {
-        if (maquette) {
+    const openModal = (maq = null) => {
+        if (maq) {
             setIsEditing(true);
-            setCurrentMaquette(maquette);
+            setCurrentMaquette(maq);
             setFormData({
-                code: maquette.code,
-                libelle: maquette.libelle,
-                description: maquette.description,
-                formation: maquette.formationId ? maquette.formationId : ""
+                code: maq.code,
+                libelle: maq.libelle,
+                module: maq.module ? maq.module.id : "",
+                credits: maq.credits,
+                coefficientUE: maq.coefficientUE,
+                cm: maq.cm,
+                td: maq.td,
+                tp: maq.tp,
+                vht: maq.vht,
+                semestre: maq.semestre ? maq.semestre.id : "",
+                responsable: maq.responsable || "",
+                prerequis: maq.prerequis || "",
+                objectifs: maq.objectifs || "",
+                modalitesEvaluation: maq.modalitesEvaluation || ""
             });
         } else {
             setIsEditing(false);
@@ -69,8 +94,18 @@ const AdminMaquettes = () => {
             setFormData({
                 code: "",
                 libelle: "",
-                description: "",
-                formation: ""
+                module: "",
+                credits: 0,
+                coefficientUE: 0,
+                cm: 0,
+                td: 0,
+                tp: 0,
+                vht: 0,
+                semestre: "",
+                responsable: "",
+                prerequis: "",
+                objectifs: "",
+                modalitesEvaluation: ""
             });
         }
         setShowModal(true);
@@ -87,8 +122,18 @@ const AdminMaquettes = () => {
             const payload = {
                 code: formData.code,
                 libelle: formData.libelle,
-                description: formData.description,
-                formationId: formData.formation ? parseInt(formData.formation) : null
+                credits: parseInt(formData.credits),
+                coefficientUE: parseFloat(formData.coefficientUE),
+                cm: parseInt(formData.cm),
+                td: parseInt(formData.td),
+                tp: parseInt(formData.tp),
+                vht: parseInt(formData.vht),
+                responsable: formData.responsable,
+                prerequis: formData.prerequis,
+                objectifs: formData.objectifs,
+                modalitesEvaluation: formData.modalitesEvaluation,
+                module: formData.module ? { id: parseInt(formData.module) } : null,
+                semestre: formData.semestre ? { id: parseInt(formData.semestre) } : null
             };
 
             if (isEditing) {
@@ -112,7 +157,7 @@ const AdminMaquettes = () => {
     };
 
     const handleDelete = async (id) => {
-        if (window.confirm("Êtes-vous sûr de vouloir supprimer cette maquette ?")) {
+        if (window.confirm("Êtes-vous sûr de vouloir supprimer cette Maquette ?")) {
             try {
                 await apiRequest(API_ENDPOINTS.MAQUETTES.DELETE(id), { method: "DELETE" });
                 fetchData();
@@ -123,78 +168,68 @@ const AdminMaquettes = () => {
         }
     };
 
-    const handlePublish = async (id) => {
-        if (window.confirm("Êtes-vous sûr de vouloir PUBLIER cette maquette ? Elle ne pourra plus être supprimée.")) {
-            try {
-                await apiRequest(API_ENDPOINTS.MAQUETTES.PUBLISH(id), { method: "POST" });
-                fetchData();
-            } catch (err) {
-                console.error("Erreur publication:", err);
-                alert("Erreur lors de la publication.");
-            }
-        }
-    };
+    const filteredMaquettes = maquettes.filter(m =>
+        m.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        m.libelle.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
     if (loading) return <div className="loading">Chargement...</div>;
 
     return (
         <div className="admin-departments-container">
             <div className="header-actions">
-                <h2>Gestion des Maquettes</h2>
-                <button className="add-btn" onClick={() => openModal()} disabled={formations.length === 0}>
-                    + Nouvelle Maquette
+                <h2>Maquettes Pédagogiques</h2>
+                <button className="add-btn" onClick={() => openModal()}>
+                    + Nouvelle Entrée
                 </button>
             </div>
 
-            {formations.length === 0 && (
-                <div className="warning-box" style={{ backgroundColor: "#fff3cd", color: "#856404", padding: "10px", marginBottom: "15px", borderRadius: "5px", border: "1px solid #ffeeba" }}>
-                    <strong>Attention :</strong> Vous devez créer des <a href="/admin/formations">Formations</a> avant de créer une maquette.
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px', gap: '15px' }}>
+                <div className="search-bar" style={{ flex: 1 }}>
+                    <input type="text" placeholder="Rechercher..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
+                        style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '5px' }} />
                 </div>
-            )}
+            </div>
 
             {error && <div className="error">{error}</div>}
 
             <table className="departments-table">
                 <thead>
                     <tr>
-                        <th>Code</th>
-                        <th>Libellé</th>
-                        <th>Formation</th>
-                        <th>Version</th>
-                        <th>Statut</th>
-                        <th>Actions</th>
+                        <th>CODE</th>
+                        <th>LIBELLÉ</th>
+                        <th>MODULE</th>
+                        <th>CRÉDITS</th>
+                        <th>CM</th>
+                        <th>TD</th>
+                        <th>TP</th>
+                        <th>VHT</th>
+                        <th>COEFF</th>
+                        <th>SEMESTRE</th>
+                        <th>RESPONSABLE</th>
+                        <th>ACTIONS</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {maquettes.length === 0 ? (
-                        <tr><td colSpan="6" style={{ textAlign: "center" }}>Aucune maquette trouvée.</td></tr>
+                    {filteredMaquettes.length === 0 ? (
+                        <tr><td colSpan="12" style={{ textAlign: "center" }}>Aucune donnée.</td></tr>
                     ) : (
-                        maquettes.map((maquette) => (
-                            <tr key={maquette.id}>
-                                <td>{maquette.code}</td>
-                                <td>{maquette.libelle}</td>
-                                <td>{maquette.formationLibelle || "-"}</td>
-                                <td>v{maquette.version}</td>
-                                <td>
-                                    {maquette.statut === "PUBLIEE" ?
-                                        <span className="badge badge-success">PUBLIÉE</span> :
-                                        (maquette.statut === "ARCHIVEE" ?
-                                            <span className="badge badge-danger">ARCHIVÉE</span> :
-                                            <span className="badge badge-warning">BROUILLON</span>
-                                        )
-                                    }
-                                </td>
+                        filteredMaquettes.map((m) => (
+                            <tr key={m.id}>
+                                <td><span className="badge-code">{m.code}</span></td>
+                                <td><strong>{m.libelle}</strong></td>
+                                <td>{m.module ? m.module.code : "-"}</td>
+                                <td><span className="badge-credits">{m.credits}</span></td>
+                                <td>{m.cm}</td>
+                                <td>{m.td}</td>
+                                <td>{m.tp}</td>
+                                <td>{m.vht}</td>
+                                <td>{m.coefficientUE}</td>
+                                <td>{m.semestre ? m.semestre.libelle : "-"}</td>
+                                <td>{m.responsable}</td>
                                 <td className="actions-cell">
-                                    <button className="edit-btn" style={{ backgroundColor: "#17a2b8" }} onClick={() => window.location.href = `/admin/maquettes/${maquette.id}`}>Voir</button>
-                                    <button className="edit-btn" onClick={() => openModal(maquette)}>Modifier</button>
-
-                                    {maquette.statut === "BROUILLON" && (
-                                        <button className="edit-btn" style={{ backgroundColor: "#28a745" }} onClick={() => handlePublish(maquette.id)}>Publier</button>
-                                    )}
-
-                                    {maquette.statut !== "PUBLIEE" && (
-                                        <button className="delete-btn" onClick={() => handleDelete(maquette.id)}>Supprimer</button>
-                                    )}
+                                    <button className="edit-btn" onClick={() => openModal(m)}>modifier</button>
+                                    <button className="delete-btn" onClick={() => handleDelete(m.id)}>supprimer</button>
                                 </td>
                             </tr>
                         ))
@@ -204,53 +239,71 @@ const AdminMaquettes = () => {
 
             {showModal && (
                 <div className="modal-overlay">
-                    <div className="modal-content">
-                        <h3>{isEditing ? "Modifier la Maquette" : "Nouvelle Maquette"}</h3>
+                    <div className="modal-content" style={{ maxWidth: '800px', maxHeight: '90vh', overflowY: 'auto' }}>
+                        <h3>{isEditing ? "Modifier" : "Nouveau"}</h3>
                         <form onSubmit={handleSubmit}>
+                            <div className="form-group-row">
+                                <div className="form-group" style={{ flex: 1 }}>
+                                    <label>Code</label>
+                                    <input type="text" name="code" value={formData.code} onChange={handleInputChange} required />
+                                </div>
+                                <div className="form-group" style={{ flex: 2 }}>
+                                    <label>Libellé</label>
+                                    <input type="text" name="libelle" value={formData.libelle} onChange={handleInputChange} required />
+                                </div>
+                            </div>
+
+                            <div className="form-group-row">
+                                <div className="form-group" style={{ flex: 1 }}>
+                                    <label>Module</label>
+                                    <select name="module" value={formData.module} onChange={handleInputChange}>
+                                        <option value="">Sélectionner</option>
+                                        {modules.map(mod => (
+                                            <option key={mod.id} value={mod.id}>{mod.code} - {mod.libelle}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="form-group" style={{ flex: 1 }}>
+                                    <label>Semestre</label>
+                                    <select name="semestre" value={formData.semestre} onChange={handleInputChange}>
+                                        <option value="">Sélectionner</option>
+                                        {semestres.map(s => (
+                                            <option key={s.id} value={s.id}>{s.libelle}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="form-group-row" style={{ display: 'flex', gap: '10px' }}>
+                                <div className="form-group"><label>Crédits</label><input type="number" name="credits" value={formData.credits} onChange={handleInputChange} /></div>
+                                <div className="form-group"><label>Coeff UE</label><input type="number" step="0.1" name="coefficientUE" value={formData.coefficientUE} onChange={handleInputChange} /></div>
+                            </div>
+
+                            <div className="form-group-row" style={{ display: 'flex', gap: '10px' }}>
+                                <div className="form-group"><label>CM</label><input type="number" name="cm" value={formData.cm} onChange={handleInputChange} /></div>
+                                <div className="form-group"><label>TD</label><input type="number" name="td" value={formData.td} onChange={handleInputChange} /></div>
+                                <div className="form-group"><label>TP</label><input type="number" name="tp" value={formData.tp} onChange={handleInputChange} /></div>
+                                <div className="form-group"><label>VHT</label><input type="number" name="vht" value={formData.vht} onChange={handleInputChange} /></div>
+                            </div>
+
                             <div className="form-group">
-                                <label>Code</label>
-                                <input
-                                    type="text"
-                                    name="code"
-                                    value={formData.code}
-                                    onChange={handleInputChange}
-                                    required
-                                    placeholder="Ex: MAQ-L1-INFO-2026"
-                                />
+                                <label>Responsable</label>
+                                <input type="text" name="responsable" value={formData.responsable} onChange={handleInputChange} />
+                            </div>
+
+                            <div className="form-group">
+                                <label>Prérequis</label>
+                                <textarea name="prerequis" value={formData.prerequis} onChange={handleInputChange} rows="2"></textarea>
                             </div>
                             <div className="form-group">
-                                <label>Libellé</label>
-                                <input
-                                    type="text"
-                                    name="libelle"
-                                    value={formData.libelle}
-                                    onChange={handleInputChange}
-                                    required
-                                    placeholder="Ex: Maquette Licence 1 Informatique"
-                                />
+                                <label>Objectifs</label>
+                                <textarea name="objectifs" value={formData.objectifs} onChange={handleInputChange} rows="2"></textarea>
                             </div>
                             <div className="form-group">
-                                <label>Formation</label>
-                                <select
-                                    name="formation"
-                                    value={formData.formation}
-                                    onChange={handleInputChange}
-                                    required
-                                >
-                                    <option value="">Sélectionner une formation</option>
-                                    {formations.map(f => (
-                                        <option key={f.id} value={f.id}>{f.libelle}</option>
-                                    ))}
-                                </select>
+                                <label>Modalités d'évaluation</label>
+                                <textarea name="modalitesEvaluation" value={formData.modalitesEvaluation} onChange={handleInputChange} rows="2"></textarea>
                             </div>
-                            <div className="form-group">
-                                <label>Description</label>
-                                <textarea
-                                    name="description"
-                                    value={formData.description}
-                                    onChange={handleInputChange}
-                                />
-                            </div>
+
                             <div className="modal-actions">
                                 <button type="button" onClick={closeModal} className="cancel-btn">Annuler</button>
                                 <button type="submit" className="submit-btn">Enregistrer</button>

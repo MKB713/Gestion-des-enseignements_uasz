@@ -1,5 +1,6 @@
 package com.uasz.daos.maquette.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -36,8 +37,15 @@ public class UE {
 
     @ManyToOne
     @JoinColumn(name = "semestre_id")
+    @JsonIgnore  // Évite la boucle infinie JSON avec Semestre
     private Semestre semestre;
 
     @OneToMany(mappedBy = "ue", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<EC> ecs;
+
+    @OneToMany(mappedBy = "ue")
+    @JsonIgnore  // Évite la boucle infinie JSON avec Module
+    private List<Module> modules;
+
+    private String description;
 }

@@ -38,7 +38,7 @@ public class Module {
     private UE ue;
     // -----------------------------------------------------
 
-    @OneToMany(mappedBy = "module", cascade = CascadeType.ALL)
-    @JsonIgnore
-    private List<EC> ecs;
+    @ManyToOne
+    @JoinColumn(name = "ec_id")
+    private EC ec;
 }

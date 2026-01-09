@@ -40,8 +40,25 @@ public class Maquette {
     @JoinColumn(name = "formation_id")
     private Formation formation;
 
+    // Attributs ajoutés selon demande (déplacés depuis UE)
+    private int credits;
+    private double coefficientUE;
+    private int cm;
+    private int td;
+    private int tp;
+    private int vht;
+    private String responsable;
+    private String prerequis;
+    @Column(columnDefinition = "TEXT")
+    private String objectifs;
+    private String modalitesEvaluation;
+
     @OneToMany(mappedBy = "maquette", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Semestre> semestres;
+
+    @ManyToOne
+    @JoinColumn(name = "module_id")
+    private Module module;
 
     @ManyToOne
     @JoinColumn(name = "maquette_parent_id")
