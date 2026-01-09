@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
+@SuppressWarnings("null")
 public class BatimentService {
 
     @Autowired
@@ -18,7 +19,7 @@ public class BatimentService {
         return batimentRepository.findAll();
     }
 
-    public Batiment getBatimentById(Long id) {
+    public Batiment getBatimentById(long id) {
         return batimentRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Batiment introuvable avec l'ID : " + id));
     }
@@ -27,18 +28,18 @@ public class BatimentService {
         return batimentRepository.save(batiment);
     }
 
-    public Batiment updateBatiment(Long id, Batiment batimentDetails) {
+    public Batiment updateBatiment(long id, Batiment batimentDetails) {
         Batiment batiment = getBatimentById(id);
-        
+
         batiment.setLibelle(batimentDetails.getLibelle());
         batiment.setCode(batimentDetails.getCode());
         batiment.setPosition(batimentDetails.getPosition());
         batiment.setDescription(batimentDetails.getDescription());
-        
+
         return batimentRepository.save(batiment);
     }
 
-    public void deleteBatiment(Long id) {
+    public void deleteBatiment(long id) {
         if (!batimentRepository.existsById(id)) {
             throw new EntityNotFoundException("Batiment introuvable avec l'ID : " + id);
         }

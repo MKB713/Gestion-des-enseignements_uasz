@@ -1,4 +1,4 @@
-package com.uasz.daos.enseignant.exceptions;
+package com.uasz.daos.enseignant.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;

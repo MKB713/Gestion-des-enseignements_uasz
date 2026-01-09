@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
+@jakarta.transaction.Transactional
+@SuppressWarnings("null")
 public class DepartementService {
     private final DepartementRepository departementRepository;
 
@@ -18,7 +20,7 @@ public class DepartementService {
         return departementRepository.findAll();
     }
 
-    public Departement getDepartementById(Long id) {
+    public Departement getDepartementById(long id) {
         return departementRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Departement non trouvé avec l'id : " + id));
     }
@@ -27,14 +29,14 @@ public class DepartementService {
         return departementRepository.save(departement);
     }
 
-    public Departement updateDepartement(Long id, Departement departementDetails) {
+    public Departement updateDepartement(long id, Departement departementDetails) {
         Departement departement = getDepartementById(id);
         departement.setLibelle(departementDetails.getLibelle());
         departement.setDescription(departementDetails.getDescription());
         return departementRepository.save(departement);
     }
 
-    public void deleteDepartement(Long id) {
+    public void deleteDepartement(long id) {
         Departement departement = getDepartementById(id);
         departementRepository.delete(departement);
     }

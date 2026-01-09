@@ -10,9 +10,6 @@ import java.util.Arrays;
 @Service
 public class PermissionService {
 
-    private static final Role[] ADMIN_ROLES = {Role.ADMIN, Role.CHEF_DE_DEPARTEMENT};
-    private static final Role[] ENSEIGNANT_ROLES = {Role.ENSEIGNANT, Role.ADMIN, Role.CHEF_DE_DEPARTEMENT};
-
     public boolean hasRole(String... roles) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !(authentication.getPrincipal() instanceof CustomUserDetails)) {

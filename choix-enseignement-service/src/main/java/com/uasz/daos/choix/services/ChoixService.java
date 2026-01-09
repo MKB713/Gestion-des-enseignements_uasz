@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 @Transactional
 @RequiredArgsConstructor
 @Slf4j
+@SuppressWarnings("null")
 public class ChoixService {
 
     private final ChoixRepository choixRepository;

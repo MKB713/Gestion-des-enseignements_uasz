@@ -1,6 +1,5 @@
 package com.uasz.daos.maquette.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.uasz.daos.maquette.enums.Cycle;
 import com.uasz.daos.maquette.enums.Niveau;
 import jakarta.persistence.*;
@@ -8,9 +7,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Entity
+@Table(name = "module")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

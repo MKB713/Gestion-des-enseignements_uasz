@@ -15,9 +15,11 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 /**
- * Filtre global pour logger toutes les requêtes et réponses passant par l'API Gateway
+ * Filtre global pour logger toutes les requêtes et réponses passant par l'API
+ * Gateway
  */
 @Component
+@SuppressWarnings("null")
 public class LoggingGlobalFilter implements GlobalFilter, Ordered {
 
     private static final Logger logger = LoggerFactory.getLogger(LoggingGlobalFilter.class);
@@ -61,8 +63,8 @@ public class LoggingGlobalFilter implements GlobalFilter, Ordered {
             ip = request.getHeaders().getFirst("X-Real-IP");
         }
         if (ip == null || ip.isEmpty()) {
-            ip = request.getRemoteAddress() != null ?
-                request.getRemoteAddress().getAddress().getHostAddress() : "unknown";
+            ip = request.getRemoteAddress() != null ? request.getRemoteAddress().getAddress().getHostAddress()
+                    : "unknown";
         }
         return ip;
     }

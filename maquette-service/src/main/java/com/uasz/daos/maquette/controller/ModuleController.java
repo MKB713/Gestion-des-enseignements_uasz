@@ -33,15 +33,40 @@ public class ModuleController {
     }
 
     @PostMapping
-    public ResponseEntity<Module> createModule(@RequestBody Module module) {
-        Module saved = moduleService.addModule(module);
-        return new ResponseEntity<>(saved, HttpStatus.CREATED);
+    public ResponseEntity<?> createModule(@RequestBody Module module) {
+        try {
+            Module saved = moduleService.addModule(module);
+            return new ResponseEntity<>(saved, HttpStatus.CREATED);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage()));
+        }
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Module> updateModule(@PathVariable Long id, @RequestBody Module module) {
-        Module updated = moduleService.updateModule(id, module);
-        return ResponseEntity.ok(updated);
+    public ResponseEntity<?> updateModule(@PathVariable Long id, @RequestBody Module module) {
+        try {
+            Module updated = moduleService.updateModule(id, module);
+            return ResponseEntity.ok(updated);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage()));
+        }
+    }
+
+    // Classe interne pour les messages d'erreur
+    private static class ErrorResponse {
+        private String message;
+
+        public ErrorResponse(String message) {
+            this.message = message;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+
+        public void setMessage(String message) {
+            this.message = message;
+        }
     }
 
     // Actions spécifiques (Archiver / Restaurer)

@@ -275,6 +275,19 @@ export const API_ENDPOINTS = {
     BY_ENSEIGNANT: (id) => `${API_BASE_URL}/api/choix/enseignant/${id}`,
   },
 
+  // =====================
+  // REPARTITION SERVICE
+  // =====================
+  REPARTITIONS: {
+    base: `${API_BASE_URL}/api/repartitions`,
+    LIST: `${API_BASE_URL}/api/repartitions`,
+    BY_MAQUETTE: (id) => `${API_BASE_URL}/api/repartitions/maquette/${id}`,
+    BY_ENSEIGNANT: (id) => `${API_BASE_URL}/api/repartitions/enseignant/${id}`,
+    CREATE: `${API_BASE_URL}/api/repartitions`,
+    UPDATE: (id) => `${API_BASE_URL}/api/repartitions/${id}`,
+    DELETE: (id) => `${API_BASE_URL}/api/repartitions/${id}`,
+  },
+
 
   // ==================================
   // BATIMENTS SERVICE (DUPLICATE - REMOVED)

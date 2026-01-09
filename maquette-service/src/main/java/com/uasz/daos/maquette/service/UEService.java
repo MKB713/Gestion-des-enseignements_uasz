@@ -23,7 +23,7 @@ public class UEService {
         return ueRepository.findByArchive(true);
     }
 
-    public UE getUEById(Long id) {
+    public UE getUEById(long id) {
         return ueRepository.findById(id).orElse(null);
     }
 
@@ -38,7 +38,7 @@ public class UEService {
     }
 
     @Transactional
-    public void activer(Long id) {
+    public void activer(long id) {
         UE ue = getUEById(id);
         if (ue != null) {
             ue.setActive(true);
@@ -47,7 +47,7 @@ public class UEService {
     }
 
     @Transactional
-    public void desactiver(Long id) {
+    public void desactiver(long id) {
         UE ue = getUEById(id);
         if (ue != null) {
             ue.setActive(false);
@@ -56,7 +56,7 @@ public class UEService {
     }
 
     @Transactional
-    public void archiver(Long id) {
+    public void archiver(long id) {
         UE ue = getUEById(id);
         if (ue != null) {
             ue.setArchive(true);
@@ -66,7 +66,7 @@ public class UEService {
     }
 
     @Transactional
-    public void restaurer(Long id) {
+    public void restaurer(long id) {
         UE ue = getUEById(id);
         if (ue != null) {
             ue.setArchive(false);

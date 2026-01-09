@@ -1,7 +1,7 @@
 package com.uasz.daos.enseignant.service;
 
 import com.uasz.daos.enseignant.dto.ResponsableDTO;
-import com.uasz.daos.enseignant.model.Enseignant;
+
 import com.uasz.daos.enseignant.model.Responsable;
 import com.uasz.daos.enseignant.enums.TypeResponsable;
 import com.uasz.daos.enseignant.repository.ResponsableRepository;
@@ -14,13 +14,13 @@ import java.util.List;
 
 @Service
 @Transactional
+@SuppressWarnings("null")
 public class ResponsableService {
 
     @Autowired
     private ResponsableRepository responsableRepository;
 
     @Autowired
-    private EnseignantService enseignantService;
 
     /**
      * Récupère tous les responsables
@@ -32,7 +32,7 @@ public class ResponsableService {
     /**
      * Récupère un responsable par son ID
      */
-    public Responsable getResponsableById(Long id) {
+    public Responsable getResponsableById(long id) {
         return responsableRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Responsable non trouvé avec l'ID : " + id));
     }
@@ -63,7 +63,8 @@ public class ResponsableService {
             responsable.setEnseignantId(dto.getEnseignantId());
         }
 
-        responsable.setDateDebutFonction(dto.getDateDebutFonction() != null ? dto.getDateDebutFonction() : LocalDate.now());
+        responsable.setDateDebutFonction(
+                dto.getDateDebutFonction() != null ? dto.getDateDebutFonction() : LocalDate.now());
         responsable.setDateFinFonction(dto.getDateFinFonction());
         responsable.setActif(dto.getActif() != null ? dto.getActif() : true);
         responsable.setRemarques(dto.getRemarques());
@@ -74,7 +75,7 @@ public class ResponsableService {
     /**
      * Met à jour un responsable existant
      */
-    public Responsable modifierResponsable(Long id, ResponsableDTO dto) {
+    public Responsable modifierResponsable(long id, ResponsableDTO dto) {
         Responsable responsable = getResponsableById(id);
 
         // Vérification de l'email si modifié
@@ -120,7 +121,7 @@ public class ResponsableService {
     /**
      * Désactive un responsable
      */
-    public void desactiverResponsable(Long id) {
+    public void desactiverResponsable(long id) {
         Responsable responsable = getResponsableById(id);
         responsable.setActif(false);
         responsable.setDateFinFonction(LocalDate.now());
@@ -130,7 +131,7 @@ public class ResponsableService {
     /**
      * Réactive un responsable
      */
-    public void reactiverResponsable(Long id) {
+    public void reactiverResponsable(long id) {
         Responsable responsable = getResponsableById(id);
         responsable.setActif(true);
         responsable.setDateFinFonction(null);
@@ -183,7 +184,7 @@ public class ResponsableService {
     /**
      * Supprime un responsable
      */
-    public void supprimerResponsable(Long id) {
+    public void supprimerResponsable(long id) {
         Responsable responsable = getResponsableById(id);
         responsableRepository.delete(responsable);
     }

@@ -5,11 +5,10 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
-import lombok.Data;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -48,13 +47,11 @@ public class PasswordResetController {
         if (isValid) {
             return ResponseEntity.ok().body(Map.of(
                     "valid", true,
-                    "message", "Token valide"
-            ));
+                    "message", "Token valide"));
         } else {
             return ResponseEntity.badRequest().body(Map.of(
                     "valid", false,
-                    "message", "Token invalide ou expiré"
-            ));
+                    "message", "Token invalide ou expiré"));
         }
     }
 
@@ -77,13 +74,11 @@ public class PasswordResetController {
         if (success) {
             return ResponseEntity.ok().body(Map.of(
                     "success", true,
-                    "message", "Mot de passe réinitialisé avec succès"
-            ));
+                    "message", "Mot de passe réinitialisé avec succès"));
         } else {
             return ResponseEntity.badRequest().body(Map.of(
                     "success", false,
-                    "message", "Échec de la réinitialisation"
-            ));
+                    "message", "Échec de la réinitialisation"));
         }
     }
 
@@ -125,10 +120,4 @@ public class PasswordResetController {
         }
     }
 
-    // Méthode utilitaire pour créer des maps
-    private Map<String, Object> createResponse(String key, Object value) {
-        Map<String, Object> response = new HashMap<>();
-        response.put(key, value);
-        return response;
-    }
 }

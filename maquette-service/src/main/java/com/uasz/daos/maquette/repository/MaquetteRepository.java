@@ -1,7 +1,7 @@
 package com.uasz.daos.maquette.repository;
 
 import com.uasz.daos.maquette.model.Maquette;
-import com.uasz.daos.maquette.model.*;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

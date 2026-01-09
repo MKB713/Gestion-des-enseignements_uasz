@@ -6,7 +6,7 @@ import com.uasz.daos.auth.dto.RegisterRequest;
 import com.uasz.daos.auth.enums.Etat;
 import com.uasz.daos.auth.enums.ResultatAction;
 import com.uasz.daos.auth.enums.Role;
-import com.uasz.daos.auth.exception.MatriculeAlreadyExistsException;
+
 import com.uasz.daos.auth.model.*;
 import com.uasz.daos.auth.repository.RefreshTokenRepository;
 import com.uasz.daos.auth.repository.UtilisateurRepository;

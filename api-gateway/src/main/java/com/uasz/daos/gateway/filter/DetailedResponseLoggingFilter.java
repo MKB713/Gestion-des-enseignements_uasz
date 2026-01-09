@@ -22,6 +22,7 @@ import java.nio.charset.StandardCharsets;
  * Filtre de débogage détaillé pour capturer le contenu des réponses
  */
 @Component
+@SuppressWarnings("null")
 public class DetailedResponseLoggingFilter implements GlobalFilter, Ordered {
 
     private static final Logger logger = LoggerFactory.getLogger(DetailedResponseLoggingFilter.class);

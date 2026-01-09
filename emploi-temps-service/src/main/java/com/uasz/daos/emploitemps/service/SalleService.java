@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
+@SuppressWarnings("null")
 public class SalleService {
 
     @Autowired
@@ -18,7 +19,7 @@ public class SalleService {
         return salleRepository.findAll();
     }
 
-    public Salle getSalleById(Long id) {
+    public Salle getSalleById(long id) {
         return salleRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Salle introuvable avec l'ID : " + id));
     }
@@ -27,7 +28,7 @@ public class SalleService {
         return salleRepository.save(salle);
     }
 
-    public Salle updateSalle(Long id, Salle salleDetails) {
+    public Salle updateSalle(long id, Salle salleDetails) {
         Salle salle = getSalleById(id);
 
         salle.setCode(salleDetails.getCode());
@@ -39,7 +40,7 @@ public class SalleService {
         return salleRepository.save(salle);
     }
 
-    public void deleteSalle(Long id) {
+    public void deleteSalle(long id) {
         if (!salleRepository.existsById(id)) {
             throw new EntityNotFoundException("Salle introuvable avec l'ID : " + id);
         }

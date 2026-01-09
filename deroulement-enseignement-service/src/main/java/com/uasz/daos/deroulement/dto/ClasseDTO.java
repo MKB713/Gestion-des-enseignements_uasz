@@ -1,7 +1,7 @@
 package com.uasz.daos.deroulement.dto;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 
@@ -32,7 +32,7 @@ public class ClasseDTO {
     }
 
     public ClasseDTO(String code, String libelle, String description, Long filiereId, Long niveauId,
-                     String anneeAcademique, Integer effectifMax) {
+            String anneeAcademique, Integer effectifMax) {
         this.code = code;
         this.libelle = libelle;
         this.description = description;

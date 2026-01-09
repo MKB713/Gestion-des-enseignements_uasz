@@ -1,7 +1,7 @@
 package com.uasz.daos.auth.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
+
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
@@ -29,10 +29,10 @@ public class EnseignantProxyController {
     @GetMapping("/lst-enseignants")
     public String listEnseignants(Model model) {
         try {
+            @SuppressWarnings("unchecked")
             List<Map<String, Object>> enseignants = restTemplate.getForObject(
                     ENSEIGNANT_SERVICE_URL + "/api/enseignants",
-                    List.class
-            );
+                    List.class);
             model.addAttribute("enseignants", enseignants);
         } catch (Exception e) {
             model.addAttribute("error", "Impossible de charger la liste des enseignants");
@@ -47,10 +47,10 @@ public class EnseignantProxyController {
     @GetMapping("/lst-enseignants-archives")
     public String listEnseignantsArchives(Model model) {
         try {
+            @SuppressWarnings("unchecked")
             List<Map<String, Object>> enseignants = restTemplate.getForObject(
                     ENSEIGNANT_SERVICE_URL + "/api/enseignants/archives",
-                    List.class
-            );
+                    List.class);
             model.addAttribute("enseignants", enseignants);
             model.addAttribute("isArchiveView", Optional.of(true));
         } catch (Exception e) {
@@ -66,10 +66,10 @@ public class EnseignantProxyController {
     @GetMapping("/view-enseignant/{id}")
     public String viewEnseignantDetails(@PathVariable Long id, Model model) {
         try {
+            @SuppressWarnings("unchecked")
             Map<String, Object> enseignant = restTemplate.getForObject(
                     ENSEIGNANT_SERVICE_URL + "/api/enseignants/" + id,
-                    Map.class
-            );
+                    Map.class);
             model.addAttribute("enseignant", enseignant);
         } catch (Exception e) {
             model.addAttribute("enseignant", null);
@@ -84,7 +84,8 @@ public class EnseignantProxyController {
     @GetMapping("/add-enseignant")
     public String addEnseignant(Model model) {
         model.addAttribute("enseignant", Map.of());
-        model.addAttribute("grades", List.of("Assistant", "Maître-Assistant", "Maître de Conférences", "Professeur Titulaire", "Professeur Assimilé"));
+        model.addAttribute("grades", List.of("Assistant", "Maître-Assistant", "Maître de Conférences",
+                "Professeur Titulaire", "Professeur Assimilé"));
         model.addAttribute("statuts", List.of("ACTIF", "INACTIF", "ARCHIVE"));
         return "enseignant-add";
     }
@@ -94,13 +95,12 @@ public class EnseignantProxyController {
      */
     @PostMapping("/save-enseignant")
     public String saveEnseignant(@ModelAttribute Map<String, Object> enseignant,
-                                 RedirectAttributes redirectAttributes) {
+            RedirectAttributes redirectAttributes) {
         try {
-            Map<String, Object> response = restTemplate.postForObject(
+            restTemplate.postForObject(
                     ENSEIGNANT_SERVICE_URL + "/api/enseignants",
                     enseignant,
-                    Map.class
-            );
+                    Map.class);
             redirectAttributes.addFlashAttribute("success", "Enseignant ajouté avec succès!");
             return "redirect:/lst-enseignants";
         } catch (Exception e) {
@@ -115,12 +115,13 @@ public class EnseignantProxyController {
     @GetMapping("/edit-enseignant/{id}")
     public String editEnseignant(@PathVariable Long id, Model model) {
         try {
+            @SuppressWarnings("unchecked")
             Map<String, Object> enseignant = restTemplate.getForObject(
                     ENSEIGNANT_SERVICE_URL + "/api/enseignants/" + id,
-                    Map.class
-            );
+                    Map.class);
             model.addAttribute("enseignant", enseignant);
-            model.addAttribute("grades", List.of("Assistant", "Maître-Assistant", "Maître de Conférences", "Professeur Titulaire", "Professeur Assimilé"));
+            model.addAttribute("grades", List.of("Assistant", "Maître-Assistant", "Maître de Conférences",
+                    "Professeur Titulaire", "Professeur Assimilé"));
             model.addAttribute("statuts", List.of("ACTIF", "INACTIF", "ARCHIVE"));
         } catch (Exception e) {
             model.addAttribute("error", "Impossible de charger l'enseignant");
@@ -133,13 +134,12 @@ public class EnseignantProxyController {
      */
     @PostMapping("/update-enseignant/{id}")
     public String updateEnseignant(@PathVariable Long id,
-                                   @ModelAttribute Map<String, Object> enseignant,
-                                   RedirectAttributes redirectAttributes) {
+            @ModelAttribute Map<String, Object> enseignant,
+            RedirectAttributes redirectAttributes) {
         try {
             restTemplate.put(
                     ENSEIGNANT_SERVICE_URL + "/api/enseignants/" + id,
-                    enseignant
-            );
+                    enseignant);
             redirectAttributes.addFlashAttribute("success", "Enseignant mis à jour avec succès.");
             return "redirect:/lst-enseignants";
         } catch (Exception e) {
@@ -157,8 +157,7 @@ public class EnseignantProxyController {
             restTemplate.postForObject(
                     ENSEIGNANT_SERVICE_URL + "/api/enseignants/" + id + "/archive",
                     null,
-                    Map.class
-            );
+                    Map.class);
             redirectAttributes.addFlashAttribute("success", "Enseignant archivé avec succès.");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Erreur lors de l'archivage: " + e.getMessage());
@@ -175,8 +174,7 @@ public class EnseignantProxyController {
             restTemplate.postForObject(
                     ENSEIGNANT_SERVICE_URL + "/api/enseignants/" + id + "/unarchive",
                     null,
-                    Map.class
-            );
+                    Map.class);
             redirectAttributes.addFlashAttribute("success", "Enseignant désarchivé avec succès.");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Erreur lors du désarchivage: " + e.getMessage());
@@ -193,8 +191,7 @@ public class EnseignantProxyController {
             restTemplate.postForObject(
                     ENSEIGNANT_SERVICE_URL + "/api/enseignants/" + id + "/activate",
                     null,
-                    Map.class
-            );
+                    Map.class);
             redirectAttributes.addFlashAttribute("success", "Enseignant activé avec succès.");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Erreur lors de l'activation: " + e.getMessage());
@@ -211,8 +208,7 @@ public class EnseignantProxyController {
             restTemplate.postForObject(
                     ENSEIGNANT_SERVICE_URL + "/api/enseignants/" + id + "/deactivate",
                     null,
-                    Map.class
-            );
+                    Map.class);
             redirectAttributes.addFlashAttribute("success", "Enseignant désactivé avec succès.");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Erreur lors de la désactivation: " + e.getMessage());

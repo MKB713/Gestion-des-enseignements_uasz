@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
+@SuppressWarnings("null")
 public class SeanceService {
     @Autowired
     private SeanceRepository seanceRepository;
@@ -16,7 +17,7 @@ public class SeanceService {
         return seanceRepository.findAll();
     }
 
-    public Seance getSeanceById(Long id) {
+    public Seance getSeanceById(long id) {
         return seanceRepository.findById(id).orElseThrow(() -> new RuntimeException("Séance non trouvée"));
     }
 
@@ -24,7 +25,7 @@ public class SeanceService {
         return seanceRepository.save(seance);
     }
 
-    public Seance updateSeance(Long id, Seance seanceDetails) {
+    public Seance updateSeance(long id, Seance seanceDetails) {
         Seance seance = getSeanceById(id);
         seance.setJour(seanceDetails.getJour());
         seance.setHeureDebut(seanceDetails.getHeureDebut());
@@ -37,7 +38,7 @@ public class SeanceService {
         return seanceRepository.save(seance);
     }
 
-    public void deleteSeance(Long id) {
+    public void deleteSeance(long id) {
         seanceRepository.deleteById(id);
     }
 

@@ -24,6 +24,9 @@ public class Seance {
     private LocalTime heureDebut;
     private LocalTime heureFin;
 
+    // Type de séance: CM, TD, TP
+    private String typeSeance;
+
     // Relation avec Salle (Local entity)
     @ManyToOne
     @JoinColumn(name = "salle_id")

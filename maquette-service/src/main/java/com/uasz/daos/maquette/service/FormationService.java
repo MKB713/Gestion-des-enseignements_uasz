@@ -13,6 +13,7 @@ import java.util.Date;
 import java.util.List;
 
 @Service
+@SuppressWarnings("null")
 public class FormationService {
 
     @Autowired
@@ -34,8 +35,9 @@ public class FormationService {
         return formationRepository.findByStatutFormation(StatutFormation.ACTIVE);
     }
 
-    // CORRECTION ICI : Retourne directement Formation (et lance une erreur si pas trouvé)
-    public Formation getFormationById(Long id) {
+    // CORRECTION ICI : Retourne directement Formation (et lance une erreur si pas
+    // trouvé)
+    public Formation getFormationById(long id) {
         return formationRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Formation introuvable avec l'ID : " + id));
     }
@@ -84,7 +86,7 @@ public class FormationService {
     }
 
     @Transactional
-    public Formation updateFormation(Long id, Formation updated) {
+    public Formation updateFormation(long id, Formation updated) {
         Formation found = getFormationById(id);
 
         // Vérif unicité si modification du code
@@ -103,11 +105,14 @@ public class FormationService {
             found.setLibelle(updated.getLibelle());
         }
 
-        if (updated.getDescription() != null) found.setDescription(updated.getDescription());
+        if (updated.getDescription() != null)
+            found.setDescription(updated.getDescription());
 
         // Mise à jour des relations (Filière/Niveau)
-        if(updated.getFiliere() != null) found.setFiliere(updated.getFiliere());
-        if(updated.getNiveau() != null) found.setNiveau(updated.getNiveau());
+        if (updated.getFiliere() != null)
+            found.setFiliere(updated.getFiliere());
+        if (updated.getNiveau() != null)
+            found.setNiveau(updated.getNiveau());
 
         attachRelations(found); // Recharger les objets complets pour éviter les erreurs de Lazy Loading
 
@@ -131,14 +136,14 @@ public class FormationService {
     // --- GESTION STATUT ---
 
     @Transactional
-    public Formation archiveFormation(Long id) {
+    public Formation archiveFormation(long id) {
         Formation found = getFormationById(id);
         found.setStatutFormation(StatutFormation.ARCHIVE);
         return formationRepository.save(found);
     }
 
     @Transactional
-    public Formation activerFormation(Long id) {
+    public Formation activerFormation(long id) {
         Formation found = getFormationById(id);
         found.setStatutFormation(StatutFormation.ACTIVE);
         return formationRepository.save(found);

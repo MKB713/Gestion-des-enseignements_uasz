@@ -2,7 +2,7 @@ package com.uasz.daos.deroulement.controller;
 
 import com.uasz.daos.deroulement.dto.EtudiantDTO;
 import com.uasz.daos.deroulement.model.Etudiant;
-import com.uasz.daos.deroulement.enums.StatutEtudiant;
+
 import com.uasz.daos.deroulement.service.EtudiantService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,8 +47,8 @@ public class EtudiantController {
      */
     @PostMapping("/save-etudiant")
     public String saveEtudiant(@Valid @ModelAttribute("etudiant") EtudiantDTO etudiantDTO,
-                               BindingResult bindingResult,
-                               Model model) {
+            BindingResult bindingResult,
+            Model model) {
         if (bindingResult.hasErrors()) {
             return "etudiant-add";
         }
@@ -85,9 +85,9 @@ public class EtudiantController {
      */
     @PostMapping("/update-etudiant/{id}")
     public String updateEtudiant(@PathVariable Long id,
-                                 @Valid @ModelAttribute("etudiant") EtudiantDTO etudiantDTO,
-                                 BindingResult bindingResult,
-                                 Model model) {
+            @Valid @ModelAttribute("etudiant") EtudiantDTO etudiantDTO,
+            BindingResult bindingResult,
+            Model model) {
         if (bindingResult.hasErrors()) {
             model.addAttribute("etudiant", etudiantDTO);
             return "etudiant-edit";
@@ -162,7 +162,7 @@ public class EtudiantController {
     @PutMapping("/api/etudiants/{id}")
     @ResponseBody
     public ResponseEntity<?> updateEtudiant(@PathVariable Long id,
-                                            @Valid @RequestBody EtudiantDTO etudiantDTO) {
+            @Valid @RequestBody EtudiantDTO etudiantDTO) {
         try {
             Etudiant etudiant = etudiantService.modifierEtudiant(id, etudiantDTO);
             return ResponseEntity.ok(etudiant);

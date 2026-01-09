@@ -1,6 +1,5 @@
 package com.uasz.daos.auth.model;
 
-import com.uasz.daos.auth.enums.Role;
 import com.uasz.daos.auth.enums.Etat;
 import com.uasz.daos.auth.enums.StatutEnseignant;
 import jakarta.persistence.*;

@@ -29,7 +29,8 @@ public class EnseignantService {
      * Nettoie une chaîne (enlève accents, espaces, met en minuscule)
      */
     private String cleanString(String input) {
-        if (input == null) return "";
+        if (input == null)
+            return "";
         String normalized = Normalizer.normalize(input, Normalizer.Form.NFD);
         return normalized.replaceAll("[\\p{InCombiningDiacriticalMarks}]", "")
                 .toLowerCase()
@@ -67,7 +68,8 @@ public class EnseignantService {
         List<Enseignant> allEnseignants = enseignantRepository.findAll();
 
         Optional<Long> maxMatriculeThisYearOpt = allEnseignants.stream()
-                .filter(e -> e.getMatricule() != null && e.getMatricule() >= YEAR_BASE && e.getMatricule() < YEAR_BASE + 100000)
+                .filter(e -> e.getMatricule() != null && e.getMatricule() >= YEAR_BASE
+                        && e.getMatricule() < YEAR_BASE + 100000)
                 .map(Enseignant::getMatricule)
                 .max(Comparator.naturalOrder());
 
@@ -86,7 +88,8 @@ public class EnseignantService {
 
     private void validateDateEmbauche(LocalDate dateEmbauche) {
         if (dateEmbauche != null && dateEmbauche.isAfter(LocalDate.now())) {
-            throw new IllegalArgumentException("La date d'embauche ne peut pas être une date future (" + dateEmbauche + ").");
+            throw new IllegalArgumentException(
+                    "La date d'embauche ne peut pas être une date future (" + dateEmbauche + ").");
         }
     }
 
@@ -103,7 +106,7 @@ public class EnseignantService {
     // 3. CRUD (Lecture / Écriture)
     // ======================================================================
 
-    public Enseignant getEnseignantById(Long id) {
+    public Enseignant getEnseignantById(long id) {
         return enseignantRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Enseignant non trouvé avec l'id: " + id));
     }
@@ -118,6 +121,7 @@ public class EnseignantService {
 
     /**
      * Crée ou sauvegarde un enseignant.
+     * 
      * @return L'objet sauvegardé (IMPORTANT pour le retour JSON au Front)
      */
     @Transactional
@@ -146,10 +150,11 @@ public class EnseignantService {
 
     /**
      * Met à jour un enseignant existant.
+     * 
      * @return L'objet mis à jour
      */
     @Transactional
-    public Enseignant updateEnseignant(Long id, Enseignant enseignantForm) {
+    public Enseignant updateEnseignant(long id, Enseignant enseignantForm) {
         Enseignant enseignant = getEnseignantById(id);
 
         // Validations
@@ -177,7 +182,7 @@ public class EnseignantService {
     // ======================================================================
 
     @Transactional
-    public Enseignant archiverEnseignant(Long id) {
+    public Enseignant archiverEnseignant(long id) {
         Enseignant enseignant = getEnseignantById(id);
         enseignant.setStatutEnseignant(StatutEnseignant.ARCHIVE);
         enseignant.setEstActif(false);
@@ -186,7 +191,7 @@ public class EnseignantService {
     }
 
     @Transactional
-    public Enseignant desarchiverEnseignant(Long id) {
+    public Enseignant desarchiverEnseignant(long id) {
         Enseignant enseignant = getEnseignantById(id);
         enseignant.setStatutEnseignant(StatutEnseignant.ACTIF);
         enseignant.setEstActif(true);
@@ -195,7 +200,7 @@ public class EnseignantService {
     }
 
     @Transactional
-    public Enseignant activerEnseignant(Long id) {
+    public Enseignant activerEnseignant(long id) {
         Enseignant enseignant = getEnseignantById(id);
         if (enseignant.getStatutEnseignant() == StatutEnseignant.ARCHIVE) {
             throw new RuntimeException("Impossible d'activer un enseignant archivé.");
@@ -206,7 +211,7 @@ public class EnseignantService {
     }
 
     @Transactional
-    public Enseignant desactiverEnseignant(Long id) {
+    public Enseignant desactiverEnseignant(long id) {
         Enseignant enseignant = getEnseignantById(id);
         if (enseignant.getStatutEnseignant() == StatutEnseignant.ARCHIVE) {
             throw new RuntimeException("Impossible de désactiver un enseignant archivé.");

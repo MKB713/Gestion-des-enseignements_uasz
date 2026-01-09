@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@SuppressWarnings("null")
 public class MaquetteService {
 
     private final MaquetteRepository maquetteRepository;
@@ -58,7 +59,7 @@ public class MaquetteService {
     }
 
     @Transactional
-    public void publierMaquette(Long id) {
+    public void publierMaquette(long id) {
         Maquette maquette = maquetteRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Maquette non trouvée"));
         maquette.setStatut(StatutMaquette.PUBLIEE);
@@ -67,7 +68,7 @@ public class MaquetteService {
 
     @Transactional
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public MaquetteResponseDTO modifierMaquette(Long id, MaquetteRequestDTO requestDTO) {
+    public MaquetteResponseDTO modifierMaquette(long id, MaquetteRequestDTO requestDTO) {
         Maquette existing = maquetteRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Maquette non trouvée"));
 
@@ -179,7 +180,7 @@ public class MaquetteService {
     }
 
     @Transactional(readOnly = true)
-    public MaquetteResponseDTO detailsMaquette(Long id) {
+    public MaquetteResponseDTO detailsMaquette(long id) {
         Maquette maquette = maquetteRepository.findByIdAndActifTrue(id)
                 .orElseThrow(() -> new IllegalArgumentException("Maquette non trouvée ou inactive"));
         return mapToResponseDTO(maquette);
@@ -267,7 +268,7 @@ public class MaquetteService {
         return dto;
     }
 
-    public List<MaquetteVersion> listerVersions(Long id) {
+    public List<MaquetteVersion> listerVersions(long id) {
         Maquette maquette = maquetteRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Maquette non trouvée"));
         return maquetteVersionRepository.findByMaquetteOrderByNumeroVersionDesc(maquette);

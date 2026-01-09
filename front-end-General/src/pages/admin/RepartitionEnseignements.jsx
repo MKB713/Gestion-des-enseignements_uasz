@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { apiRequest, API_ENDPOINTS } from "../../config/api";
+import { apiRequest, API_ENDPOINTS, api } from "../../config/api";
 import "./RepartitionEnseignements.css";
 
 const RepartitionEnseignements = () => {
@@ -8,13 +8,13 @@ const RepartitionEnseignements = () => {
     // State for selectors
     const [maquettes, setMaquettes] = useState([]);
     const [selectedMaquetteId, setSelectedMaquetteId] = useState("");
+    const [enseignants, setEnseignants] = useState([]);
 
     // State for displayed data
     const [viewData, setViewData] = useState([]);
-    const [semesterTitle, setSemesterTitle] = useState("");
 
     // Data cache
-    const [allChoix, setAllChoix] = useState([]);
+    const [repartitions, setRepartitions] = useState([]);
 
     useEffect(() => {
         loadInitialData();
@@ -23,22 +23,17 @@ const RepartitionEnseignements = () => {
     const loadInitialData = async () => {
         try {
             setLoading(true);
-            const [maquettesRes, choixRes] = await Promise.all([
+            const [maquettesRes, enseignantsRes] = await Promise.all([
                 apiRequest(API_ENDPOINTS.MAQUETTES.LIST),
-                apiRequest(API_ENDPOINTS.CHOIX.LIST + "?size=1000") // Get all choices
+                apiRequest(API_ENDPOINTS.ENSEIGNANTS.LIST)
             ]);
 
             const maquettesData = maquettesRes.data || (Array.isArray(maquettesRes) ? maquettesRes : []);
             setMaquettes(maquettesData);
 
-            // Handle pagination for choices if necessary, assuming page 0 returns plenty or we need to loop.
-            // API returns PageResponseDTO usually.
-            const choixList = choixRes.content || choixRes || [];
-            setAllChoix(choixList);
+            const enseignantsData = enseignantsRes.data || (Array.isArray(enseignantsRes) ? enseignantsRes : []);
+            setEnseignants(enseignantsData);
 
-            if (maquettesData.length > 0) {
-                // Select defaults? Wait for user.
-            }
         } catch (err) {
             console.error("Erreur chargement:", err);
         } finally {
@@ -50,107 +45,156 @@ const RepartitionEnseignements = () => {
         const id = e.target.value;
         setSelectedMaquetteId(id);
         if (!id) {
-            setViewData([]); // Clear data if no maquette is selected
+            setViewData([]);
+            setRepartitions([]);
             return;
         }
 
+        fetchMaquetteDetails(id);
+    };
+
+    const fetchMaquetteDetails = async (maquetteId) => {
         setLoading(true);
         try {
-            // Fetch detailed maquette structure
-            const response = await apiRequest(API_ENDPOINTS.MAQUETTES.BY_ID(id));
-            const maquette = response.data || response;
+            // Recup detail maquette
+            const maquetteResponse = await apiRequest(API_ENDPOINTS.MAQUETTES.BY_ID(maquetteId));
+            const maquette = maquetteResponse.data || maquetteResponse;
+
+            // Recup repartitions existantes
+            const repartitionsResponse = await apiRequest(API_ENDPOINTS.REPARTITIONS.BY_MAQUETTE(maquetteId));
+            const existingRepartitions = repartitionsResponse.data || (Array.isArray(repartitionsResponse) ? repartitionsResponse : []);
+            setRepartitions(existingRepartitions);
 
             // Process structure
-            // We need to group by Semester and "Classe" (Maquette name acts as Class for now)
-            const processedData = [];
+            processViewData(maquette, existingRepartitions);
 
-            if (maquette.semestres && maquette.semestres.length > 0) {
-                // ... (existing logic) ...
-                maquette.semestres.forEach(sem => {
-                    // ... (existing processing) ...
-                    // Simplified restoration of logic for brevity in replace
-                    const uesRows = [];
-                    sem.ues?.forEach(ue => {
-                        ue.ecs?.forEach(ec => {
-                            const assignments = allChoix.filter(c => c.idEnseignement == ec.id || c.libelleEnseignement === ec.libelle);
-                            if (assignments.length === 0) {
-                                uesRows.push({
-                                    ue: `${ue.code} - ${ue.libelle}`,
-                                    credit: ue.credits,
-                                    duree: ue.vht,
-                                    cm: ec.cm,
-                                    td: ec.td,
-                                    tp: ec.tp,
-                                    enseignant: "NON ASSIGNÉ",
-                                    respTd: "",
-                                    respTp: "",
-                                    ecLibelle: ec.libelle
-                                });
-                            } else {
-                                assignments.forEach(assign => {
-                                    uesRows.push({
-                                        ue: `${ue.code} - ${ue.libelle}`,
-                                        credit: ue.credits,
-                                        duree: ue.vht,
-                                        cm: ec.cm,
-                                        td: ec.td,
-                                        tp: ec.tp,
-                                        enseignant: `${assign.prenomEnseignant} ${assign.nomEnseignant}`,
-                                        respTd: `${assign.prenomEnseignant} ${assign.nomEnseignant}`,
-                                        respTp: `${assign.prenomEnseignant} ${assign.nomEnseignant}`,
-                                        ecLibelle: ec.libelle
-                                    });
-                                });
-                            }
-                        });
-                    });
-                    if (uesRows.length > 0) {
-                        processedData.push({
-                            classe: maquette.libelle,
-                            effectif: "N/A",
-                            nbGroupe: 1,
-                            semestre: sem.numero,
-                            rows: uesRows
-                        });
-                    }
-                });
-                setViewData(processedData);
-            } else {
-                console.warn("No semesters found for maquette. Using Mock Data for visual fidelity.");
-                setViewData(mockRepartitions);
-            }
         } catch (err) {
             console.error("Erreur details maquette:", err);
-            // Fallback
-            setViewData(mockRepartitions);
+            // Fallback empty view
+            setViewData([]);
         } finally {
             setLoading(false);
         }
     };
 
-    // MOCK DATA matching Image 5
-    const mockRepartitions = [
-        {
-            classe: "Master 1 Génie Logiciel / R&S",
-            effectif: 20,
-            nbGroupe: 1,
-            semestre: 8, // Image says "Semestre 2" header but "8" in column? 
-            // Wait, image header is "Semestre 2" (big red text). Column 'Semestre' has '8'.
-            // M1 S2 is effectively S8 (L1, L2, L3 = 6 sem; M1 S1=7, M1 S2=8).
-            // I will set 'semestre' to 8 for the column, but title header uses 'semestre'.
-            rows: [
-                { ue: "Administration BD (GL)", ecLibelle: "", credit: 2, duree: 20, enseignant: "Serigne DIAGNE", cm: 10, respTd: "", respTp: "Serigne DIAGNE", td: 0, tp: 10 },
-                { ue: "Administration Réseaux (GL-RS)", ecLibelle: "", credit: 4, duree: 40, enseignant: "Youssou FAYE", cm: 20, respTd: "", respTp: "Youssou FAYE", td: 0, tp: 20 },
-                { ue: "Administration systèmes (GL-RS)", ecLibelle: "", credit: 4, duree: 40, enseignant: "XXX", cm: 20, respTd: "", respTp: "XXX", td: 0, tp: 20 },
-                { ue: "Formats et manipulation de données (GL-RS)", ecLibelle: "remplace XML", credit: 3, duree: 30, enseignant: "Ibrahima DIOP", cm: 10, respTd: "Ibrahima DIOP", respTp: "Ibrahima DIOP", td: 10, tp: 10 },
-                { ue: "Web services (GL)", ecLibelle: "remplace e-commerce", credit: 2, duree: 20, enseignant: "Ibrahima DIOP", cm: 10, respTd: "", respTp: "Ibrahima DIOP", td: 0, tp: 10 },
-                { ue: "Technologies du Web (GL)", ecLibelle: "", credit: 4, duree: 40, enseignant: "Ibrahima DIOP", cm: 10, respTd: "Ibrahima DIOP", respTp: "Ibrahima DIOP", td: 10, tp: 20 },
-                { ue: "Intelligence artificielle (GL)", ecLibelle: "", credit: 4, duree: 40, enseignant: "Khadim DRAME", cm: 15, respTd: "Khadim DRAME", respTp: "Khadim DRAME", td: 15, tp: 10 },
-                { ue: "Programmation Fonctionnelle: LISP(GL)", ecLibelle: "", credit: 2, duree: 20, enseignant: "Mouhamadou GAYE", cm: 10, respTd: "", respTp: "Mouhamadou GAYE", td: 0, tp: 10 },
-                { ue: "Développement mobile (GL-RS)", ecLibelle: "", credit: 3, duree: 30, enseignant: "Assane SECK", cm: 10, respTd: "", respTp: "Assane SECK", td: 0, tp: 20 },
-            ]
+    const processViewData = (maquette, currentRepartitions) => {
+        const processedData = [];
+
+        if (maquette.semestres && maquette.semestres.length > 0) {
+            maquette.semestres.forEach(sem => {
+                const uesRows = [];
+                sem.ues?.forEach(ue => {
+                    ue.ecs?.forEach(ec => {
+                        // Trouver les enseignants assignés pour chaque type
+                        const cmRep = currentRepartitions.find(r => r.ecId === ec.id && r.type === 'CM');
+                        const tdRep = currentRepartitions.find(r => r.ecId === ec.id && r.type === 'TD');
+                        const tpRep = currentRepartitions.find(r => r.ecId === ec.id && r.type === 'TP');
+
+                        uesRows.push({
+                            ueId: ue.id,
+                            ecId: ec.id,
+                            ueLibelle: `${ue.code} - ${ue.libelle}`,
+                            credit: ue.credits,
+                            duree: ue.vht,
+                            cm: ec.cm,
+                            td: ec.td,
+                            tp: ec.tp,
+                            // Assignment Info
+                            cmEnseignant: cmRep ? getEnseignantName(cmRep.enseignantId) : null,
+                            cmEnseignantId: cmRep ? cmRep.enseignantId : null,
+                            cmRepId: cmRep ? cmRep.id : null,
+
+                            tdEnseignant: tdRep ? getEnseignantName(tdRep.enseignantId) : null,
+                            tdEnseignantId: tdRep ? tdRep.enseignantId : null,
+                            tdRepId: tdRep ? tdRep.id : null,
+
+                            tpEnseignant: tpRep ? getEnseignantName(tpRep.enseignantId) : null,
+                            tpEnseignantId: tpRep ? tpRep.enseignantId : null,
+                            tpRepId: tpRep ? tpRep.id : null,
+
+                            ecLibelle: ec.libelle
+                        });
+                    });
+                });
+
+                if (uesRows.length > 0) {
+                    processedData.push({
+                        classe: maquette.libelle,
+                        effectif: "N/A", // Default
+                        nbGroupe: 1,     // Default
+                        semestre: sem.numero,
+                        rows: uesRows
+                    });
+                }
+            });
+            setViewData(processedData);
         }
-    ];
+    };
+
+    const getEnseignantName = (id) => {
+        const ens = enseignants.find(e => e.id === id);
+        return ens ? `${ens.prenom} ${ens.nom}` : "Inconnu";
+    };
+
+    const handleAssignmentChange = async (ecId, type, enseignantId, currentRepId, semestre) => {
+        if (!selectedMaquetteId) return;
+
+        try {
+            if (currentRepId) {
+                // Si une répartition existe déjà
+                if (!enseignantId || enseignantId === "") {
+                    // Suppression si "Aucun" sélectionné
+                    await api.delete(API_ENDPOINTS.REPARTITIONS.DELETE(currentRepId));
+                } else {
+                    // Modification
+                    await api.put(API_ENDPOINTS.REPARTITIONS.UPDATE(currentRepId), {
+                        id: currentRepId,
+                        ueId: 0, // Pas nécessaire pour update service mais requis par DTO si strict
+                        ecId: ecId,
+                        maquetteId: selectedMaquetteId,
+                        semestre: semestre,
+                        enseignantId: enseignantId,
+                        type: type,
+                        nombreGroupes: 1
+                    });
+                }
+            } else {
+                // Création
+                if (enseignantId && enseignantId !== "") {
+                    // Need UE ID? usually EC is enough but checking entity model... 
+                    // Entity has ueId Not Null. We need to find the UE ID from viewData.
+                    // But simpler to just refresh or pass it in args.
+                    // Le backend attend ueId. On va le chercher dans viewData ou le passer.
+                    const row = findRowByEcId(ecId);
+
+                    await api.post(API_ENDPOINTS.REPARTITIONS.CREATE, {
+                        ueId: row ? row.ueId : 0,
+                        ecId: ecId,
+                        maquetteId: selectedMaquetteId,
+                        semestre: semestre,
+                        enseignantId: enseignantId,
+                        type: type,
+                        nombreGroupes: 1
+                    });
+                }
+            }
+
+            // Refresh
+            fetchMaquetteDetails(selectedMaquetteId);
+
+        } catch (err) {
+            console.error("Erreur lors de l'assignation:", err);
+            alert("Erreur lors de l'enregistrement : " + err.message);
+        }
+    };
+
+    const findRowByEcId = (ecId) => {
+        for (const group of viewData) {
+            const row = group.rows.find(r => r.ecId === ecId);
+            if (row) return row;
+        }
+        return null;
+    };
 
     return (
         <div className="repartition-container">
@@ -189,12 +233,12 @@ const RepartitionEnseignements = () => {
                                     <th>Unité d'Enseignement</th>
                                     <th>Crédit</th>
                                     <th>Durée Cours</th>
-                                    <th>Enseignant</th>
-                                    <th>CM</th>
+                                    <th>Enseignant (CM)</th>
+                                    <th>CM (h)</th>
                                     <th>Responsables TD</th>
                                     <th>Responsables TP</th>
-                                    <th>Travaux Dirigés</th>
-                                    <th>Travaux Pratiques</th>
+                                    <th>TD (h)</th>
+                                    <th>TP (h)</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -209,15 +253,55 @@ const RepartitionEnseignements = () => {
                                         )}
                                         <td>{group.semestre}</td>
                                         <td className="ue-cell">
-                                            {row.ue} <br />
+                                            {row.ueLibelle} <br />
                                             <span style={{ fontSize: '0.8em', color: '#666' }}>({row.ecLibelle})</span>
                                         </td>
                                         <td className="bold">{row.credit}</td>
                                         <td>{row.duree}</td>
-                                        <td className={row.enseignant === "NON ASSIGNÉ" ? "red-text bold" : "bold"}>{row.enseignant}</td>
+
+                                        {/* CM COLUMN */}
+                                        <td className="editable-cell">
+                                            {row.cm > 0 ? (
+                                                <select
+                                                    className="teacher-select"
+                                                    value={row.cmEnseignantId || ""}
+                                                    onChange={(e) => handleAssignmentChange(row.ecId, 'CM', e.target.value, row.cmRepId, group.semestre)}
+                                                >
+                                                    <option value="">Non Assigné</option>
+                                                    {enseignants.map(e => <option key={e.id} value={e.id}>{e.prenom} {e.nom}</option>)}
+                                                </select>
+                                            ) : "-"}
+                                        </td>
                                         <td className="bold">{row.cm}</td>
-                                        <td className="resp-cell">{row.respTd}</td>
-                                        <td className="resp-text-red">{row.respTp}</td>
+
+                                        {/* TD COLUMN */}
+                                        <td className="editable-cell">
+                                            {row.td > 0 ? (
+                                                <select
+                                                    className="teacher-select"
+                                                    value={row.tdEnseignantId || ""}
+                                                    onChange={(e) => handleAssignmentChange(row.ecId, 'TD', e.target.value, row.tdRepId, group.semestre)}
+                                                >
+                                                    <option value="">Non Assigné</option>
+                                                    {enseignants.map(e => <option key={e.id} value={e.id}>{e.prenom} {e.nom}</option>)}
+                                                </select>
+                                            ) : "-"}
+                                        </td>
+
+                                        {/* TP COLUMN */}
+                                        <td className="editable-cell">
+                                            {row.tp > 0 ? (
+                                                <select
+                                                    className="teacher-select"
+                                                    value={row.tpEnseignantId || ""}
+                                                    onChange={(e) => handleAssignmentChange(row.ecId, 'TP', e.target.value, row.tpRepId, group.semestre)}
+                                                >
+                                                    <option value="">Non Assigné</option>
+                                                    {enseignants.map(e => <option key={e.id} value={e.id}>{e.prenom} {e.nom}</option>)}
+                                                </select>
+                                            ) : "-"}
+                                        </td>
+
                                         <td>{row.td}</td>
                                         <td>{row.tp}</td>
                                     </tr>

@@ -22,7 +22,7 @@ public class ECService {
         return ecRepository.findByArchive(true);
     }
 
-    public EC getECById(Long id) {
+    public EC getECById(long id) {
         return ecRepository.findById(id).orElse(null);
     }
 
@@ -34,7 +34,7 @@ public class ECService {
     }
 
     @Transactional
-    public EC updateEC(Long id, EC ecDetails) {
+    public EC updateEC(long id, EC ecDetails) {
         EC ec = getECById(id);
         if (ec != null) {
             ec.setCode(ecDetails.getCode());
@@ -50,7 +50,7 @@ public class ECService {
     }
 
     @Transactional
-    public void activateEC(Long id) {
+    public void activateEC(long id) {
         EC ec = getECById(id);
         if (ec != null) {
             ec.setActif(true);
@@ -59,7 +59,7 @@ public class ECService {
     }
 
     @Transactional
-    public void deactivateEC(Long id) {
+    public void deactivateEC(long id) {
         EC ec = getECById(id);
         if (ec != null) {
             ec.setActif(false);
@@ -68,7 +68,7 @@ public class ECService {
     }
 
     @Transactional
-    public void archiveEC(Long id) {
+    public void archiveEC(long id) {
         EC ec = getECById(id);
         if (ec != null) {
             ec.setArchive(true);
@@ -78,7 +78,7 @@ public class ECService {
     }
 
     @Transactional
-    public void unarchiveEC(Long id) {
+    public void unarchiveEC(long id) {
         EC ec = getECById(id);
         if (ec != null) {
             ec.setArchive(false);

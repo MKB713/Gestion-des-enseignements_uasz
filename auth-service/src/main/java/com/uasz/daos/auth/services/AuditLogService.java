@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
+@SuppressWarnings("null")
 public class AuditLogService {
 
     private final AuditLogRepository auditLogRepository;
@@ -21,7 +22,8 @@ public class AuditLogService {
     }
 
     @Transactional
-    public void logAction(Utilisateur utilisateur, String action, String ressource, ResultatAction resultat, String details) {
+    public void logAction(Utilisateur utilisateur, String action, String ressource, ResultatAction resultat,
+            String details) {
         AuditLog log = new AuditLog();
         log.setUtilisateur(utilisateur);
         log.setAction(action);
@@ -33,7 +35,7 @@ public class AuditLogService {
 
     @Transactional
     public void logActionWithRequest(Utilisateur utilisateur, String action, String ressource,
-                                     ResultatAction resultat, String details, HttpServletRequest request) {
+            ResultatAction resultat, String details, HttpServletRequest request) {
         AuditLog log = new AuditLog();
         log.setUtilisateur(utilisateur);
         log.setAction(action);

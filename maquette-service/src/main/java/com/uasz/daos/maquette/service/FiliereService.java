@@ -18,7 +18,7 @@ public class FiliereService {
         return filiereRepository.findAll();
     }
 
-    public Filiere getFiliereById(Long id) {
+    public Filiere getFiliereById(long id) {
         return filiereRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Filière introuvable"));
     }
@@ -44,11 +44,12 @@ public class FiliereService {
     }
 
     @Transactional
-    public void delete(Long id) {
-        Filiere filiere = getFiliereById(id);
+    public void delete(long id) {
+
         // Vérifier si la filière est utilisée dans des formations
         // if (!filiere.getFormations().isEmpty()) {
-        //     throw new IllegalStateException("Impossible de supprimer cette filière car elle est utilisée dans des formations.");
+        // throw new IllegalStateException("Impossible de supprimer cette filière car
+        // elle est utilisée dans des formations.");
         // }
         filiereRepository.deleteById(id);
     }

@@ -7,11 +7,9 @@ import com.uasz.daos.auth.repository.PasswordResetTokenRepository;
 import com.uasz.daos.auth.repository.UtilisateurRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
 import java.util.Optional;
-import java.util.UUID;
+
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class PasswordResetService {
@@ -23,10 +21,10 @@ public class PasswordResetService {
     private final AuditLogService auditLogService;
 
     public PasswordResetService(UtilisateurRepository utilisateurRepository,
-                                PasswordResetTokenRepository tokenRepository,
-                                MailService mailService,
-                                PasswordEncoder passwordEncoder,
-                                AuditLogService auditLogService) {
+            PasswordResetTokenRepository tokenRepository,
+            MailService mailService,
+            PasswordEncoder passwordEncoder,
+            AuditLogService auditLogService) {
         this.utilisateurRepository = utilisateurRepository;
         this.tokenRepository = tokenRepository;
         this.mailService = mailService;
@@ -80,7 +78,7 @@ public class PasswordResetService {
 
     @Transactional
     public boolean resetPassword(String tokenValue, String newPassword, String confirmPassword,
-                                 String ipAddress, String userAgent) {
+            String ipAddress, String userAgent) {
 
         if (!newPassword.equals(confirmPassword)) {
             return false;
@@ -135,15 +133,19 @@ public class PasswordResetService {
 
     private boolean isPasswordStrong(String password) {
         // Au moins 8 caractères
-        if (password.length() < 8) return false;
+        if (password.length() < 8)
+            return false;
 
         // Contient au moins une majuscule, une minuscule, un chiffre
         boolean hasUpper = false, hasLower = false, hasDigit = false;
 
         for (char c : password.toCharArray()) {
-            if (Character.isUpperCase(c)) hasUpper = true;
-            else if (Character.isLowerCase(c)) hasLower = true;
-            else if (Character.isDigit(c)) hasDigit = true;
+            if (Character.isUpperCase(c))
+                hasUpper = true;
+            else if (Character.isLowerCase(c))
+                hasLower = true;
+            else if (Character.isDigit(c))
+                hasDigit = true;
         }
 
         return hasUpper && hasLower && hasDigit;

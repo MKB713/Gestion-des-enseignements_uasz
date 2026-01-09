@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
+@SuppressWarnings("null")
 public class NoteCahierTexteService {
 
     @Autowired
@@ -34,7 +35,7 @@ public class NoteCahierTexteService {
     /**
      * Récupère une note par son ID
      */
-    public NoteCahierTexte getNoteById(Long id) {
+    public NoteCahierTexte getNoteById(long id) {
         return noteCahierTexteRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Note non trouvée avec l'ID : " + id));
     }
@@ -77,7 +78,7 @@ public class NoteCahierTexteService {
      * CRITERE : Seules les notes non validées peuvent être modifiées
      */
     @Transactional
-    public NoteCahierTexte modifierNote(Long id, NoteCahierTexteDTO noteDTO) {
+    public NoteCahierTexte modifierNote(long id, NoteCahierTexteDTO noteDTO) {
         NoteCahierTexte note = getNoteById(id);
 
         // VERIFICATION : Seules les notes non validées peuvent être modifiées
@@ -87,45 +88,56 @@ public class NoteCahierTexteService {
 
         // Enregistrer l'historique pour chaque modification
         // Modification du titre
-        if (noteDTO.getTitre() != null && !noteDTO.getTitre().trim().isEmpty() && !noteDTO.getTitre().equals(note.getTitre())) {
-            enregistrerHistorique(note, "MODIFICATION", "titre", note.getTitre(), noteDTO.getTitre(), noteDTO.getEnseignantId());
+        if (noteDTO.getTitre() != null && !noteDTO.getTitre().trim().isEmpty()
+                && !noteDTO.getTitre().equals(note.getTitre())) {
+            enregistrerHistorique(note, "MODIFICATION", "titre", note.getTitre(), noteDTO.getTitre(),
+                    noteDTO.getEnseignantId());
             note.setTitre(noteDTO.getTitre());
         }
 
         // Modification du contenu
-        if (noteDTO.getContenu() != null && !noteDTO.getContenu().trim().isEmpty() && !noteDTO.getContenu().equals(note.getContenu())) {
-            enregistrerHistorique(note, "MODIFICATION", "contenu", note.getContenu(), noteDTO.getContenu(), noteDTO.getEnseignantId());
+        if (noteDTO.getContenu() != null && !noteDTO.getContenu().trim().isEmpty()
+                && !noteDTO.getContenu().equals(note.getContenu())) {
+            enregistrerHistorique(note, "MODIFICATION", "contenu", note.getContenu(), noteDTO.getContenu(),
+                    noteDTO.getEnseignantId());
             note.setContenu(noteDTO.getContenu());
         }
 
         // Modification de la séance (utilisation de l'ID uniquement)
         if (noteDTO.getSeanceId() != null && !noteDTO.getSeanceId().equals(note.getSeanceId())) {
             String ancienneSeanceId = note.getSeanceId() != null ? note.getSeanceId().toString() : "Aucune";
-            enregistrerHistorique(note, "MODIFICATION", "seance", ancienneSeanceId, noteDTO.getSeanceId().toString(), noteDTO.getEnseignantId());
+            enregistrerHistorique(note, "MODIFICATION", "seance", ancienneSeanceId, noteDTO.getSeanceId().toString(),
+                    noteDTO.getEnseignantId());
             note.setSeanceId(noteDTO.getSeanceId());
         }
 
         // Modification des objectifs pédagogiques
-        if (noteDTO.getObjectifsPedagogiques() != null && !noteDTO.getObjectifsPedagogiques().equals(note.getObjectifsPedagogiques())) {
-            enregistrerHistorique(note, "MODIFICATION", "objectifsPedagogiques", note.getObjectifsPedagogiques(), noteDTO.getObjectifsPedagogiques(), noteDTO.getEnseignantId());
+        if (noteDTO.getObjectifsPedagogiques() != null
+                && !noteDTO.getObjectifsPedagogiques().equals(note.getObjectifsPedagogiques())) {
+            enregistrerHistorique(note, "MODIFICATION", "objectifsPedagogiques", note.getObjectifsPedagogiques(),
+                    noteDTO.getObjectifsPedagogiques(), noteDTO.getEnseignantId());
         }
         note.setObjectifsPedagogiques(noteDTO.getObjectifsPedagogiques());
 
         // Modification des activités réalisées
-        if (noteDTO.getActivitesRealisees() != null && !noteDTO.getActivitesRealisees().equals(note.getActivitesRealisees())) {
-            enregistrerHistorique(note, "MODIFICATION", "activitesRealisees", note.getActivitesRealisees(), noteDTO.getActivitesRealisees(), noteDTO.getEnseignantId());
+        if (noteDTO.getActivitesRealisees() != null
+                && !noteDTO.getActivitesRealisees().equals(note.getActivitesRealisees())) {
+            enregistrerHistorique(note, "MODIFICATION", "activitesRealisees", note.getActivitesRealisees(),
+                    noteDTO.getActivitesRealisees(), noteDTO.getEnseignantId());
         }
         note.setActivitesRealisees(noteDTO.getActivitesRealisees());
 
         // Modification du travail demandé
         if (noteDTO.getTravailDemande() != null && !noteDTO.getTravailDemande().equals(note.getTravailDemande())) {
-            enregistrerHistorique(note, "MODIFICATION", "travailDemande", note.getTravailDemande(), noteDTO.getTravailDemande(), noteDTO.getEnseignantId());
+            enregistrerHistorique(note, "MODIFICATION", "travailDemande", note.getTravailDemande(),
+                    noteDTO.getTravailDemande(), noteDTO.getEnseignantId());
         }
         note.setTravailDemande(noteDTO.getTravailDemande());
 
         // Modification des observations
         if (noteDTO.getObservations() != null && !noteDTO.getObservations().equals(note.getObservations())) {
-            enregistrerHistorique(note, "MODIFICATION", "observations", note.getObservations(), noteDTO.getObservations(), noteDTO.getEnseignantId());
+            enregistrerHistorique(note, "MODIFICATION", "observations", note.getObservations(),
+                    noteDTO.getObservations(), noteDTO.getEnseignantId());
         }
         note.setObservations(noteDTO.getObservations());
 
@@ -138,7 +150,7 @@ public class NoteCahierTexteService {
      * Enregistre une modification dans l'historique
      */
     private void enregistrerHistorique(NoteCahierTexte note, String typeModification, String champModifie,
-                                      String ancienneValeur, String nouvelleValeur, Long enseignantId) {
+            String ancienneValeur, String nouvelleValeur, Long enseignantId) {
         HistoriqueModificationNote historique = new HistoriqueModificationNote();
         historique.setNote(note);
         historique.setTypeModification(typeModification);
@@ -159,7 +171,7 @@ public class NoteCahierTexteService {
      * Valide une note
      */
     @Transactional
-    public NoteCahierTexte validerNote(Long id) {
+    public NoteCahierTexte validerNote(long id) {
         NoteCahierTexte note = getNoteById(id);
         note.setEstValide(true);
         note.setDateModification(LocalDateTime.now());
@@ -188,10 +200,12 @@ public class NoteCahierTexteService {
 
     /**
      * Récupère les notes par classe
-     * Note: Seance n'a pas de relation avec Classe, donc retourne une liste vide pour l'instant
+     * Note: Seance n'a pas de relation avec Classe, donc retourne une liste vide
+     * pour l'instant
      */
     public List<NoteCahierTexte> getNotesByClasse(Long classeId) {
-        // TODO: Implémenter la logique correcte si Seance doit avoir une relation avec Classe
+        // TODO: Implémenter la logique correcte si Seance doit avoir une relation avec
+        // Classe
         return new java.util.ArrayList<>();
     }
 
@@ -199,7 +213,7 @@ public class NoteCahierTexteService {
      * Supprime une note
      */
     @Transactional
-    public void supprimerNote(Long id) {
+    public void supprimerNote(long id) {
         NoteCahierTexte note = getNoteById(id);
         noteCahierTexteRepository.delete(note);
     }

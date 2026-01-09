@@ -1,8 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { ChevronLeft, ChevronRight, Filter, Download, MapPin, User, Clock } from 'lucide-react';
 import './Timetable.css';
 
-const TIMES = Array.from({ length: 14 }, (_, i) => i + 8); // 8h to 21h
+const TIMES = Array.from({ length: 13 }, (_, i) => i + 8); // 8h to 20h
+
+const DAYS_MAP = {
+    "MONDAY": 0,
+    "TUESDAY": 1,
+    "WEDNESDAY": 2,
+    "THURSDAY": 3,
+    "FRIDAY": 4,
+    "SATURDAY": 5,
+    "SUNDAY": 6
+};
 
 const Timetable = ({ events = [], weekStart, onWeekChange, onFilter, onExport }) => {
     // Current date state for navigation
@@ -15,8 +25,8 @@ const Timetable = ({ events = [], weekStart, onWeekChange, onFilter, onExport })
     }, [weekStart]);
 
     // Generate days for the current week header
-    const getDaysOfWeek = (date) => {
-        const start = new Date(date);
+    const daysOfWeek = useMemo(() => {
+        const start = new Date(currentDate);
         const day = start.getDay();
         const diff = start.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is sunday
         const startOfWeek = new Date(start.setDate(diff));
@@ -28,9 +38,7 @@ const Timetable = ({ events = [], weekStart, onWeekChange, onFilter, onExport })
             days.push(d);
         }
         return days;
-    };
-
-    const daysOfWeek = getDaysOfWeek(currentDate);
+    }, [currentDate]);
 
     const handlePrevWeek = () => {
         const newDate = new Date(currentDate);
@@ -46,17 +54,22 @@ const Timetable = ({ events = [], weekStart, onWeekChange, onFilter, onExport })
         if (onWeekChange) onWeekChange(newDate);
     };
 
-    const formatDate = (date) => {
-        return date.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'numeric' });
-    };
-
     // Calculate grid position
     // event: { dateSeance: "2024-01-01", heureDebut: "08:00", heureFin: "10:00", ... }
     const getPosition = (event) => {
-        if (!event.dateSeance || !event.heureDebut || !event.heureFin) return null;
+        if ((!event.dateSeance && !event.jour) || !event.heureDebut || !event.heureFin) return null;
 
-        const eventDate = new Date(event.dateSeance);
-        const dayIndex = daysOfWeek.findIndex(d => d.toDateString() === eventDate.toDateString());
+        let dayIndex = -1;
+
+        if (event.dateSeance) {
+            const eventDate = new Date(event.dateSeance);
+            dayIndex = daysOfWeek.findIndex(d => d.toDateString() === eventDate.toDateString());
+        } else if (event.jour) {
+            // If the day is within the view (Mon-Sat usually)
+            if (DAYS_MAP[event.jour] !== undefined && DAYS_MAP[event.jour] < daysOfWeek.length) {
+                dayIndex = DAYS_MAP[event.jour];
+            }
+        }
 
         if (dayIndex === -1) return null; // Event not in this week
 
@@ -67,17 +80,17 @@ const Timetable = ({ events = [], weekStart, onWeekChange, onFilter, onExport })
         const endHour = endH + (endM / 60);
         const duration = endHour - startHour;
 
-        // Grid rows: 8am is Row 2.
-        // 1 hour = 1 unit? CSS Grid usually integer rows.
-        // If we want detailed grid, we need minute granularity.
-        // Simplified: 1 Row = 1 Hour.
-        // Top calculation: (startHour - 8) + 2.
-
+        // VERTICAL LAYOUT: Days are columns, hours are rows
+        // Day index determines column (column 2+ for days)
+        // Hour determines row (row 2+ for hours starting at 8:00)
+        const colStart = dayIndex + 2;
         const rowStart = Math.floor(startHour - 8) + 2;
+
+        // duration corresponds to height (row span)
         const rowSpan = Math.max(1, Math.ceil(duration));
 
         return {
-            gridColumn: `${dayIndex + 2} / span 1`,
+            gridColumn: `${colStart} / span 1`,
             gridRow: `${rowStart} / span ${rowSpan}`,
         };
     };
@@ -90,8 +103,8 @@ const Timetable = ({ events = [], weekStart, onWeekChange, onFilter, onExport })
                         Semaine du {daysOfWeek[0].toLocaleDateString('fr-FR')}
                     </h2>
                     <div className="flex gap-2">
-                        <button className="btn btn-icon" onClick={handlePrevWeek}><ChevronLeft size={20} /></button>
-                        <button className="btn btn-icon" onClick={handleNextWeek}><ChevronRight size={20} /></button>
+                        <button className="btn btn-icon" onClick={handlePrevWeek} aria-label="Semaine passée"><ChevronLeft size={20} /></button>
+                        <button className="btn btn-icon" onClick={handleNextWeek} aria-label="Semaine suivante"><ChevronRight size={20} /></button>
                     </div>
                 </div>
                 <div className="timetable-controls">
@@ -103,6 +116,7 @@ const Timetable = ({ events = [], weekStart, onWeekChange, onFilter, onExport })
                         <Download size={18} className="mr-2" />
                         Exporter
                     </button>
+                    <div className="hidden-controls" style={{ display: 'none' }}></div>
                 </div>
             </div>
 
@@ -111,26 +125,32 @@ const Timetable = ({ events = [], weekStart, onWeekChange, onFilter, onExport })
                 <div className="header-cell"></div>
                 {daysOfWeek.map((day, index) => (
                     <div key={index} className={`header-cell ${day.toDateString() === new Date().toDateString() ? 'today' : ''}`}>
-                        <div style={{ textTransform: 'capitalize' }}>{day.toLocaleDateString('fr-FR', { weekday: 'long' })}</div>
-                        <div style={{ fontSize: '0.8em', opacity: 0.7 }}>{day.getDate()}</div>
+                        <div style={{ textTransform: 'capitalize' }}>
+                            {day.toLocaleDateString('fr-FR', { weekday: 'long' })}
+                            <span style={{ marginLeft: '8px', opacity: 0.7, fontSize: '0.9em' }}>{day.getDate()}</span>
+                        </div>
                     </div>
                 ))}
 
-                {/* Time Cells */}
-                {TIMES.map((time) => (
-                    <div key={time} className="time-cell" style={{ gridRow: `${time - 8 + 2} / span 1`, gridColumn: '1 / span 1' }}>
+                {/* Time Cells (First Column) */}
+                {TIMES.map((time, timeIndex) => (
+                    <div
+                        key={timeIndex}
+                        className="time-cell"
+                        style={{ gridRow: `${timeIndex + 2} / span 1`, gridColumn: '1 / span 1' }}
+                    >
                         {time}:00
                     </div>
                 ))}
 
                 {/* Grid Background Cells */}
-                {TIMES.map((time) => (
+                {TIMES.map((_, timeIndex) => (
                     daysOfWeek.map((_, dayIndex) => (
                         <div
-                            key={`${time}-${dayIndex}`}
+                            key={`${timeIndex}-${dayIndex}`}
                             className="grid-cell"
                             style={{
-                                gridRow: `${time - 8 + 2} / span 1`,
+                                gridRow: `${timeIndex + 2} / span 1`,
                                 gridColumn: `${dayIndex + 2} / span 1`
                             }}
                         />

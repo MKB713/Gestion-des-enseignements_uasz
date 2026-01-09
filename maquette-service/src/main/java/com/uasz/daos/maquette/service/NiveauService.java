@@ -20,7 +20,7 @@ public class NiveauService {
         return niveauRepository.findAll();
     }
 
-    public Optional<Niveau> getNiveauById(Long id) {
+    public Optional<Niveau> getNiveauById(long id) {
         return niveauRepository.findById(id);
     }
 
@@ -75,7 +75,7 @@ public class NiveauService {
     }
 
     @Transactional
-    public void deleteNiveau(Long id) {
+    public void deleteNiveau(long id) {
         Niveau niveau = niveauRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Niveau introuvable"));
 

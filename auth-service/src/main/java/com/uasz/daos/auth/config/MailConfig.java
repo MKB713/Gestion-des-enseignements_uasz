@@ -23,39 +23,48 @@ public class MailConfig {
     public JavaMailSender javaMailSender() {
         return new JavaMailSender() {
             @Override
+            @SuppressWarnings("null")
             public MimeMessage createMimeMessage() {
                 return null;
             }
 
             @Override
-            public MimeMessage createMimeMessage(InputStream contentStream) throws MailException {
+            @SuppressWarnings("null")
+            public MimeMessage createMimeMessage(@org.springframework.lang.NonNull InputStream contentStream)
+                    throws MailException {
                 return null;
             }
 
             @Override
-            public void send(MimeMessage mimeMessage) throws MailException {
+            public void send(@org.springframework.lang.NonNull MimeMessage mimeMessage) throws MailException {
                 System.out.println("📧 [MOCK MAIL] Email HTML non envoyé (mode développement)");
             }
 
             @Override
-            public void send(MimeMessage... mimeMessages) throws MailException {
-                System.out.println("📧 [MOCK MAIL] " + mimeMessages.length + " emails HTML non envoyés (mode développement)");
+            public void send(@org.springframework.lang.NonNull MimeMessage... mimeMessages) throws MailException {
+                System.out.println(
+                        "📧 [MOCK MAIL] " + mimeMessages.length + " emails HTML non envoyés (mode développement)");
             }
 
             @Override
-            public void send(MimeMessagePreparator mimeMessagePreparator) throws MailException {
+            public void send(@org.springframework.lang.NonNull MimeMessagePreparator mimeMessagePreparator)
+                    throws MailException {
                 System.out.println("📧 [MOCK MAIL] Email HTML non envoyé (mode développement)");
             }
 
             @Override
-            public void send(MimeMessagePreparator... mimeMessagePreparators) throws MailException {
-                System.out.println("📧 [MOCK MAIL] " + mimeMessagePreparators.length + " emails HTML non envoyés (mode développement)");
+            public void send(@org.springframework.lang.NonNull MimeMessagePreparator... mimeMessagePreparators)
+                    throws MailException {
+                System.out.println("📧 [MOCK MAIL] " + mimeMessagePreparators.length
+                        + " emails HTML non envoyés (mode développement)");
             }
 
             @Override
-            public void send(SimpleMailMessage simpleMessage) throws MailException {
+            @SuppressWarnings("null")
+            public void send(@org.springframework.lang.NonNull SimpleMailMessage simpleMessage) throws MailException {
                 System.out.println("📧 [MOCK MAIL] Email simulé :");
-                System.out.println("   De      : " + (simpleMessage.getFrom() != null ? simpleMessage.getFrom() : "noreply@uasz.sn"));
+                System.out.println("   De      : "
+                        + (simpleMessage.getFrom() != null ? simpleMessage.getFrom() : "noreply@uasz.sn"));
                 System.out.println("   À       : " + String.join(", ", simpleMessage.getTo()));
                 System.out.println("   Sujet   : " + simpleMessage.getSubject());
                 System.out.println("   Message : " + simpleMessage.getText());
@@ -63,7 +72,9 @@ public class MailConfig {
             }
 
             @Override
-            public void send(SimpleMailMessage... simpleMessages) throws MailException {
+            @SuppressWarnings("null")
+            public void send(@org.springframework.lang.NonNull SimpleMailMessage... simpleMessages)
+                    throws MailException {
                 for (SimpleMailMessage message : simpleMessages) {
                     send(message);
                 }

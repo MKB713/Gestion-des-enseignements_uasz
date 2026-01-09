@@ -133,7 +133,7 @@ function App() {
               <Route path="/admin/cahier-texte" element={<AdminCahierTexte />} />
               <Route path="/admin/etudiants" element={<AdminEtudiants />} />
               <Route path="/admin/deroulement-classes" element={<AdminDeroulementClasses />} />
-              <Route path="/admin/repartition" element={<PrivateRoute role="ADMIN"><RepartitionEnseignements /></PrivateRoute>} />
+              <Route path="/admin/repartition" element={<RepartitionEnseignements />} />
               <Route path="/admin/*" element={<AdminDashboard />} />
             </Route>
 

@@ -28,15 +28,13 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/eureka/**").permitAll()   // ✅ OBLIGATOIRE
+                        .requestMatchers("/eureka/**").permitAll() // ✅ OBLIGATOIRE
                         .requestMatchers("/actuator/**").permitAll()
-                        .anyRequest().authenticated()
-                )
-                .httpBasic();
+                        .anyRequest().authenticated())
+                .httpBasic(org.springframework.security.config.Customizer.withDefaults());
 
         return http.build();
     }
-
 
     @Bean
     public UserDetailsService userDetailsService() {

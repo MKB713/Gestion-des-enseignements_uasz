@@ -1,7 +1,9 @@
 package com.uasz.daos.maquette.service;
 
 import com.uasz.daos.maquette.model.Module;
+import com.uasz.daos.maquette.model.UE;
 import com.uasz.daos.maquette.repository.ModuleRepository;
+import com.uasz.daos.maquette.repository.UERepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,6 +16,9 @@ public class ModuleService {
 
     @Autowired
     private ModuleRepository moduleRepository;
+
+    @Autowired
+    private UERepository ueRepository;
 
     // --- LECTURE ---
 
@@ -31,7 +36,7 @@ public class ModuleService {
                 .collect(Collectors.toList());
     }
 
-    public Module getModuleById(Long id) {
+    public Module getModuleById(long id) {
         return moduleRepository.findById(id).orElse(null);
     }
 
@@ -39,18 +44,37 @@ public class ModuleService {
 
     @Transactional
     public Module addModule(Module module) {
+        // Valider et charger l'UE si elle est spécifiée
+        if (module.getUe() != null && module.getUe().getId() != null) {
+            UE ue = ueRepository.findById(module.getUe().getId())
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "UE avec l'ID " + module.getUe().getId() + " n'existe pas"));
+            module.setUe(ue);
+        }
+
         module.setArchive(false); // Toujours actif à la création
         return moduleRepository.save(module);
     }
 
     @Transactional
-    public Module updateModule(Long id, Module moduleDetails) {
+    public Module updateModule(long id, Module moduleDetails) {
         Module module = getModuleById(id);
         if (module != null) {
             module.setCode(moduleDetails.getCode());
             module.setLibelle(moduleDetails.getLibelle());
             module.setCycle(moduleDetails.getCycle());
             module.setNiveau(moduleDetails.getNiveau());
+
+            // Mettre à jour l'UE si spécifiée
+            if (moduleDetails.getUe() != null && moduleDetails.getUe().getId() != null) {
+                UE ue = ueRepository.findById(moduleDetails.getUe().getId())
+                        .orElseThrow(() -> new IllegalArgumentException(
+                                "UE avec l'ID " + moduleDetails.getUe().getId() + " n'existe pas"));
+                module.setUe(ue);
+            } else {
+                module.setUe(null);
+            }
+
             // On ne touche pas à l'état archive ici
             return moduleRepository.save(module);
         }
@@ -60,7 +84,7 @@ public class ModuleService {
     // --- GESTION DES ÉTATS (ARCHIVAGE) ---
 
     @Transactional
-    public void archiveModule(Long id) {
+    public void archiveModule(long id) {
         Module module = getModuleById(id);
         if (module != null) {
             module.setArchive(true);
@@ -69,7 +93,7 @@ public class ModuleService {
     }
 
     @Transactional
-    public void unarchiveModule(Long id) {
+    public void unarchiveModule(long id) {
         Module module = getModuleById(id);
         if (module != null) {
             module.setArchive(false);

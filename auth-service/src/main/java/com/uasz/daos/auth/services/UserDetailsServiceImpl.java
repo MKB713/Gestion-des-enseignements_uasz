@@ -12,13 +12,14 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 
 @Service
+@SuppressWarnings("null")
 public class UserDetailsServiceImpl implements UserDetailsService {
 
     private final UtilisateurRepository utilisateurRepository;
     private final EnseignantRepository enseignantRepository;
 
     public UserDetailsServiceImpl(UtilisateurRepository utilisateurRepository,
-                                  EnseignantRepository enseignantRepository) {
+            EnseignantRepository enseignantRepository) {
         this.utilisateurRepository = utilisateurRepository;
         this.enseignantRepository = enseignantRepository;
     }

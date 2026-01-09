@@ -2,7 +2,7 @@ package com.uasz.daos.enseignant.service;
 
 import com.uasz.daos.enseignant.dto.CoordinateurDTO;
 import com.uasz.daos.enseignant.model.Coordinateur;
-import com.uasz.daos.enseignant.model.Enseignant;
+
 import com.uasz.daos.enseignant.repository.CoordinateurRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -13,13 +13,13 @@ import java.util.List;
 
 @Service
 @Transactional
+@SuppressWarnings("null")
 public class CoordinateurService {
 
     @Autowired
     private CoordinateurRepository coordinateurRepository;
 
     @Autowired
-    private EnseignantService enseignantService;
 
     /**
      * Récupère tous les coordinateurs
@@ -31,7 +31,7 @@ public class CoordinateurService {
     /**
      * Récupère un coordinateur par son ID
      */
-    public Coordinateur getCoordinateurById(Long id) {
+    public Coordinateur getCoordinateurById(long id) {
         return coordinateurRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Coordinateur non trouvé avec l'ID : " + id));
     }
@@ -61,7 +61,8 @@ public class CoordinateurService {
             coordinateur.setEnseignantId(dto.getEnseignantId());
         }
 
-        coordinateur.setDateDebutFonction(dto.getDateDebutFonction() != null ? dto.getDateDebutFonction() : LocalDate.now());
+        coordinateur.setDateDebutFonction(
+                dto.getDateDebutFonction() != null ? dto.getDateDebutFonction() : LocalDate.now());
         coordinateur.setDateFinFonction(dto.getDateFinFonction());
         coordinateur.setActif(dto.getActif() != null ? dto.getActif() : true);
         coordinateur.setRemarques(dto.getRemarques());
@@ -72,7 +73,7 @@ public class CoordinateurService {
     /**
      * Met à jour un coordinateur existant
      */
-    public Coordinateur modifierCoordinateur(Long id, CoordinateurDTO dto) {
+    public Coordinateur modifierCoordinateur(long id, CoordinateurDTO dto) {
         Coordinateur coordinateur = getCoordinateurById(id);
 
         // Vérification de l'email si modifié
@@ -117,7 +118,7 @@ public class CoordinateurService {
     /**
      * Désactive un coordinateur
      */
-    public void desactiverCoordinateur(Long id) {
+    public void desactiverCoordinateur(long id) {
         Coordinateur coordinateur = getCoordinateurById(id);
         coordinateur.setActif(false);
         coordinateur.setDateFinFonction(LocalDate.now());
@@ -127,7 +128,7 @@ public class CoordinateurService {
     /**
      * Réactive un coordinateur
      */
-    public void reactiverCoordinateur(Long id) {
+    public void reactiverCoordinateur(long id) {
         Coordinateur coordinateur = getCoordinateurById(id);
         coordinateur.setActif(true);
         coordinateur.setDateFinFonction(null);
@@ -159,7 +160,7 @@ public class CoordinateurService {
     /**
      * Supprime un coordinateur
      */
-    public void supprimerCoordinateur(Long id) {
+    public void supprimerCoordinateur(long id) {
         Coordinateur coordinateur = getCoordinateurById(id);
         coordinateurRepository.delete(coordinateur);
     }

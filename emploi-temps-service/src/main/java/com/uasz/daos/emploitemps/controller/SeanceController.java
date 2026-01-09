@@ -52,21 +52,12 @@ public class SeanceController {
                 seance.setHeureFin(LocalTime.parse(seanceDTO.getHeureFin()));
             }
 
-            seance.setSalleId(seanceDTO.getSalleId()); // Needs to set Salle object or ID depending on model
-            // Model has 'Salle salle'. But Service might handle ID lookup or we just set ID
-            // if it was just ID.
-            // Wait, Seance model has 'Salle salle'. We need to fetch Salle.
-            // But checking Seance.java:
-            // @ManyToOne @JoinColumn(name = "salle_id") private Salle salle;
-            // AND the repo/service saves it.
-            // If we only have salleId, we should fetch the Salle proxy or object.
-            // However, SeanceService.createSeance takes Seance.
+            // Type de séance
+            if (seanceDTO.getTypeSeance() != null) {
+                seance.setTypeSeance(seanceDTO.getTypeSeance());
+            }
 
-            // Let's check if SeanceDTO can carry IDs and we construct Seance.
-            // For Salle, we might need a workaround if we don't want to inject
-            // SalleRepository here.
-            // Actually, SeanceService should handle this or we can set a Salle object with
-            // just ID (stub).
+            // Configuration de la Salle (relation JPA avec ID uniquement)
             if (seanceDTO.getSalleId() != null) {
                 com.uasz.daos.emploitemps.model.Salle s = new com.uasz.daos.emploitemps.model.Salle();
                 s.setId(seanceDTO.getSalleId());
@@ -111,6 +102,7 @@ public class SeanceController {
         private DayOfWeek jour;
         private String heureDebut;
         private String heureFin;
+        private String typeSeance; // CM, TD, TP
         private Long salleId;
         private Long ecId;
         private Long enseignantId;

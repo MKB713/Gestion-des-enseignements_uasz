@@ -1,10 +1,10 @@
 package com.uasz.daos.auth.config;
 
-import com.uasz.daos.auth.enums.Role;
+
 import com.uasz.daos.auth.services.UserDetailsServiceImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
+
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;

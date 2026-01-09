@@ -110,20 +110,24 @@ const Sidebar = ({ user, logout }) => {
                     { path: '/admin/users', label: 'Utilisateurs', icon: Users },
                     { path: '/admin/departments', label: 'Départements', icon: Building2 },
 
+                    { isHeader: true, label: 'ENSEIGNEMENT' },
+                    { path: '/admin/repartition', label: 'Enseignements', icon: ClipboardList },
                     { path: '/admin/formations', label: 'Formations', icon: GraduationCap },
                     { path: '/admin/filieres', label: 'Filières', icon: GitBranch },
                     { path: '/admin/niveaux', label: 'Niveaux', icon: Layers },
+                    { path: '/admin/classes', label: 'Classes', icon: Users },
 
                     {
-                        label: 'Paramètres', icon: Settings,
+                        label: 'Maquette Pédagogique', icon: BookOpen,
                         submenu: [
-                            { path: '/admin/ues', label: 'Unités d\'Enseignement (UE)', icon: BookOpen },
-                            { path: '/admin/ecs', label: 'Éléments Constitutifs (EC)', icon: FileText },
-                            { path: '/admin/modules', label: 'Modules', icon: BookMarked },
                             { path: '/admin/maquettes', label: 'Maquettes', icon: List },
-                            { path: '/admin/classes', label: 'Classes', icon: Users },
+                            { path: '/admin/modules', label: 'Modules', icon: BookMarked },
+                            { path: '/admin/ues', label: 'Unités d\'Enseignement', icon: BookOpen },
+                            { path: '/admin/ecs', label: 'Éléments Constitutifs', icon: FileText },
                         ]
                     },
+
+                    { isHeader: true, label: 'PLANNING & SALLES' },
                     {
                         label: 'Infrastructure', icon: Building2,
                         submenu: [
@@ -132,21 +136,18 @@ const Sidebar = ({ user, logout }) => {
                         ]
                     },
                     {
-                        label: 'Planning', icon: Calendar,
+                        label: 'Emploi du Temps', icon: Calendar,
                         submenu: [
-                            { path: '/admin/plannings', label: 'Emploi du Temps', icon: Calendar },
+                            { path: '/admin/plannings', label: 'Planning Global', icon: Calendar },
                             { path: '/admin/cahier-texte', label: 'Cahier de Texte', icon: ClipboardList },
                         ]
                     },
-                    {
-                        label: 'Scolarité', icon: GraduationCap,
-                        submenu: [
-                            { path: '/admin/enseignants', label: 'Enseignants', icon: UserCheck },
-                            { path: '/admin/repartition', label: 'Répartition', icon: ClipboardList },
-                            { path: '/admin/etudiants', label: 'Étudiants', icon: Users },
-                            { path: '/admin/deroulement-classes', label: 'Classes (Année)', icon: School },
-                        ]
-                    }
+
+                    { isHeader: true, label: 'SCOLARITÉ' },
+                    { path: '/admin/enseignants', label: 'Enseignants', icon: UserCheck },
+                    { path: '/admin/etudiants', label: 'Étudiants', icon: Users },
+
+                    { path: '/admin/deroulement-classes', label: 'Suivi Classes', icon: School },
                 ];
             default:
                 return [];

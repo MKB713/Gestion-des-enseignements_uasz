@@ -28,7 +28,7 @@ public class SemestreService {
         return semestreRepository.save(semestre);
     }
 
-    public Semestre modifierSemestre(Long id, Semestre semestreModifie) {
+    public Semestre modifierSemestre(long id, Semestre semestreModifie) {
         return semestreRepository.findById(id).map(semestre -> {
             semestre.setLibelle(semestreModifie.getLibelle());
             semestre.setNumero(semestreModifie.getNumero());
@@ -36,7 +36,7 @@ public class SemestreService {
         }).orElseThrow(() -> new RuntimeException("Semestre non trouvé"));
     }
 
-    public void supprimerSemestre(Long id) {
+    public void supprimerSemestre(long id) {
         Semestre semestre = semestreRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Semestre non trouvé"));
 
@@ -48,7 +48,7 @@ public class SemestreService {
         semestreRepository.deleteById(id);
     }
 
-    public Semestre detailsSemestre(Long id) {
+    public Semestre detailsSemestre(long id) {
         return semestreRepository.findById(id).orElse(null);
     }
 }

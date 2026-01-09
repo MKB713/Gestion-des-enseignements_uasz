@@ -13,6 +13,7 @@ import java.util.List;
 
 @Service
 @Transactional
+@SuppressWarnings("null")
 public class EtudiantService {
 
     @Autowired

@@ -17,7 +17,7 @@ public class Maquette {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true, nullable = false)
+    @Column(nullable = false)
     private String code;
 
     @Column(nullable = false)
@@ -36,7 +36,7 @@ public class Maquette {
 
     private boolean actif = true;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "formation_id")
     private Formation formation;
 

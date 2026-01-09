@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@SuppressWarnings("null")
 public class ClasseService {
 
     @Autowired
@@ -91,7 +92,8 @@ public class ClasseService {
         if (classeDTO.getCode() != null && !classeDTO.getCode().equals(classe.getCode())) {
             List<Classe> existingClasses = classeRepository.findByCodeAndIdIsNot(classeDTO.getCode(), id);
             if (!existingClasses.isEmpty()) {
-                throw new IllegalArgumentException("Une autre classe avec le code '" + classeDTO.getCode() + "' existe déjà.");
+                throw new IllegalArgumentException(
+                        "Une autre classe avec le code '" + classeDTO.getCode() + "' existe déjà.");
             }
             classe.setCode(classeDTO.getCode());
         }

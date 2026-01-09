@@ -45,6 +45,7 @@ public class NoteCahierTexteServiceTest {
     }
 
     @Test
+    @SuppressWarnings("null")
     void testModifierNoteNonValidee_Succes() {
         when(noteRepository.findById(1L)).thenReturn(Optional.of(noteInvalide));
         when(noteRepository.save(any())).thenReturn(noteInvalide);
@@ -61,6 +62,7 @@ public class NoteCahierTexteServiceTest {
     }
 
     @Test
+    @SuppressWarnings("null")
     void testModifierNoteValidee_Echec() {
         when(noteRepository.findById(2L)).thenReturn(Optional.of(noteValide));
 

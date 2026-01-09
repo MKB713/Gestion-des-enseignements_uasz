@@ -9,7 +9,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @Transactional
@@ -29,7 +28,7 @@ public class ClasseService {
         return classeRepository.save(classe);
     }
 
-    public Classe modifierClasse(Long id, Classe classeModifiee) {
+    public Classe modifierClasse(long id, Classe classeModifiee) {
         return classeRepository.findById(id).map(classe -> {
             if (!classe.getNom().equals(classeModifiee.getNom())
                     && classeRepository.existsByNom(classeModifiee.getNom())) {
@@ -44,14 +43,14 @@ public class ClasseService {
         }).orElseThrow(() -> new RuntimeException("Classe non trouvée avec l'ID : " + id));
     }
 
-    public void supprimerClasse(Long id) {
+    public void supprimerClasse(long id) {
         if (!classeRepository.existsById(id)) {
             throw new RuntimeException("Classe non trouvée !");
         }
         classeRepository.deleteById(id);
     }
 
-    public Classe detailsClasse(Long id) {
+    public Classe detailsClasse(long id) {
         return classeRepository.findById(id).orElse(null);
     }
 }

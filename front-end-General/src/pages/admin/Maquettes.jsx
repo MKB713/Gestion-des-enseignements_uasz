@@ -8,6 +8,7 @@ const AdminMaquettes = () => {
     const [maquettes, setMaquettes] = useState([]);
     const [modules, setModules] = useState([]);
     const [semestres, setSemestres] = useState([]);
+    const [formations, setFormations] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -20,6 +21,7 @@ const AdminMaquettes = () => {
     const [formData, setFormData] = useState({
         code: "",
         libelle: "",
+        formationId: "",
         module: "", // Selection (Module ID)
         credits: 0,
         coefficientUE: 0,
@@ -34,6 +36,9 @@ const AdminMaquettes = () => {
         modalitesEvaluation: ""
     });
 
+    const [ecs, setEcs] = useState([]);
+    const [selectedEcId, setSelectedEcId] = useState("");
+
     useEffect(() => {
         fetchData();
         fetchDependencies();
@@ -42,8 +47,8 @@ const AdminMaquettes = () => {
     const fetchData = async () => {
         try {
             setLoading(true);
-            const data = await apiRequest(API_ENDPOINTS.MAQUETTES.LIST);
-            setMaquettes(Array.isArray(data) ? data : []);
+            const response = await apiRequest(API_ENDPOINTS.MAQUETTES.LIST);
+            setMaquettes(Array.isArray(response) ? response : (response.data || []));
             setError(null);
         } catch (err) {
             console.error("Erreur chargement maquettes:", err);
@@ -59,6 +64,10 @@ const AdminMaquettes = () => {
             setModules(Array.isArray(mods) ? mods : []);
             const sems = await apiRequest(API_ENDPOINTS.SEMESTRES.LIST);
             setSemestres(Array.isArray(sems) ? sems : []);
+            const forms = await apiRequest(API_ENDPOINTS.FORMATIONS.LIST);
+            setFormations(Array.isArray(forms) ? forms : []);
+            const ecsData = await apiRequest(API_ENDPOINTS.ECS.LIST);
+            setEcs(Array.isArray(ecsData) ? ecsData : []);
         } catch (e) {
             console.error("Erreur chargement dépendances:", e);
         }
@@ -69,13 +78,62 @@ const AdminMaquettes = () => {
         setFormData({ ...formData, [name]: value });
     };
 
+    // Autofill when Module (UE) is selected
+    const handleModuleChange = (e) => {
+        const moduleId = e.target.value;
+        setFormData(prev => ({ ...prev, module: moduleId }));
+
+        if (moduleId) {
+            const selectedModule = modules.find(m => m.id === parseInt(moduleId));
+            if (selectedModule && selectedModule.ue) {
+                setFormData(prev => ({
+                    ...prev,
+                    module: moduleId,
+                    credits: selectedModule.ue.credits || prev.credits,
+                    coefficientUE: selectedModule.ue.coefficientUE || prev.coefficientUE,
+                    // Optional: if module implies other defaults
+                }));
+            }
+        }
+    };
+
+    // Autofill when EC is selected
+    const handleECChange = (e) => {
+        const ecId = e.target.value;
+        setSelectedEcId(ecId);
+
+        if (ecId) {
+            const selectedEc = ecs.find(ec => ec.id === parseInt(ecId));
+            if (selectedEc) {
+                setFormData(prev => ({
+                    ...prev,
+                    code: selectedEc.code,
+                    libelle: selectedEc.libelle,
+                    cm: selectedEc.cm,
+                    td: selectedEc.td,
+                    tp: selectedEc.tp,
+                    vht: selectedEc.vht,
+                    // If EC has coefficient, use it? Maquette has coeffUE. 
+                    // Assuming EC doesn't override UE coeff usually, or user can edit manually.
+                }));
+            }
+        }
+    };
+
     const openModal = (maq = null) => {
         if (maq) {
             setIsEditing(true);
             setCurrentMaquette(maq);
+            // Try to find if this maquette matches an EC by code/libelle to set dropdown?
+            // It's a "nice to have", but risky if not exact match.
+            // For now, reset EC selector to empty on Edit, or leave as is. 
+            // Better to leave empty as we are editing the SNAPSHOT.
+            setSelectedEcId("");
+
             setFormData({
                 code: maq.code,
                 libelle: maq.libelle,
+                formationId: maq.formation ? maq.formation.id : "",
                 module: maq.module ? maq.module.id : "",
                 credits: maq.credits,
                 coefficientUE: maq.coefficientUE,
@@ -92,9 +150,11 @@ const AdminMaquettes = () => {
         } else {
             setIsEditing(false);
             setCurrentMaquette(null);
+            setSelectedEcId("");
             setFormData({
                 code: "",
                 libelle: "",
+                formationId: "",
                 module: "",
                 credits: 0,
                 coefficientUE: 0,
@@ -123,6 +183,7 @@ const AdminMaquettes = () => {
             const payload = {
                 code: formData.code,
                 libelle: formData.libelle,
+                formationId: parseInt(formData.formationId),
                 credits: parseInt(formData.credits),
                 coefficientUE: parseFloat(formData.coefficientUE),
                 cm: parseInt(formData.cm),
@@ -174,6 +235,44 @@ const AdminMaquettes = () => {
         m.libelle.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
+    // Group Maquettes by Module (UE)
+    const groupedMaquettes = filteredMaquettes.reduce((acc, curr) => {
+        // Robust Grouping: Try Module.UE.ID, then Module.ID, then generic.
+        // If module has a UE, that's the grouping key.
+        const module = curr.module;
+        let key = "orphan";
+        let moduleName = "Sans Module";
+
+        if (module) {
+            if (module.ue) {
+                key = `ue_${module.ue.id}`;
+                // Keep the Module details for display? Or displayed generic UE?
+                // The table header says "Module (UE)".
+                // Usually we want to show the UE Code/Libelle there.
+                // However, our data comes from 'module'.
+                // Ideally we use module.ue.code + libelle if available.
+                // But let's stick to module.code/libelle as before unless UE is better.
+                // If multiple modules share UE, module.code might vary?
+                // Step 12: Module has code/libelle. UE has code/libelle.
+                // If we group by UE, we should display UE info.
+            } else {
+                key = `mod_${module.id}`;
+            }
+        } else {
+            key = `single_${curr.id}`; // Fallback for no module
+        }
+
+        if (!acc[key]) {
+            acc[key] = {
+                module: module, // Store the reference module for header display
+                ue: module ? module.ue : null,
+                items: []
+            };
+        }
+        acc[key].items.push(curr);
+        return acc;
+    }, {});
+
     if (loading) return <div className="loading">Chargement...</div>;
 
     return (
@@ -197,46 +296,102 @@ const AdminMaquettes = () => {
             <table className="departments-table">
                 <thead>
                     <tr>
-                        <th>CODE</th>
-                        <th>LIBELLÉ</th>
-                        <th>MODULE</th>
-                        <th>CRÉDITS</th>
+                        <th colSpan="3" style={{ textAlign: "center", backgroundColor: "#f8f9fa", borderBottom: "2px solid #dee2e6" }}>UNITÉ D'ENSEIGNEMENT (UE)</th>
+                        <th colSpan="10" style={{ textAlign: "center", backgroundColor: "#e9ecef", borderBottom: "2px solid #dee2e6" }}>ÉLÉMENT CONSTITUTIF (EC)</th>
+                    </tr>
+                    <tr>
+                        {/* UE Columns */}
+                        <th style={{ width: '20%' }}>INTITULÉ</th>
+                        <th style={{ width: '5%' }}>CRÉDITS</th>
+                        <th style={{ width: '5%' }}>COEF UE</th>
+
+                        {/* EC Columns */}
+                        <th style={{ width: '20%' }}>INTITULÉ</th>
                         <th>CM</th>
                         <th>TD</th>
                         <th>TP</th>
+                        <th>CM+TD/TP</th>
+                        <th>TPE</th>
                         <th>VHT</th>
                         <th>COEFF</th>
                         <th>SEMESTRE</th>
-                        <th>RESPONSABLE</th>
                         <th>ACTIONS</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {filteredMaquettes.length === 0 ? (
-                        <tr><td colSpan="12" style={{ textAlign: "center" }}>Aucune donnée.</td></tr>
+                    {Object.keys(groupedMaquettes).length === 0 ? (
+                        <tr><td colSpan="13" style={{ textAlign: "center" }}>Aucune donnée.</td></tr>
                     ) : (
-                        filteredMaquettes.map((m) => (
-                            <tr key={m.id}>
-                                <td><span className="badge-code">{m.code}</span></td>
-                                <td><strong>{m.libelle}</strong></td>
-                                <td>{m.module ? m.module.code : "-"}</td>
-                                <td><span className="badge-credits">{m.credits}</span></td>
-                                <td>{m.cm}</td>
-                                <td>{m.td}</td>
-                                <td>{m.tp}</td>
-                                <td>{m.vht}</td>
-                                <td>{m.coefficientUE}</td>
-                                <td>{m.semestre ? m.semestre.libelle : "-"}</td>
-                                <td>{m.responsable}</td>
-                                <td className="actions-cell">
-                                    <button className="btn-icon edit" title="Modifier" onClick={() => openModal(m)}>
-                                        <Edit size={18} />
-                                    </button>
-                                    <button className="btn-icon delete" title="Supprimer" onClick={() => handleDelete(m.id)}>
-                                        <Trash2 size={18} />
-                                    </button>
-                                </td>
-                            </tr>
+                        Object.values(groupedMaquettes).map((group, groupIndex) => (
+                            <React.Fragment key={groupIndex}>
+                                {group.items.map((m, itemIndex) => {
+                                    const totalPresenciel = (m.cm || 0) + (m.td || 0) + (m.tp || 0);
+                                    // TPE estimation if not present: VHT - Presenciel or from field
+                                    // User example: cm:20, tp:10, td:15, pres:36 (?), tpe:24, vht:60.
+                                    // 36+24=60. 
+                                    // Here m.vht is from DB. m.cm/td/tp from DB.
+                                    // We'll calculate TPE if not in model? No, just use DB fields.
+                                    // Model Maquette.java DOES NOT have 'tpe' field based on my read! 
+                                    // Wait, checking Step 6 View File...
+                                    // Maquette.java: cm, td, tp, vht. NO TPE.
+                                    // EC.java HAS tpe.
+                                    // Since Maquette is acting as EC, maybe TPE is missing?
+                                    // We can calculate TPE = VHT - (CM+TD+TP).
+                                    const tpe = (m.vht || 0) - totalPresenciel;
+
+                                    return (
+                                        <tr key={m.id} style={{ borderBottom: itemIndex === group.items.length - 1 ? "2px solid #ddd" : "1px solid #eee" }}>
+                                            {itemIndex === 0 && (
+                                                <>
+                                                    <td rowSpan={group.items.length} style={{ verticalAlign: "middle", backgroundColor: "#fff", borderRight: "1px solid #eee", fontWeight: "600" }}>
+                                                        {group.ue ? (
+                                                            <>
+                                                                <div style={{ fontSize: '0.9em', color: '#666' }}>{group.ue.code}</div>
+                                                                {group.ue.libelle}
+                                                            </>
+                                                        ) : (
+                                                            group.module ? (
+                                                                <>
+                                                                    <div style={{ fontSize: '0.9em', color: '#666' }}>{group.module.code}</div>
+                                                                    {group.module.libelle}
+                                                                </>
+                                                            ) : "Hors UE"
+                                                        )}
+                                                    </td>
+                                                    <td rowSpan={group.items.length} style={{ verticalAlign: "middle", textAlign: "center", backgroundColor: "#fff", borderRight: "1px solid #eee" }}>
+                                                        <span className="badge-credits">{m.credits}</span>
+                                                    </td>
+                                                    <td rowSpan={group.items.length} style={{ verticalAlign: "middle", textAlign: "center", backgroundColor: "#fff", borderRight: "1px solid #eee" }}>
+                                                        {m.coefficientUE}
+                                                    </td>
+                                                </>
+                                            )}
+                                            {/* EC Fields */}
+                                            <td style={{ borderLeft: "2px solid #f0f0f0" }}>
+                                                <span style={{ fontSize: '0.9em', fontWeight: 'bold', color: '#555' }}>{m.code}</span><br />
+                                                {m.libelle}
+                                            </td>
+                                            <td>{m.cm}</td>
+                                            <td>{m.td}</td>
+                                            <td>{m.tp}</td>
+                                            <td style={{ fontWeight: 'bold', backgroundColor: '#fdfdfd' }}>{totalPresenciel}</td>
+                                            <td>{tpe > 0 ? tpe : "-"}</td>
+                                            <td style={{ fontWeight: 'bold' }}>{m.vht}</td>
+                                            <td>-</td> {/* EC Coeff missing in Maquette model */}
+                                            <td>{m.semestre ? m.semestre.libelle : "-"}</td>
+
+                                            <td className="actions-cell">
+                                                <button className="btn-icon edit" title="Modifier" onClick={() => openModal(m)}>
+                                                    <Edit size={18} />
+                                                </button>
+                                                <button className="btn-icon delete" title="Supprimer" onClick={() => handleDelete(m.id)}>
+                                                    <Trash2 size={18} />
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </React.Fragment>
                         ))
                     )}
                 </tbody>
@@ -260,13 +415,52 @@ const AdminMaquettes = () => {
 
                             <div className="form-group-row">
                                 <div className="form-group" style={{ flex: 1 }}>
-                                    <label>Module</label>
-                                    <select name="module" value={formData.module} onChange={handleInputChange}>
+                                    <label>Formation</label>
+                                    <select name="formationId" value={formData.formationId} onChange={handleInputChange} required>
                                         <option value="">Sélectionner</option>
-                                        {modules.map(mod => (
-                                            <option key={mod.id} value={mod.id}>{mod.code} - {mod.libelle}</option>
+                                        {formations.map(f => (
+                                            <option key={f.id} value={f.id}>{f.libelle}</option>
                                         ))}
                                     </select>
+                                </div>
+                                <div className="form-group" style={{ flex: 1 }}>
+                                    <label>Module / UE</label>
+                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                        <select name="module" value={formData.module} onChange={handleModuleChange}>
+                                            <option value="">-- Sélectionner un Module/UE --</option>
+                                            {modules.map(mod => (
+                                                <option key={mod.id} value={mod.id}>
+                                                    {mod.code} - {mod.libelle}
+                                                    {mod.ue ? ` (UE: ${mod.ue.code})` : ""}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <small style={{ color: '#888', fontStyle: 'italic' }}>Définit les crédits et coef. UE</small>
+                                    </div>
+                                </div>
+
+                                <div className="form-group" style={{ flex: 1 }}>
+                                    <label>Élément Constitutif (EC)</label>
+                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                        <select name="ec" value={selectedEcId} onChange={handleECChange}>
+                                            <option value="">-- Sélectionner un EC (Autofill) --</option>
+                                            {ecs.map(ec => (
+                                                <option key={ec.id} value={ec.id}>{ec.code} - {ec.libelle}</option>
+                                            ))}
+                                        </select>
+                                        <small style={{ color: '#888', fontStyle: 'italic' }}>Remplit automatiquement les détails</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="form-group-row">
+                                <div className="form-group" style={{ flex: 1 }}>
+                                    <label>Code</label>
+                                    <input type="text" name="code" value={formData.code} onChange={handleInputChange} required />
+                                </div>
+                                <div className="form-group" style={{ flex: 2 }}>
+                                    <label>Libellé</label>
+                                    <input type="text" name="libelle" value={formData.libelle} onChange={handleInputChange} required />
                                 </div>
                                 <div className="form-group" style={{ flex: 1 }}>
                                     <label>Semestre</label>
