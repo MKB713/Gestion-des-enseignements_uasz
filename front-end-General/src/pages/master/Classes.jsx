@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Edit, Trash2 } from 'lucide-react';
 import { apiRequest, API_ENDPOINTS } from "../../config/api";
 import "../admin/AdminDepartments.css";
 
@@ -166,8 +167,12 @@ const MasterClasses = () => {
                                     }
                                 </td>
                                 <td className="actions-cell">
-                                    <button className="edit-btn" onClick={() => openModal(classe)}>Modifier</button>
-                                    <button className="delete-btn" onClick={() => handleDelete(classe.id)}>Supprimer</button>
+                                    <button className="btn-icon edit" title="Modifier" onClick={() => openModal(classe)}>
+                                        <Edit size={18} />
+                                    </button>
+                                    <button className="btn-icon delete" title="Supprimer" onClick={() => handleDelete(classe.id)}>
+                                        <Trash2 size={18} />
+                                    </button>
                                 </td>
                             </tr>
                         ))

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Edit, Trash2 } from 'lucide-react';
 import { apiRequest, API_ENDPOINTS } from "../../config/api";
 import "./AdminDepartments.css"; // Reuse existing styles
 
@@ -129,8 +130,12 @@ const AdminFilieres = () => {
                                 <td>{filiere.libelle}</td>
                                 <td>{filiere.description}</td>
                                 <td className="actions-cell">
-                                    <button className="edit-btn" onClick={() => openModal(filiere)}>Modifier</button>
-                                    <button className="delete-btn" onClick={() => handleDelete(filiere.id)}>Supprimer</button>
+                                    <button className="btn-icon edit" title="Modifier" onClick={() => openModal(filiere)}>
+                                        <Edit size={18} />
+                                    </button>
+                                    <button className="btn-icon delete" title="Supprimer" onClick={() => handleDelete(filiere.id)}>
+                                        <Trash2 size={18} />
+                                    </button>
                                 </td>
                             </tr>
                         ))

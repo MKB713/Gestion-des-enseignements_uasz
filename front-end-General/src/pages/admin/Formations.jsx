@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Edit, Trash2 } from 'lucide-react';
 import { apiRequest, API_ENDPOINTS } from "../../config/api";
 import "./AdminDepartments.css"; // Réutiliser le CSS existant
 
@@ -163,8 +164,12 @@ const AdminFormations = () => {
                             <td>{formation.filiere ? formation.filiere.libelle : "-"}</td>
                             <td>{formation.niveau ? formation.niveau.libelle : "-"}</td>
                             <td className="actions-cell">
-                                <button className="edit-btn" onClick={() => openModal(formation)}>Modifier</button>
-                                <button className="delete-btn" onClick={() => handleDelete(formation.id)}>Supprimer</button>
+                                <button className="btn-icon edit" title="Modifier" onClick={() => openModal(formation)}>
+                                    <Edit size={18} />
+                                </button>
+                                <button className="btn-icon delete" title="Supprimer" onClick={() => handleDelete(formation.id)}>
+                                    <Trash2 size={18} />
+                                </button>
                             </td>
                         </tr>
                     ))}

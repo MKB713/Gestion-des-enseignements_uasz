@@ -38,7 +38,7 @@ const AdminPlannings = () => {
                 apiRequest(API_ENDPOINTS.SALLES.LIST).catch(() => []),
                 apiRequest(API_ENDPOINTS.ENSEIGNANTS.LIST).catch(() => []),
                 apiRequest(API_ENDPOINTS.ECS.LIST).catch(() => []),
-                apiRequest(API_ENDPOINTS.DEROULEMENT_CLASSES.LIST).catch(() => [])
+                apiRequest(API_ENDPOINTS.CLASSES.LIST).catch(() => [])
             ]);
             setSalles(Array.isArray(grpSalles) ? grpSalles : []);
             setEnseignants(Array.isArray(grpEns) ? grpEns : []);
