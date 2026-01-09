@@ -2,32 +2,34 @@ import React, { useState, useEffect } from "react";
 import { apiRequest, API_ENDPOINTS } from "../../config/api";
 import "../admin/AdminDepartments.css"; // Reuse existing styles
 
-const MasterFilieres = () => {
-    const [filieres, setFilieres] = useState([]);
+const MasterNiveaux = () => {
+    const [niveaux, setNiveaux] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
-    const [currentFiliere, setCurrentFiliere] = useState(null);
+    const [currentNiveau, setCurrentNiveau] = useState(null);
 
     const [formData, setFormData] = useState({
-        libelle: "",
-        description: ""
+        cycle: "LICENCE",
+        numero: 1
     });
 
+    const CYCLES = ["LICENCE", "MASTER", "DOCTORAT"];
+
     useEffect(() => {
-        fetchFilieres();
+        fetchNiveaux();
     }, []);
 
-    const fetchFilieres = async () => {
+    const fetchNiveaux = async () => {
         try {
             setLoading(true);
-            const data = await apiRequest(API_ENDPOINTS.FILIERES.LIST);
-            setFilieres(data || []);
+            const data = await apiRequest(API_ENDPOINTS.NIVEAUX.LIST);
+            setNiveaux(data || []);
             setError(null);
         } catch (err) {
-            console.error("Erreur chargement filières:", err);
-            setError("Erreur lors du chargement des filières.");
+            console.error("Erreur chargement niveaux:", err);
+            setError("Erreur lors du chargement des niveaux.");
         } finally {
             setLoading(false);
         }
@@ -38,20 +40,20 @@ const MasterFilieres = () => {
         setFormData({ ...formData, [name]: value });
     };
 
-    const openModal = (filiere = null) => {
-        if (filiere) {
+    const openModal = (niveau = null) => {
+        if (niveau) {
             setIsEditing(true);
-            setCurrentFiliere(filiere);
+            setCurrentNiveau(niveau);
             setFormData({
-                libelle: filiere.libelle,
-                description: filiere.description
+                cycle: niveau.cycle,
+                numero: niveau.numero
             });
         } else {
             setIsEditing(false);
-            setCurrentFiliere(null);
+            setCurrentNiveau(null);
             setFormData({
-                libelle: "",
-                description: ""
+                cycle: "LICENCE",
+                numero: 1
             });
         }
         setShowModal(true);
@@ -65,18 +67,23 @@ const MasterFilieres = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
+            const payload = {
+                cycle: formData.cycle,
+                numero: parseInt(formData.numero)
+            };
+
             if (isEditing) {
-                await apiRequest(API_ENDPOINTS.FILIERES.UPDATE(currentFiliere.id), {
+                await apiRequest(API_ENDPOINTS.NIVEAUX.UPDATE(currentNiveau.id), {
                     method: "PUT",
-                    body: JSON.stringify(formData)
+                    body: JSON.stringify(payload)
                 });
             } else {
-                await apiRequest(API_ENDPOINTS.FILIERES.CREATE, {
+                await apiRequest(API_ENDPOINTS.NIVEAUX.CREATE, {
                     method: "POST",
-                    body: JSON.stringify(formData)
+                    body: JSON.stringify(payload)
                 });
             }
-            fetchFilieres();
+            fetchNiveaux();
             closeModal();
         } catch (err) {
             console.error("Erreur enregistrement:", err);
@@ -86,10 +93,10 @@ const MasterFilieres = () => {
     };
 
     const handleDelete = async (id) => {
-        if (window.confirm("Êtes-vous sûr de vouloir supprimer cette filière ?")) {
+        if (window.confirm("Êtes-vous sûr de vouloir supprimer ce niveau ?")) {
             try {
-                await apiRequest(API_ENDPOINTS.FILIERES.DELETE(id), { method: "DELETE" });
-                fetchFilieres();
+                await apiRequest(API_ENDPOINTS.NIVEAUX.DELETE(id), { method: "DELETE" });
+                fetchNiveaux();
             } catch (err) {
                 console.error("Erreur suppression:", err);
                 alert("Erreur lors de la suppression.");
@@ -102,9 +109,9 @@ const MasterFilieres = () => {
     return (
         <div className="admin-departments-container">
             <div className="header-actions">
-                <h2>Gestion des Filières (Master)</h2>
+                <h2>Gestion des Niveaux (Master)</h2>
                 <button className="add-btn" onClick={() => openModal()}>
-                    + Nouvelle Filière
+                    + Nouveau Niveau
                 </button>
             </div>
 
@@ -113,24 +120,26 @@ const MasterFilieres = () => {
             <table className="departments-table">
                 <thead>
                     <tr>
-                        <th>Libellé</th>
-                        <th>Description</th>
+                        <th>Cycle</th>
+                        <th>Numéro (Année)</th>
+                        <th>Libellé Complet</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {filieres.length === 0 ? (
+                    {niveaux.length === 0 ? (
                         <tr>
-                            <td colSpan="3" style={{ textAlign: "center" }}>Aucune filière trouvée.</td>
+                            <td colSpan="4" style={{ textAlign: "center" }}>Aucun niveau trouvé.</td>
                         </tr>
                     ) : (
-                        filieres.map((filiere) => (
-                            <tr key={filiere.id}>
-                                <td>{filiere.libelle}</td>
-                                <td>{filiere.description}</td>
+                        niveaux.map((niveau) => (
+                            <tr key={niveau.id}>
+                                <td>{niveau.cycle}</td>
+                                <td>{niveau.numero}</td>
+                                <td>{niveau.cycle} {niveau.numero}</td>
                                 <td className="actions-cell">
-                                    <button className="edit-btn" onClick={() => openModal(filiere)}>Modifier</button>
-                                    <button className="delete-btn" onClick={() => handleDelete(filiere.id)}>Supprimer</button>
+                                    <button className="edit-btn" onClick={() => openModal(niveau)}>Modifier</button>
+                                    <button className="delete-btn" onClick={() => handleDelete(niveau.id)}>Supprimer</button>
                                 </td>
                             </tr>
                         ))
@@ -141,24 +150,31 @@ const MasterFilieres = () => {
             {showModal && (
                 <div className="modal-overlay">
                     <div className="modal-content">
-                        <h3>{isEditing ? "Modifier la Filière" : "Nouvelle Filière"}</h3>
+                        <h3>{isEditing ? "Modifier le Niveau" : "Nouveau Niveau"}</h3>
                         <form onSubmit={handleSubmit}>
                             <div className="form-group">
-                                <label>Libellé</label>
-                                <input
-                                    type="text"
-                                    name="libelle"
-                                    value={formData.libelle}
+                                <label>Cycle</label>
+                                <select
+                                    name="cycle"
+                                    value={formData.cycle}
                                     onChange={handleInputChange}
                                     required
-                                />
+                                >
+                                    {CYCLES.map(c => (
+                                        <option key={c} value={c}>{c}</option>
+                                    ))}
+                                </select>
                             </div>
                             <div className="form-group">
-                                <label>Description</label>
-                                <textarea
-                                    name="description"
-                                    value={formData.description}
+                                <label>Numéro (Année)</label>
+                                <input
+                                    type="number"
+                                    name="numero"
+                                    value={formData.numero}
                                     onChange={handleInputChange}
+                                    min="1"
+                                    max="5"
+                                    required
                                 />
                             </div>
                             <div className="modal-actions">
@@ -173,4 +189,4 @@ const MasterFilieres = () => {
     );
 };
 
-export default MasterFilieres;
+export default MasterNiveaux;

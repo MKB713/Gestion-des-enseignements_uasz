@@ -40,6 +40,7 @@ import MasterMaquettes from './pages/master/Maquettes';
 import MasterModules from './pages/master/Modules';
 import MasterUE from './pages/master/UE';
 import MasterEC from './pages/master/EC';
+import MasterNiveaux from './pages/master/Niveaux';
 import MasterEnseignants from './pages/master/Enseignants';
 import MasterEmploiTemps from './pages/master/EmploiTemps';
 import MasterCahierTexte from './pages/master/CahierTexte';
@@ -89,6 +90,7 @@ function App() {
               <Route path="/master/modules" element={<MasterModules />} />
               <Route path="/master/ues" element={<MasterUE />} />
               <Route path="/master/ecs" element={<MasterEC />} />
+              <Route path="/master/niveaux" element={<MasterNiveaux />} />
               <Route path="/master/enseignants" element={<MasterEnseignants />} />
               <Route path="/master/emploi-temps" element={<TimetablePage roleTitle="Planning Master" />} />
               <Route path="/master/cahier-texte" element={<MasterCahierTexte />} />

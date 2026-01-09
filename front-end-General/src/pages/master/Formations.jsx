@@ -1,215 +1,239 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Search } from 'lucide-react';
-import { API_ENDPOINTS, api } from '../../config/api';
-import './MasterPages.css';
+import React, { useState, useEffect } from "react";
+import { apiRequest, API_ENDPOINTS } from "../../config/api";
+import "../admin/AdminDepartments.css"; // Reuse Admin CSS
 
-const Formations = () => {
+const MasterFormations = () => {
     const [formations, setFormations] = useState([]);
+    const [filieres, setFilieres] = useState([]);
+    const [niveaux, setNiveaux] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
-    const [searchTerm, setSearchTerm] = useState('');
+    const [error, setError] = useState(null);
     const [showModal, setShowModal] = useState(false);
-    const [editingFormation, setEditingFormation] = useState(null);
+    const [isEditing, setIsEditing] = useState(false);
+    const [currentFormation, setCurrentFormation] = useState(null);
+
     const [formData, setFormData] = useState({
-        libelle: '',
-        code: '',
-        description: ''
+        code: "",
+        libelle: "",
+        description: "",
+        filiere: "",
+        niveau: ""
     });
 
     useEffect(() => {
-        fetchFormations();
+        fetchData();
     }, []);
 
-    const fetchFormations = async () => {
+    const fetchData = async () => {
         try {
             setLoading(true);
-            const data = await api.get(API_ENDPOINTS.MAQUETTES.FORMATIONS);
-            setFormations(data);
-            setError('');
+            const [formationsRes, filieresRes, niveauxRes] = await Promise.all([
+                apiRequest(API_ENDPOINTS.FORMATIONS.LIST),
+                apiRequest(API_ENDPOINTS.FILIERES.LIST),
+                apiRequest(API_ENDPOINTS.NIVEAUX.LIST)
+            ]);
+
+            setFormations(formationsRes || []);
+            setFilieres(filieresRes || []);
+            setNiveaux(niveauxRes || []);
+            setError(null);
         } catch (err) {
-            setError('Erreur lors du chargement des formations: ' + err.message);
-            console.error('Error fetching formations:', err);
+            console.error("Erreur lors du chargement des données:", err);
+            setError("Erreur lors du chargement des données.");
         } finally {
             setLoading(false);
         }
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        try {
-            if (editingFormation) {
-                await api.put(
-                    API_ENDPOINTS.MAQUETTES.FORMATION_BY_ID(editingFormation.id),
-                    formData
-                );
-            } else {
-                await api.post(API_ENDPOINTS.MAQUETTES.FORMATIONS, formData);
-            }
-            fetchFormations();
-            closeModal();
-        } catch (err) {
-            setError('Erreur lors de l\'enregistrement: ' + err.message);
-        }
-    };
-
-    const handleDelete = async (id) => {
-        if (!window.confirm('Êtes-vous sûr de vouloir supprimer cette formation ?')) {
-            return;
-        }
-        try {
-            await api.delete(API_ENDPOINTS.MAQUETTES.FORMATION_BY_ID(id));
-            fetchFormations();
-        } catch (err) {
-            setError('Erreur lors de la suppression: ' + err.message);
-        }
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setFormData({ ...formData, [name]: value });
     };
 
     const openModal = (formation = null) => {
         if (formation) {
-            setEditingFormation(formation);
+            setIsEditing(true);
+            setCurrentFormation(formation);
             setFormData({
-                libelle: formation.libelle || '',
-                code: formation.code || '',
-                description: formation.description || ''
+                code: formation.code,
+                libelle: formation.libelle,
+                description: formation.description,
+                filiere: formation.filiere ? formation.filiere.id : "",
+                niveau: formation.niveau ? formation.niveau.id : ""
             });
         } else {
-            setEditingFormation(null);
-            setFormData({ libelle: '', code: '', description: '' });
+            setIsEditing(false);
+            setCurrentFormation(null);
+            setFormData({
+                code: "",
+                libelle: "",
+                description: "",
+                filiere: "",
+                niveau: ""
+            });
         }
         setShowModal(true);
     };
 
     const closeModal = () => {
         setShowModal(false);
-        setEditingFormation(null);
-        setFormData({ libelle: '', code: '', description: '' });
+        setError(null);
     };
 
-    const filteredFormations = formations.filter(formation =>
-        formation.libelle?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        formation.code?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            const payload = {
+                code: formData.code,
+                libelle: formData.libelle,
+                description: formData.description,
+                filiere: formData.filiere ? { id: parseInt(formData.filiere) } : null,
+                niveau: formData.niveau ? { id: parseInt(formData.niveau) } : null
+            };
 
-    if (loading) {
-        return <div className="loading">Chargement...</div>;
-    }
+            if (isEditing) {
+                await apiRequest(API_ENDPOINTS.FORMATIONS.UPDATE(currentFormation.id), {
+                    method: "PUT",
+                    body: JSON.stringify(payload)
+                });
+            } else {
+                await apiRequest(API_ENDPOINTS.FORMATIONS.CREATE, {
+                    method: "POST",
+                    body: JSON.stringify(payload)
+                });
+            }
+
+            fetchData();
+            closeModal();
+        } catch (err) {
+            console.error("Erreur lors de l'enregistrement:", err);
+            const errorMessage = err.response?.data?.message || err.message || "Erreur inconnue";
+            alert("Erreur lors de l'enregistrement: " + errorMessage);
+        }
+    };
+
+    const handleDelete = async (id) => {
+        if (window.confirm("Êtes-vous sûr de vouloir supprimer cette formation ?")) {
+            try {
+                await apiRequest(API_ENDPOINTS.FORMATIONS.DELETE(id), { method: "DELETE" });
+                fetchData();
+            } catch (err) {
+                console.error("Erreur lors de la suppression:", err);
+                alert("Erreur lors de la suppression.");
+            }
+        }
+    };
+
+    if (loading) return <div className="loading">Chargement...</div>;
+    if (error) return <div className="error">{error}</div>;
+
+    const hasPrerequisites = filieres.length > 0 && niveaux.length > 0;
 
     return (
-        <div className="page-container">
-            <div className="page-header">
-                <h1>Gestion des Formations</h1>
-                <button className="btn-primary" onClick={() => openModal()}>
-                    <Plus size={20} />
-                    Nouvelle Formation
+        <div className="admin-departments-container">
+            <div className="header-actions">
+                <h2>Gestion des Formations (Master)</h2>
+                <button className="add-btn" onClick={() => openModal()} disabled={!hasPrerequisites}>
+                    + Nouvelle Formation
                 </button>
             </div>
 
-            {error && (
-                <div className="alert-error">
-                    {error}
+            {!hasPrerequisites && (
+                <div className="warning-box" style={{ backgroundColor: "#fff3cd", color: "#856404", padding: "10px", marginBottom: "15px", borderRadius: "5px", border: "1px solid #ffeeba" }}>
+                    <strong>Attention :</strong> Pour créer une formation, vous devez d'abord avoir au moins une Filière et un Niveau.
                 </div>
             )}
 
-            <div className="search-bar">
-                <Search size={20} />
-                <input
-                    type="text"
-                    placeholder="Rechercher une formation..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                />
-            </div>
-
-            <div className="table-container">
-                <table className="data-table">
-                    <thead>
-                        <tr>
-                            <th>Code</th>
-                            <th>Libellé</th>
-                            <th>Description</th>
-                            <th>Actions</th>
+            <table className="departments-table">
+                <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Libellé</th>
+                        <th>Filière</th>
+                        <th>Niveau</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {formations.map((formation) => (
+                        <tr key={formation.id}>
+                            <td><span className="badge-code badge-gray">{formation.code}</span></td>
+                            <td><strong>{formation.libelle}</strong></td>
+                            <td>{formation.filiere ? formation.filiere.libelle : "-"}</td>
+                            <td>{formation.niveau ? formation.niveau.libelle : "-"}</td>
+                            <td className="actions-cell">
+                                <button className="edit-btn" onClick={() => openModal(formation)}>Modifier</button>
+                                <button className="delete-btn" onClick={() => handleDelete(formation.id)}>Supprimer</button>
+                            </td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        {filteredFormations.length === 0 ? (
-                            <tr>
-                                <td colSpan="4" className="no-data">
-                                    Aucune formation trouvée
-                                </td>
-                            </tr>
-                        ) : (
-                            filteredFormations.map((formation) => (
-                                <tr key={formation.id}>
-                                    <td>{formation.code}</td>
-                                    <td>{formation.libelle}</td>
-                                    <td>{formation.description || '-'}</td>
-                                    <td className="actions">
-                                        <button
-                                            className="btn-icon btn-edit"
-                                            onClick={() => openModal(formation)}
-                                            title="Modifier"
-                                        >
-                                            <Edit2 size={18} />
-                                        </button>
-                                        <button
-                                            className="btn-icon btn-delete"
-                                            onClick={() => handleDelete(formation.id)}
-                                            title="Supprimer"
-                                        >
-                                            <Trash2 size={18} />
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))
-                        )}
-                    </tbody>
-                </table>
-            </div>
+                    ))}
+                </tbody>
+            </table>
 
             {showModal && (
-                <div className="modal-overlay" onClick={closeModal}>
-                    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                        <div className="modal-header">
-                            <h2>{editingFormation ? 'Modifier la Formation' : 'Nouvelle Formation'}</h2>
-                            <button className="btn-close" onClick={closeModal}>&times;</button>
-                        </div>
+                <div className="modal-overlay">
+                    <div className="modal-content">
+                        <h3>{isEditing ? "Modifier la Formation" : "Nouvelle Formation"}</h3>
                         <form onSubmit={handleSubmit}>
                             <div className="form-group">
-                                <label htmlFor="code">Code *</label>
+                                <label>Code</label>
                                 <input
                                     type="text"
-                                    id="code"
+                                    name="code"
                                     value={formData.code}
-                                    onChange={(e) => setFormData({ ...formData, code: e.target.value })}
+                                    onChange={handleInputChange}
                                     required
                                 />
                             </div>
                             <div className="form-group">
-                                <label htmlFor="libelle">Libellé *</label>
+                                <label>Libellé</label>
                                 <input
                                     type="text"
-                                    id="libelle"
+                                    name="libelle"
                                     value={formData.libelle}
-                                    onChange={(e) => setFormData({ ...formData, libelle: e.target.value })}
+                                    onChange={handleInputChange}
                                     required
                                 />
                             </div>
                             <div className="form-group">
-                                <label htmlFor="description">Description</label>
+                                <label>Filière</label>
+                                <select
+                                    name="filiere"
+                                    value={formData.filiere}
+                                    onChange={handleInputChange}
+                                    required
+                                >
+                                    <option value="">Sélectionner une filière</option>
+                                    {filieres.map(f => (
+                                        <option key={f.id} value={f.id}>{f.libelle}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className="form-group">
+                                <label>Niveau</label>
+                                <select
+                                    name="niveau"
+                                    value={formData.niveau}
+                                    onChange={handleInputChange}
+                                    required
+                                >
+                                    <option value="">Sélectionner un niveau</option>
+                                    {niveaux.map(n => (
+                                        <option key={n.id} value={n.id}>{n.libelle}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className="form-group">
+                                <label>Description</label>
                                 <textarea
-                                    id="description"
+                                    name="description"
                                     value={formData.description}
-                                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                    rows="4"
+                                    onChange={handleInputChange}
                                 />
                             </div>
-                            <div className="modal-footer">
-                                <button type="button" className="btn-secondary" onClick={closeModal}>
-                                    Annuler
-                                </button>
-                                <button type="submit" className="btn-primary">
-                                    {editingFormation ? 'Mettre à jour' : 'Créer'}
-                                </button>
+                            <div className="modal-actions">
+                                <button type="button" onClick={closeModal} className="cancel-btn">Annuler</button>
+                                <button type="submit" className="submit-btn">Enregistrer</button>
                             </div>
                         </form>
                     </div>
@@ -219,4 +243,4 @@ const Formations = () => {
     );
 };
 
-export default Formations;
+export default MasterFormations;
