@@ -119,7 +119,8 @@ const AdminFormations = () => {
                 fetchData();
             } catch (err) {
                 console.error("Erreur lors de la suppression:", err);
-                alert("Erreur lors de la suppression.");
+                const errorMessage = err.response?.data?.message || err.message || "Impossible de supprimer cette formation. Elle est probablement liée à d'autres éléments.";
+                alert("Erreur lors de la suppression: " + errorMessage);
             }
         }
     };

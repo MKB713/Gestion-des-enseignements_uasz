@@ -7,7 +7,8 @@ import {
     Trash2,
     CheckCircle,
     XCircle,
-    X
+    X,
+    Archive
 } from 'lucide-react';
 import { api, API_ENDPOINTS } from '../../config/api';
 import './AdminUsers.css';
@@ -18,12 +19,14 @@ const AdminUsers = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
+    const [currentUser, setCurrentUser] = useState(null);
 
-    // Form State (Simplified)
+    // Form State
     const [formData, setFormData] = useState({
         prenom: '',
         nom: '',
-        emailPersonnel: '', // Changed from email to emailPersonnel
+        emailPersonnel: '',
         dateNaissance: '',
         role: 'ETUDIANT',
         telephone: '',
@@ -35,7 +38,6 @@ const AdminUsers = () => {
         try {
             setLoading(true);
             const response = await api.get(API_ENDPOINTS.USERS.LIST);
-            // The api.get returns the JSON payload directly (Array)
             setUsers(Array.isArray(response) ? response : []);
             setError(null);
         } catch (err) {
@@ -59,11 +61,37 @@ const AdminUsers = () => {
         }));
     };
 
-    // Handle Create User
+    // Open Modal for Create or Edit
+    const openModal = (user = null) => {
+        if (user) {
+            setIsEditing(true);
+            setCurrentUser(user);
+            setFormData({
+                prenom: user.prenom || '',
+                nom: user.nom || '',
+                emailPersonnel: user.email || '',
+                dateNaissance: user.dateNaissance ? new Date(user.dateNaissance).toISOString().split('T')[0] : '',
+                role: user.role || 'ETUDIANT',
+                telephone: user.telephone || '',
+                adresse: user.adresse || ''
+            });
+        } else {
+            setIsEditing(false);
+            setCurrentUser(null);
+            setFormData({
+                prenom: '', nom: '', emailPersonnel: '',
+                dateNaissance: '', role: 'ETUDIANT',
+                telephone: '', adresse: ''
+            });
+        }
+        setIsModalOpen(true);
+    };
+
+    // Handle Submit (Create or Update)
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        // Validation Age (Min 25 ans)
+        // Validation Age
         if (formData.dateNaissance) {
             const today = new Date();
             const birth = new Date(formData.dateNaissance);
@@ -72,33 +100,86 @@ const AdminUsers = () => {
             if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
                 age--;
             }
-
-            if (age < 25) {
-                alert("L'utilisateur doit avoir au moins 25 ans.");
-                return;
+            if (age < 16) {
+                // Warning if too young
             }
         }
 
         try {
             setLoading(true);
-            // Send to backend (Auto-generation enabled)
-            await api.post(API_ENDPOINTS.AUTH.REGISTER, formData);
+            if (isEditing && currentUser) {
+                // Update
+                // Backend requires 'email' and 'matricule' in UserDTO.
+                // formData has 'emailPersonnel' which maps to 'email'.
+                const payload = {
+                    ...formData,
+                    id: currentUser.id,
+                    email: formData.emailPersonnel,
+                    matricule: currentUser.matricule,
+                    etat: currentUser.etat
+                };
 
-            // Success
+                await api.put(API_ENDPOINTS.USERS.UPDATE(currentUser.id), payload);
+                alert("Utilisateur mis à jour avec succès !");
+            } else {
+                // Create
+                // RegisterRequest uses 'emailPersonnel'
+                await api.post(API_ENDPOINTS.AUTH.REGISTER, formData);
+                alert("Utilisateur créé avec succès !");
+            }
+
             setIsModalOpen(false);
-            setFormData({
-                prenom: '', nom: '', emailPersonnel: '',
-                dateNaissance: '', role: 'ETUDIANT',
-                telephone: '', adresse: ''
-            });
-            fetchUsers(); // Refresh list
-            alert("Utilisateur créé avec succès ! Les identifiants ont été envoyés par email.");
-
+            fetchUsers();
         } catch (err) {
-            console.error("Erreur lors de la création:", err);
-            alert("Erreur lors de la création de l'utilisateur. Vérifiez les champs.");
+            console.error("Erreur lors de l'enregistrement:", err);
+            const msg = err.response?.data?.message || err.message || "Erreur inconnue";
+            alert("Erreur: " + msg);
         } finally {
             setLoading(false);
+        }
+    };
+
+    // Toggle Status (Activate/Deactivate)
+    const handleToggleStatus = async (user) => {
+        const newStatus = user.etat === 'ACTIF' ? 'INACTIF' : 'ACTIF';
+        if (window.confirm(`Voulez-vous vraiment ${newStatus === 'ACTIF' ? 'activer' : 'désactiver'} cet utilisateur ?`)) {
+            try {
+                const payload = { ...user, etat: newStatus };
+                await api.put(API_ENDPOINTS.USERS.UPDATE(user.id), payload);
+                fetchUsers();
+            } catch (err) {
+                console.error("Erreur changement statut:", err);
+                alert("Erreur lors du changement de statut.");
+            }
+        }
+    };
+
+    // Handle Archive
+    const handleArchive = async (user) => {
+        if (window.confirm("Voulez-vous vraiment archiver cet utilisateur ? Il deviendra inactif.")) {
+            try {
+                const payload = { ...user, etat: 'INACTIF' };
+                await api.put(API_ENDPOINTS.USERS.UPDATE(user.id), payload);
+                fetchUsers();
+            } catch (err) {
+                console.error("Erreur lors de l'archivage:", err);
+                alert("Erreur lors de l'archivage.");
+            }
+        }
+    };
+
+    // Handle Delete
+    const handleDelete = async (user) => {
+        if (window.confirm("ATTENTION : Voulez-vous vraiment SUPPRIMER définitivement cet utilisateur ?")) {
+            try {
+                await api.delete(API_ENDPOINTS.USERS.DELETE(user.id));
+                fetchUsers();
+                alert("Utilisateur supprimé avec succès.");
+            } catch (err) {
+                console.error("Erreur lors de la suppression:", err);
+                const msg = err.response?.data?.message || "Impossible de supprimer (contraintes existantes).";
+                alert("Erreur: " + msg);
+            }
         }
     };
 
@@ -122,7 +203,8 @@ const AdminUsers = () => {
                     </h1>
                     <p>Gérez les comptes, les rôles et les accès à la plateforme</p>
                 </div>
-                <button className="btn-primary" onClick={() => setIsModalOpen(true)}>
+                {/* Changed button color to Green as requested */}
+                <button className="btn-primary" style={{ backgroundColor: '#166534' }} onClick={() => openModal()}>
                     <Plus size={20} />
                     Nouvel Utilisateur
                 </button>
@@ -138,17 +220,6 @@ const AdminUsers = () => {
                         className="search-input"
                     />
                 </div>
-                <select className="filter-select">
-                    <option value="">Tous les rôles</option>
-                    <option value="ADMIN">Administrateur</option>
-                    <option value="ENSEIGNANT">Enseignant</option>
-                    <option value="ETUDIANT">Etudiant</option>
-                </select>
-                <select className="filter-select">
-                    <option value="">Tous les états</option>
-                    <option value="active">Actif</option>
-                    <option value="inactive">Inactif</option>
-                </select>
             </div>
 
             {/* Table or Loading */}
@@ -196,17 +267,25 @@ const AdminUsers = () => {
                                         </span>
                                     </td>
                                     <td>
-                                        <span className={`status-indicator ${user.etat === 'ACTIF' ? 'status-active' : 'status-inactive'}`}>
+                                        <button
+                                            className={`status-indicator ${user.etat === 'ACTIF' ? 'status-active' : 'status-inactive'}`}
+                                            onClick={() => handleToggleStatus(user)}
+                                            style={{ border: 'none', background: 'none', cursor: 'pointer' }}
+                                            title={user.etat === 'ACTIF' ? "Désactiver" : "Activer"}
+                                        >
                                             {user.etat === 'ACTIF' ? <CheckCircle size={16} /> : <XCircle size={16} />}
                                             {user.etat}
-                                        </span>
+                                        </button>
                                     </td>
                                     <td>
                                         <div className="actions-cell">
-                                            <button className="btn-icon edit" title="Modifier">
+                                            <button className="btn-icon edit" title="Modifier" onClick={() => openModal(user)}>
                                                 <Edit size={18} />
                                             </button>
-                                            <button className="btn-icon delete" title="Supprimer">
+                                            <button className="btn-icon archive" title="Archiver" onClick={() => handleArchive(user)} style={{ color: '#ca8a04' }}>
+                                                <Archive size={18} />
+                                            </button>
+                                            <button className="btn-icon delete" title="Supprimer" onClick={() => handleDelete(user)}>
                                                 <Trash2 size={18} />
                                             </button>
                                         </div>
@@ -218,20 +297,22 @@ const AdminUsers = () => {
                 )}
             </div>
 
-            {/* Create User Modal */}
+            {/* Create/Edit User Modal */}
             {isModalOpen && (
                 <div className="modal-overlay" onClick={() => setIsModalOpen(false)}>
                     <div className="modal-content" onClick={e => e.stopPropagation()}>
                         <div className="modal-header">
-                            <h2>Nouvel Utilisateur</h2>
+                            <h2>{isEditing ? "Modifier l'Utilisateur" : "Nouvel Utilisateur"}</h2>
                             <button className="close-btn" onClick={() => setIsModalOpen(false)}>
                                 <X size={24} />
                             </button>
                         </div>
                         <form onSubmit={handleSubmit} className="modal-form">
-                            <div className="alert-info" style={{ marginBottom: '1.5rem', padding: '1rem', background: '#ecfdf5', borderRadius: '8px', color: '#047857', fontSize: '0.9rem' }}>
-                                Le mot de passe et le matricule seront générés automatiquement et envoyés à l'email personnel.
-                            </div>
+                            {!isEditing && (
+                                <div className="alert-info" style={{ marginBottom: '1.5rem', padding: '1rem', background: '#ecfdf5', borderRadius: '8px', color: '#047857', fontSize: '0.9rem' }}>
+                                    Le mot de passe et le matricule seront générés automatiquement et envoyés à l'email personnel.
+                                </div>
+                            )}
 
                             <div className="form-grid">
                                 <div className="form-group">
@@ -245,7 +326,7 @@ const AdminUsers = () => {
                             </div>
 
                             <div className="form-group">
-                                <label>Email Personnel (pour réception des accès)</label>
+                                <label>Email Personnel</label>
                                 <input
                                     type="email"
                                     name="emailPersonnel"
@@ -253,12 +334,13 @@ const AdminUsers = () => {
                                     onChange={handleInputChange}
                                     required
                                     placeholder="exemple@box.com"
+                                    disabled={isEditing}
                                 />
                             </div>
 
                             <div className="form-grid">
                                 <div className="form-group">
-                                    <label>Date de Naissance (Min. 25 ans)</label>
+                                    <label>Date de Naissance</label>
                                     <input
                                         type="date"
                                         name="dateNaissance"
@@ -269,7 +351,7 @@ const AdminUsers = () => {
                                 </div>
                                 <div className="form-group">
                                     <label>Rôle</label>
-                                    <select name="role" value={formData.role} onChange={handleInputChange}>
+                                    <select name="role" value={formData.role} onChange={handleInputChange} disabled={isEditing}>
                                         <option value="ETUDIANT">Etudiant</option>
                                         <option value="ENSEIGNANT">Enseignant</option>
                                         <option value="ADMIN">Administrateur</option>
@@ -293,7 +375,7 @@ const AdminUsers = () => {
                             <div className="form-actions">
                                 <button type="button" className="btn-secondary" onClick={() => setIsModalOpen(false)}>Annuler</button>
                                 <button type="submit" className="btn-primary" disabled={loading}>
-                                    {loading ? 'Génération...' : 'Valider & Créer'}
+                                    {loading ? 'Traitement...' : (isEditing ? 'Mettre à jour' : 'Valider & Créer')}
                                 </button>
                             </div>
                         </form>

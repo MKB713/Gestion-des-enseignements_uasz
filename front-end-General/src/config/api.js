@@ -32,6 +32,8 @@ export const API_ENDPOINTS = {
     SEARCH: `${API_BASE_URL}/api/users/search`,
     BY_ID: (id) => `${API_BASE_URL}/api/users/${id}`,
     BY_ROLE: (role) => `${API_BASE_URL}/api/users/role/${role}`,
+    UPDATE: (id) => `${API_BASE_URL}/api/users/${id}`,
+    DELETE: (id) => `${API_BASE_URL}/api/users/${id}`,
   },
 
   BATIMENTS: {
@@ -47,6 +49,7 @@ export const API_ENDPOINTS = {
   // Gateway: /api/enseignants/**
   // =========================
   ENSEIGNANTS: {
+    base: `${API_BASE_URL}/api/enseignants`,
     LIST: `${API_BASE_URL}/api/enseignants`,
     BY_ID: (id) => `${API_BASE_URL}/api/enseignants/${id}`,
     CREATE: `${API_BASE_URL}/api/enseignants`,

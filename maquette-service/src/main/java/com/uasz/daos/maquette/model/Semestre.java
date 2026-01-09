@@ -25,9 +25,10 @@ public class Semestre {
 
     @ManyToOne
     @JoinColumn(name = "maquette_id")
-    @JsonIgnore  // Évite la boucle infinie JSON avec Maquette
+    @JsonIgnore // Évite la boucle infinie JSON avec Maquette
     private Maquette maquette;
 
     @OneToMany(mappedBy = "semestre", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<UE> ues;
 }

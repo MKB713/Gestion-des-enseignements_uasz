@@ -186,6 +186,8 @@ const AdminUEs = () => {
 
             {error && <div className="error">{error}</div>}
 
+
+
             <table className="departments-table">
                 <thead>
                     <tr>
@@ -284,9 +286,12 @@ const AdminUEs = () => {
                                 <label>Semestre</label>
                                 <select name="semestre" value={formData.semestre} onChange={handleInputChange}>
                                     <option value="">Sélectionner un Semestre</option>
-                                    {semestres.map(s => (
-                                        <option key={s.id} value={s.id}>{s.libelle} ({s.maquette ? s.maquette.code : "Pas de maquette"})</option>
-                                    ))}
+                                    <option value="1">Semestre 1</option>
+                                    <option value="2">Semestre 2</option>
+                                    <option value="3">Semestre 3</option>
+                                    <option value="4">Semestre 4</option>
+                                    <option value="5">Semestre 5</option>
+                                    <option value="6">Semestre 6</option>
                                 </select>
                             </div>
 

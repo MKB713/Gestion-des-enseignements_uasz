@@ -36,10 +36,11 @@ public class EC {
 
     @ManyToOne
     @JoinColumn(name = "ue_id")
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private UE ue;
 
     @OneToMany(mappedBy = "ec")
-    @JsonIgnore  // Évite la boucle infinie JSON avec Module
+    @JsonIgnore // Évite la boucle infinie JSON avec Module
     private List<Module> modules;
 
     private String description;

@@ -134,9 +134,13 @@ const AdminNiveaux = () => {
                     ) : (
                         niveaux.map((niveau) => (
                             <tr key={niveau.id}>
-                                <td>{niveau.cycle}</td>
+                                <td>
+                                    <span className={`badge-code ${niveau.cycle === 'LICENCE' ? 'badge-blue' : niveau.cycle === 'MASTER' ? 'badge-success' : 'badge-purple'}`}>
+                                        {niveau.cycle}
+                                    </span>
+                                </td>
                                 <td>{niveau.numero}</td>
-                                <td>{niveau.cycle} {niveau.numero}</td>
+                                <td><strong>{niveau.cycle} {niveau.numero}</strong></td>
                                 <td className="actions-cell">
                                     <button className="edit-btn" onClick={() => openModal(niveau)}>Modifier</button>
                                     <button className="delete-btn" onClick={() => handleDelete(niveau.id)}>Supprimer</button>

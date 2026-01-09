@@ -37,14 +37,13 @@ public class UE {
 
     @ManyToOne
     @JoinColumn(name = "semestre_id")
-    @JsonIgnore  // Évite la boucle infinie JSON avec Semestre
     private Semestre semestre;
 
     @OneToMany(mappedBy = "ue", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<EC> ecs;
 
     @OneToMany(mappedBy = "ue")
-    @JsonIgnore  // Évite la boucle infinie JSON avec Module
+    @JsonIgnore // Évite la boucle infinie JSON avec Module
     private List<Module> modules;
 
     private String description;

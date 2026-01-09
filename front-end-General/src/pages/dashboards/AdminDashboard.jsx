@@ -1,22 +1,21 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     Users,
     GraduationCap,
     BookOpen,
     Building2,
-    LayoutDashboard,
     Calendar,
     ClipboardList,
     Layers,
-    FileText,
     Settings,
     Shield
 } from 'lucide-react';
-import './../dashboards/MasterDashboard.css'; // Reusing Master styles
+import './../dashboards/MasterDashboard.css';
 import EvolutionChart from '../../components/EvolutionChart';
+import { apiRequest, API_ENDPOINTS } from '../../config/api';
 
-// Mock Data for Admin
+// Mock Data for Evolution Chart (Harder to calculate dynamically without backend aggregation)
 const adminChartData = [
     { name: 'Oct', value: 20 },
     { name: 'Nov', value: 45 },
@@ -24,7 +23,6 @@ const adminChartData = [
     { name: 'Jan', value: 75 },
     { name: 'Fév', value: 85 },
     { name: 'Mar', value: 92 },
-    { name: 'Avr', value: 98 },
     { name: 'Avr', value: 98 },
 ];
 
@@ -54,6 +52,44 @@ const StatCard = ({ value, label, color }) => (
 
 const AdminDashboard = () => {
     const navigate = useNavigate();
+    const [stats, setStats] = useState({
+        etudiants: 0,
+        enseignants: 0,
+        formations: 0,
+        departements: 0
+    });
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchStats = async () => {
+            try {
+                const [usersRes, enseignantsRes, formationsRes, deptRes] = await Promise.all([
+                    apiRequest(API_ENDPOINTS.USERS.LIST).catch(() => []),
+                    apiRequest(API_ENDPOINTS.ENSEIGNANTS.LIST).catch(() => []),
+                    apiRequest(API_ENDPOINTS.FORMATIONS.LIST).catch(() => []),
+                    apiRequest(API_ENDPOINTS.DEPARTMENTS.LIST).catch(() => [])
+                ]);
+
+                // Filter students from users list or use dedicated student endpoint if available
+                // Assuming 'role' attribute exists on user
+                const studentsCount = Array.isArray(usersRes) ? usersRes.filter(u => u.role === 'ETUDIANT').length : 0;
+                // If usersRes list is mixed, filtering is good. If USERS.LIST returns all.
+
+                setStats({
+                    etudiants: studentsCount,
+                    enseignants: Array.isArray(enseignantsRes) ? enseignantsRes.length : 0,
+                    formations: Array.isArray(formationsRes) ? formationsRes.length : 0,
+                    departements: Array.isArray(deptRes) ? deptRes.length : 0
+                });
+            } catch (error) {
+                console.error("Erreur chargement statistiques:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchStats();
+    }, []);
 
     return (
         <div className="master-dashboard">
@@ -71,19 +107,11 @@ const AdminDashboard = () => {
 
             {/* Global Stats */}
             <div className="stats-grid">
-                <StatCard value="1,250" label="ETUDIANTS" color="#64748b" />
-                <StatCard value="85" label="ENSEIGNANTS" color="#ca8a04" />
-                <StatCard value="42" label="FORMATIONS" color="#1a5e34" />
-                <StatCard value="12" label="DÉPARTEMENTS" color="#b91c1c" />
+                <StatCard value={loading ? "..." : stats.etudiants} label="ETUDIANTS" color="#64748b" />
+                <StatCard value={loading ? "..." : stats.enseignants} label="ENSEIGNANTS" color="#ca8a04" />
+                <StatCard value={loading ? "..." : stats.formations} label="FORMATIONS" color="#1a5e34" />
+                <StatCard value={loading ? "..." : stats.departements} label="DÉPARTEMENTS" color="#b91c1c" />
             </div>
-
-            {/* Evolution Chart */}
-            <EvolutionChart
-                data={adminChartData}
-                title="Taux de Couverture des Enseignements"
-                subtitle="Progression globale des cours dispensés (Année académique)"
-                color="#064e3b"
-            />
 
             {/* Administration Section */}
             <div className="dashboard-section">
@@ -106,13 +134,7 @@ const AdminDashboard = () => {
                         subtitle="Structure de l'établissement"
                         btnText="Configurer"
                         iconColor="#b91c1c"
-                    />
-                    <ActionCard
-                        icon={Building2}
-                        title="Structures"
-                        subtitle="UFR et Écoles"
-                        btnText="Configurer"
-                        iconColor="#b91c1c"
+                        onClick={() => navigate('/admin/departments')}
                     />
                 </div>
             </div>
@@ -130,6 +152,7 @@ const AdminDashboard = () => {
                         subtitle="Gestion des formations"
                         btnText="Gérer"
                         iconColor="#1a5e34"
+                        onClick={() => navigate('/admin/formations')}
                     />
                     <ActionCard
                         icon={Layers}
@@ -137,6 +160,7 @@ const AdminDashboard = () => {
                         subtitle="Validation des maquettes"
                         btnText="Valider"
                         iconColor="#1a5e34"
+                        onClick={() => navigate('/admin/maquettes')}
                     />
                     <ActionCard
                         icon={BookOpen}
@@ -144,6 +168,7 @@ const AdminDashboard = () => {
                         subtitle="Modules, UE, EC"
                         btnText="Superviser"
                         iconColor="#1a5e34"
+                        onClick={() => navigate('/admin/ues')}
                     />
                 </div>
             </div>
@@ -161,6 +186,7 @@ const AdminDashboard = () => {
                         subtitle="Vue globale des plannings"
                         btnText="Consulter"
                         iconColor="#ca8a04"
+                        onClick={() => navigate('/admin/plannings')}
                     />
                     <ActionCard
                         icon={Users}
@@ -168,6 +194,7 @@ const AdminDashboard = () => {
                         subtitle="Répartition des classes"
                         btnText="Gérer"
                         iconColor="#ca8a04"
+                        onClick={() => navigate('/admin/classes')}
                     />
                     <ActionCard
                         icon={ClipboardList}
@@ -175,10 +202,22 @@ const AdminDashboard = () => {
                         subtitle="Suivi des enseignements"
                         btnText="Auditer"
                         iconColor="#ca8a04"
+                        onClick={() => navigate('/admin/cahier-texte')}
                     />
                 </div>
             </div>
-        </div >
+
+            {/* Evolution Chart (Moved to bottom) */}
+            <div style={{ marginTop: '2rem' }}>
+                <EvolutionChart
+                    data={adminChartData}
+                    title="Taux de Couverture des Enseignements"
+                    subtitle="Progression globale des cours dispensés (Année académique)"
+                    color="#064e3b"
+                />
+            </div>
+
+        </div>
     );
 };
 

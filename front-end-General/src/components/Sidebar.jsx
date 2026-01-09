@@ -109,7 +109,7 @@ const Sidebar = ({ user, logout }) => {
                     { isHeader: true, label: 'ADMINISTRATION' },
                     { path: '/admin/users', label: 'Utilisateurs', icon: Users },
                     { path: '/admin/departments', label: 'Départements', icon: Building2 },
-                    { path: '/admin/structures', label: 'Structures', icon: Building2 },
+
                     { path: '/admin/formations', label: 'Formations', icon: GraduationCap },
                     { path: '/admin/filieres', label: 'Filières', icon: GitBranch },
                     { path: '/admin/niveaux', label: 'Niveaux', icon: Layers },
